@@ -1,0 +1,11 @@
+spring:
+  profiles:
+    active: @profileActive@
+lts:
+  server:
+    role: executor
+    executor:
+      adminUrls: http://localhost:8080
+      handler:
+        name: test
+        host: localhost:8081
