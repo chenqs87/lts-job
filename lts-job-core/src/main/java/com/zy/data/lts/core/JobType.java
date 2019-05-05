@@ -12,7 +12,8 @@ public enum JobType {
     /**
      * java executor 内部执行
      */
-    java(4, ".java");
+    java(4, ".java"),
+    end(-1,"");
 
 
     int code;
@@ -27,6 +28,7 @@ public enum JobType {
             case 1: return shell;
             case 2: return python;
             case 3: return zip;
+            case -1: return end;
             default: throw new IllegalArgumentException("code is illegal!!!");
         }
     }

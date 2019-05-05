@@ -43,6 +43,6 @@ public interface FlowTaskDao extends BaseDao{
     List<FlowTask> select();
 
     @ResultMap("flowTask")
-    @Select("select * from flow_task where flowId=#{flowId} order by begin_time desc")
+    @Select("select * from flow_task where flow_id=#{flowId} order by begin_time desc")
     List<FlowTask> findByFlowId(@Param("flowId") int flowId);
 }

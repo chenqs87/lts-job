@@ -1,7 +1,9 @@
 package com.zy.data.lts.executor.config;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,5 +35,10 @@ public class ExecutorConfig {
 
         Files.createDirectories(path);
         return path;
+    }
+
+    @Bean
+    public ServerEndpointExporter serverEndpointExporter() {
+        return new ServerEndpointExporter();
     }
 }

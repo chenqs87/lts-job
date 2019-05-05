@@ -9,13 +9,27 @@ import java.util.List;
  */
 public class IntegerTool {
 
-    public static List<Integer> parseOneBit(int value) {
+/*    public static List<Integer> parseOneBit2(int value) {
 
         int length = Integer.bitCount(value);
         List<Integer> ret = new ArrayList<>(length);
 
         for (int i = 0; i < 32; i ++) {
             if((value & (1 << i)) > 0) {
+                ret.add(i);
+            }
+        }
+        return ret;
+    }*/
+
+    public static List<Integer> parseOneBit(int value) {
+
+        int length = Integer.bitCount(value);
+        List<Integer> ret = new ArrayList<>(length);
+
+        int v = value;
+        for (int i = 0; v > 0; i ++, v = v >> 1) {
+            if((v & 1) > 0) {
                 ret.add(i);
             }
         }

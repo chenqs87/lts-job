@@ -90,8 +90,12 @@ public class Task {
         return preTask;
     }
 
-    public void setPreTask(int preTask) {
+    public void setUpPreTask(int preTask) {
         this.preTask |= 1 << preTask;
+    }
+
+    public void setPreTask(int preTask) {
+        this.preTask = preTask;
     }
 
     public synchronized void completePreTask(int preTask) {
@@ -102,8 +106,12 @@ public class Task {
         return postTask;
     }
 
-    public void setPostTask(int postTask) {
+    public void setUpPostTask(int postTask) {
         this.postTask |= 1 << postTask;
+    }
+
+    public void setPostTask(int postTask) {
+        this.postTask = postTask;
     }
 
     public int getFlowId() {

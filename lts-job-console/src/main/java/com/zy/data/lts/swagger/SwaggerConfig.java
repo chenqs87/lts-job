@@ -19,5 +19,4 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
                 .build();
     }
-     
 }

@@ -1,9 +1,8 @@
 package com.zy.data.lts.schedule.state.task;
 
 import com.zy.data.lts.core.entity.Task;
-import com.zy.data.lts.schedule.service.SpringContext;
+import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.schedule.state.EventHandler;
-import com.zy.data.lts.schedule.state.InvalidStateTransitionException;
 import com.zy.data.lts.schedule.state.StateMachine;
 import com.zy.data.lts.schedule.state.StateMachineFactory;
 import com.zy.data.lts.schedule.state.task.transition.*;

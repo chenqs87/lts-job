@@ -1,8 +1,10 @@
-package com.zy.data.lts.schedule.service;
+package com.zy.data.lts.core.tool;
 
 import org.springframework.beans.BeansException;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -11,15 +13,23 @@ import org.springframework.stereotype.Component;
 @Order(0)
 public class SpringContext implements ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
+    private ConfigurableApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
-        applicationContext = context;
+        applicationContext = (ConfigurableApplicationContext)context;
     }
 
     public <T> T getBean(Class<T> clazz) {
         return applicationContext.getBean(clazz);
+    }
+
+    public void registerBean(String beanName, Object obj) {
+        applicationContext.getBeanFactory().registerSingleton(beanName, obj);
+    }
+
+    public boolean contain(String beanName) {
+        return applicationContext.getBeanFactory().containsBean(beanName);
     }
 
 }

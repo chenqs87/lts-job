@@ -3,16 +3,24 @@ package com.zy.data.lts.core.api;
 import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
+import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import feign.Feign;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import org.springframework.beans.BeansException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -21,7 +29,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Component
 @ConditionalOnProperty(name= "lts.server.role", havingValue = "admin")
-public class ExecutorApi implements IExecutorApi {
+public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
 
     //<ip:port,executor>
     private final Map<String, Executor> executors = new ConcurrentHashMap<>();
@@ -41,24 +51,25 @@ public class ExecutorApi implements IExecutorApi {
     }
     public void refresh(BeatInfoRequest beat) {
         String host = beat.getHost() + ":" + beat.getPort();
-
         updateExecutors(beat, host);
     }
 
     @PreDestroy
     private void destroy() {
         isRunning.set(false);
-
     }
 
     private void doExec() {
         try {
             for (Executor executor : executors.values()) {
                 if (executor.isActive()) {
-                    ExecuteRequest request = queue.poll(5, TimeUnit.SECONDS);
+                    ExecuteRequest request = queue.poll(2, TimeUnit.SECONDS);
                     if(request != null && executor.getHandler().equals(request.getHandler())) {
                         try {
                             executor.getApi().execute(request);
+                            applicationContext.publishEvent(
+                                    new UpdateTaskHostEvent(request.getFlowTaskId(),
+                                            request.getTaskId(), executor.getHost()));
                         } catch (Exception e) {
                             e.printStackTrace();
                             queue.put(request);
@@ -85,19 +96,29 @@ public class ExecutorApi implements IExecutorApi {
         });
 
         // 新增executors
-        executors.computeIfAbsent(hostAndPort, f -> {
-            Executor executor = new Executor();
+        executors.computeIfAbsent(hostAndPort, f -> createExecutor(beat, host));
+    }
 
-            IExecutorApi executorApi = Feign.builder()
-                    .encoder(new GsonEncoder())
-                    .decoder(new GsonDecoder())
-                    .target(IExecutorApi.class, "http://" + beat.getHost() + ":" + beat.getPort());
-            executor.setApi(executorApi);
-            executor.setHost(host);
-            executor.setHandler(beat.getHandler());
-            return executor;
-        });
+    private Executor createExecutor(BeatInfoRequest beat, String host) {
+        Executor executor = new Executor();
+
+        IExecutorApi executorApi = Feign.builder()
+                .encoder(new GsonEncoder())
+                .decoder(new GsonDecoder())
+                .target(IExecutorApi.class, "http://" + beat.getHost() + ":" + beat.getPort());
+        executor.setApi(executorApi);
+        executor.setHost(host);
+        executor.setHandler(beat.getHandler());
+        return executor;
     }
 
 
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+
+    public List<Executor> getExecutors() {
+       return null;
+    }
 }

@@ -12,8 +12,9 @@ import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.ExecuteRequest;
+import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.schedule.model.Tuple;
-import com.zy.data.lts.schedule.service.SpringContext;
+import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
@@ -25,6 +26,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -209,14 +211,17 @@ public class JobTrigger {
         List<Tuple<Integer, Integer>> list = bis.lines()
                 .map(l -> l.split(":"))
                 .filter(ArrayUtils::isNotEmpty)
-                .map(s -> new Tuple<>(Integer.parseInt(s[0]),Integer.parseInt(s[1])))
+                .map(s -> new Tuple<>(Integer.parseInt(s[0]),
+                        s.length == 2 ? Integer.parseInt(s[1]) : -1))
                 .collect(Collectors.toList());
 
         // <jobId, taskId>
         Map<Integer, Integer> map = new HashMap<>();
         list.forEach(t -> {
             map.putIfAbsent(t.first(), map.size());
-            map.putIfAbsent(t.second(), map.size());
+            if(t.second() > 0) {
+                map.putIfAbsent(t.second(), map.size());
+            }
         });
 
         Map<Integer, Task> taskMap = new HashMap<>();
@@ -243,8 +248,10 @@ public class JobTrigger {
         list.forEach(t -> {
             Task first = taskMap.get(t.first());
             Task second = taskMap.get(t.second());
-            first.setPostTask(second.getTaskId());
-            second.setPreTask(first.getTaskId());
+            if(second != null) {
+                first.setUpPostTask(second.getTaskId());
+                second.setUpPreTask(first.getTaskId());
+            }
         });
 
         taskMap.values().forEach(task -> taskDao.insert(task));
@@ -281,5 +288,12 @@ public class JobTrigger {
         public void setShardCount(Integer shardCount) {
             this.shardCount = shardCount;
         }
+    }
+
+    @EventListener
+    public void updateTaskHost(UpdateTaskHostEvent event) {
+        Task task = taskDao.findById(event.getFlowTaskId(), event.getTaskId());
+        task.setHost(event.getHost());
+        taskDao.update(task);
     }
 }

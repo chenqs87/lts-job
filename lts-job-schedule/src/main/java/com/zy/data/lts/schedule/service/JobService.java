@@ -173,5 +173,8 @@ public class JobService {
         return taskDao.findByFlowTaskId(flowTaskId);
     }
 
+    public Flow getFlowById(Integer flowId) {
+        return flowDao.findById(flowId);
+    }
 
 }

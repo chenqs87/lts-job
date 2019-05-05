@@ -36,7 +36,8 @@ public interface TaskDao extends BaseDao {
     Task findById(@Param("flowTaskId") int flowTaskId, @Param("taskId") int taskId);
 
     @Update("update task set pre_task=#{preTask},task_status=#{taskStatus}," +
-            "end_time=#{endTime},shard_status=#{shardStatus},handler=#{handler},host=#{host} " +
+            "end_time=#{endTime},shard_status=#{shardStatus},handler=#{handler}," +
+            "host=#{host} " +
             "where flow_task_id=#{flowTaskId} and task_id=#{taskId}")
     void update(Task task);
 
