@@ -1,7 +1,12 @@
 package com.zy.data.lts.console;
 
+import com.github.pagehelper.PageInfo;
+import com.zy.data.lts.core.TriggerMode;
+import com.zy.data.lts.core.api.ExecutorApi;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.Job;
+import com.zy.data.lts.core.model.JobQueryRequest;
+import com.zy.data.lts.core.model.PagerRequest;
 import com.zy.data.lts.schedule.service.JobService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -20,6 +25,9 @@ public class ConsoleFlowController {
 
     @Autowired
     JobService jobService;
+
+    @Autowired
+    ExecutorApi executorApi;
 
     @ApiOperation(value = "启动定时任务",  notes="启动定时任务")
     @PostMapping("/cronFlow")
@@ -76,21 +84,22 @@ public class ConsoleFlowController {
 
     @ApiOperation(value = "执行工作流",  notes="执行工作流")
     @PostMapping("/triggerFlow")
-    public ResponseEntity triggerFlow(@RequestParam("flowId") Integer flowId, @RequestParam ("params") String params) {
-        jobService.triggerFlow(flowId, params);
+    public ResponseEntity triggerFlow(@RequestParam("flowId") Integer flowId,
+                                      @RequestParam ("params") String params) {
+        jobService.triggerFlow(flowId, TriggerMode.Click, params);
         return ResponseEntity.ok().build();
     }
 
     @ApiOperation(value = "查询所有任务",  notes="查询所有任务")
-    @PostMapping("/getAllJobs")
-    public ResponseEntity getAllJobs() {
-        return ResponseEntity.ok(jobService.findAllJobs());
+    @GetMapping("/getAllJobs")
+    public ResponseEntity getAllJobs(JobQueryRequest request) {
+        return ResponseEntity.ok(new PageInfo<>(jobService.findAllJobs(request)));
     }
 
     @ApiOperation(value = "查询所有工作流",  notes="查询所有工作流")
-    @PostMapping("/getAllFlows")
-    public ResponseEntity getAllFlows() {
-        return ResponseEntity.ok(jobService.findAllFlows());
+    @GetMapping("/getAllFlows")
+    public ResponseEntity getAllFlows(PagerRequest request) {
+        return ResponseEntity.ok(new PageInfo<>(jobService.findAllFlows(request.getPageNum(), request.getPageSize())));
     }
 
     @ApiOperation(value = "查询工作流",  notes="查询工作流")
@@ -101,22 +110,38 @@ public class ConsoleFlowController {
 
     @ApiOperation(value = "查询所有工作流任务",  notes="查询所有工作流任务")
     @GetMapping("/getAllFlowTasks")
-    public ResponseEntity getAllFlowTasks() {
-        return ResponseEntity.ok(jobService.findAllFlowTask());
+    public ResponseEntity getAllFlowTasks(@RequestParam("pageNum") Integer pageNum,
+                                          @RequestParam("pageSize") Integer pageSize) {
+        return ResponseEntity.ok(new PageInfo<>(jobService.findAllFlowTask(pageNum, pageSize)));
     }
 
     @ApiOperation(value = "查询指定工作流任务",  notes="查询指定工作流任务")
     @GetMapping("/getFlowTasksByFlowId")
-    public ResponseEntity getFlowTasksByFlowId(@RequestParam("flowId") Integer flowId) {
-        return ResponseEntity.ok(jobService.findByFlowId(flowId));
+    public ResponseEntity getFlowTasksByFlowId(@RequestParam("flowId") Integer flowId,
+                                               @RequestParam("pageNum") Integer pageNum,
+                                               @RequestParam("pageSize") Integer pageSize) {
+        return ResponseEntity.ok(new PageInfo<>(jobService.findByFlowId(flowId, pageNum, pageSize)));
     }
 
     @ApiOperation(value = "查询所有任务",  notes="查询所有任务")
     @GetMapping("/getTasks")
-    public ResponseEntity getTasks(@RequestParam("flowTaskId") Integer flowTaskId) {
-        return ResponseEntity.ok(jobService.findTaskByFlowTaskId(flowTaskId));
+    public ResponseEntity getTasks(@RequestParam("flowTaskId") Integer flowTaskId,
+                                   @RequestParam("pageNum") Integer pageNum,
+                                   @RequestParam("pageSize") Integer pageSize) {
+        return ResponseEntity.ok(new PageInfo<>(jobService.findTaskByFlowTaskId(flowTaskId, pageNum, pageSize)));
     }
 
+    @ApiOperation(value = "kill任务",  notes="kill任务")
+    @PostMapping("/killFlowTask")
+    public ResponseEntity killFlowTask(@RequestParam("flowTaskId") Integer flowTaskId) {
+        jobService.killFlowTask(flowTaskId);
+        return ResponseEntity.ok().build();
+    }
 
+    @ApiOperation(value = "查询所有handler",  notes="查询所有handler")
+    @GetMapping("/getHandlers")
+    public ResponseEntity getHandlers() {
+        return ResponseEntity.ok(executorApi.getActiveExecutors());
+    }
 
 }

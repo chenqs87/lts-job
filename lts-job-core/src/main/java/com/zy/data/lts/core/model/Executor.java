@@ -12,7 +12,7 @@ import java.util.Set;
  * @author chenqingsong
  * @date 2019/4/11 11:21
  */
-public class Executor implements Comparable<Executor> {
+public class Executor{
     private static final long TIME_OUT = 30 * 60 * 1000;
     private IExecutorApi api;
     private float memFree;
@@ -78,9 +78,4 @@ public class Executor implements Comparable<Executor> {
         this.handler = handler;
     }
 
-    @Override
-    public int compareTo(Executor o) {
-
-        return 0;
-    }
 }

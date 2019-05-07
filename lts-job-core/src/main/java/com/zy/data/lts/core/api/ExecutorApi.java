@@ -15,8 +15,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -50,8 +49,10 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
     }
     public void refresh(BeatInfoRequest beat) {
-        String host = beat.getHost() + ":" + beat.getPort();
-        updateExecutors(beat, host);
+        if(beat.getPort() > 0) {
+            String host = beat.getHost() + ":" + beat.getPort();
+            updateExecutors(beat, host);
+        }
     }
 
     @PreDestroy
@@ -118,7 +119,17 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
         this.applicationContext = applicationContext;
     }
 
-    public List<Executor> getExecutors() {
-       return null;
+    public Map<String, Set<String>> getActiveExecutors() {
+        // <handler,<ip:port>
+        Map<String, Set<String>> map = new HashMap<>();
+
+        executors.values().forEach(executor -> {
+            Set<String> hosts = map.computeIfAbsent(executor.getHandler(), f -> new HashSet<>());
+            if(executor.isActive()) {
+                hosts.add(executor.getHost());
+            }
+        });
+
+       return map;
     }
 }

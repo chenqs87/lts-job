@@ -27,18 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class LogService {
 
-
-    //private final Map<String, FileOutputStream> files = new ConcurrentHashMap<>();
-
     @Autowired
     private ExecutorConfig executorConfig;
-
-
-    /*public void info(JobExecuteEvent event, String log) throws IOException {
-        String key = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        files.computeIfAbsent(key, f -> newFileOutputStream(root));
-    }*/
 
     public void info(JobExecuteEvent event, InputStream is) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
@@ -96,37 +86,6 @@ public class LogService {
 
     private Path buildOutputPath(Path root) {
         return Paths.get(root.toString(), "syslog.log");
-    }
-
-    private FileOutputStream newFileOutputStream(Path rootPah) {
-        try {
-            Path logFile = newFileOutput(rootPah);
-            if(logFile == null) {
-                return null;
-            }
-            return new FileOutputStream(logFile.toFile());
-        } catch (IOException e) {
-            // print log
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private List<String> readLogs(LogQueryRequest request) throws IOException {
-        Path root = executorConfig.getExecDir(request.getFlowTaskId(), request.getTaskId(), request.getShard());
-        Path logFile = buildOutputPath(root);
-        BufferedReader reader = Files.newBufferedReader(logFile);
-
-
-        return null;
-    }
-
-    public void finish(int flowTaskId, int taskId, int shard) {
-
-    }
-
-    public String buildKey(int flowTaskId, int taskId, int shard) {
-        return flowTaskId + "_" + taskId + "_" + shard;
     }
 
 }

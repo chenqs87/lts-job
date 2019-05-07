@@ -16,6 +16,4 @@ public enum  JobShardType {
     public int code() {
         return code;
     }
-
-
 }

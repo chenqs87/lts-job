@@ -17,8 +17,14 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author chenqingsong
@@ -28,6 +34,8 @@ import java.nio.file.*;
 public class JobService implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
+
+    private final ConcurrentHashMap<String, String> runningTasks = new ConcurrentHashMap<>();
 
     @Autowired
     FlowTaskDao flowTaskDao;
@@ -60,7 +68,6 @@ public class JobService implements ApplicationContextAware {
             case shell: event = new ShellEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
             case python: event = new PythonEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
             case zip: event = new ZipEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
-            case java: event = new JavaEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
         }
 
         applicationContext.publishEvent(event);
@@ -68,10 +75,6 @@ public class JobService implements ApplicationContextAware {
 
     private Path createOutputDir(ExecuteRequest req, Job job, JobType jobType) throws IOException {
         Path root = executorConfig.getExecDir(req.getFlowTaskId(), req.getTaskId(), req.getShard());
-
-        if(jobType == JobType.java) {
-            return root;
-        }
 
         String content = job.getContent();
         Path execFile = Paths.get(root.toString(), "exec");

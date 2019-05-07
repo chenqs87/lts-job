@@ -83,17 +83,52 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
 
     @Override
     public void success(JobResultRequest request) {
-        getIAdminApi().success(request);
+        while (true) {
+            try {
+                getIAdminApi().success(request);
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ignore) { }
+            }
+
+        }
     }
 
     @Override
     public void fail(JobResultRequest request) {
-        getIAdminApi().fail(request);
+        while (true) {
+            try {
+                getIAdminApi().fail(request);
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ignore) { }
+            }
+
+        }
+
     }
 
     @Override
     public void start(JobResultRequest request) {
-        getIAdminApi().start(request);
+        while (true) {
+            try {
+                getIAdminApi().start(request);
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException ignore) { }
+            }
+
+        }
+
     }
 
     @Override

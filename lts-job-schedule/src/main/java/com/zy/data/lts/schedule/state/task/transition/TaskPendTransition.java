@@ -28,10 +28,6 @@ public class TaskPendTransition implements MultipleArcTransition<MemTask, TaskEv
         task.setTaskStatus(ret.code());
         taskDao.update(task);
 
-        /*if(ret == TaskStatus.Pending) {
-            jobTrigger.sendTask(job);
-        }*/
-
         return ret;
     }
 }

@@ -2,6 +2,7 @@ package com.zy.data.lts.schedule.trigger;
 
 import com.google.gson.Gson;
 import com.zy.data.lts.core.JobShardType;
+import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.api.ExecutorApi;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
@@ -76,7 +77,7 @@ public class JobTrigger {
 
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-    private final Thread flowTaskThread = new Thread(() -> {
+   /* private final Thread flowTaskThread = new Thread(() -> {
         while (isRunning.get()) {
             try {
                 Integer flowId = flowQueue.poll(5, TimeUnit.SECONDS);
@@ -86,12 +87,12 @@ public class JobTrigger {
             } catch (InterruptedException ignore) {}
         }
         countDownLatch.countDown();
-    });
+    });*/
 
     @PostConstruct
     public void init() {
         // load all un finished flowTasks
-        flowTaskThread.start();
+       // flowTaskThread.start();
 
         //判断是否是主节点，主节点加载
         loadUnFinishedFlowTasks();
@@ -100,27 +101,25 @@ public class JobTrigger {
     @PreDestroy
     public void destroy() {
         isRunning.set(false);
-        try {
+       /* try {
             flowTaskThread.interrupt();
             countDownLatch.await();
-        } catch (InterruptedException ignore) {}
+        } catch (InterruptedException ignore) {}*/
     }
 
-    /**
-     * 手动启动工作流任务
-     * @param flowId
-     */
+
     @Transactional
-    public void triggerFlow(int flowId) {
-        triggerFlow(flowId, null);
+    public void triggerFlow(int flowId, TriggerMode triggerMode) {
+        triggerFlow(flowId, triggerMode,null);
     }
 
     @Transactional
-    public void triggerFlow(int flowId, String params) {
+    public void triggerFlow(int flowId, TriggerMode triggerMode, String params) {
         Flow flow = flowDao.findById(flowId);
         String config = flow.getFlowConfig();
 
-        FlowTask flowTask = createFlowTask(flow, params);
+        FlowTask flowTask = createFlowTask(flow, triggerMode, params);
+
         List<MemTask> tasks = createAndGetTasks(config, flowTask, flowId);
 
         MemFlowTask memFlowTask = new MemFlowTask(flowTask, tasks, springContext);
@@ -157,6 +156,13 @@ public class JobTrigger {
         flowTask.handle(flowEvent);
     }
 
+    public void killFlowTask(int flowTaskId) {
+        MemFlowTask flowTask = runningFlowTasks.get(flowTaskId);
+        if(flowTask != null) {
+            flowTask.handle(new FlowEvent(FlowEventType.Kill));
+        }
+    }
+
     private MemFlowTask getMemFlowTask(int flowTaskId) {
         return runningFlowTasks.computeIfAbsent(flowTaskId, f -> {
             FlowTask ft = flowTaskDao.findById(flowTaskId);
@@ -185,12 +191,14 @@ public class JobTrigger {
         }
     }
 
-    private FlowTask createFlowTask(Flow flow, String params) {
+    private FlowTask createFlowTask(Flow flow, TriggerMode triggerMode, String params) {
         FlowTask flowTask = new FlowTask();
         flowTask.setFlowId(flow.getId());
         flowTask.setStatus(FlowTaskStatus.New.code());
         flowTask.setBeginTime(new Date());
         flowTask.setParams(StringUtils.isBlank(params) ? flow.getParams() : params);
+        flowTask.setTriggerMode(triggerMode.getCode());
+
         flowTaskDao.insert(flowTask);
         int id = flowTaskDao.getId();
         flowTask.setId(id);

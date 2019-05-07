@@ -15,6 +15,7 @@ public class FlowTask {
     private Date endTime;
     private String params;
     private int createUser;
+    private int triggerMode;
 
     public int getId() {
         return id;
@@ -73,5 +74,13 @@ public class FlowTask {
 
     public void setCreateUser(int createUser) {
         this.createUser = createUser;
+    }
+
+    public int getTriggerMode() {
+        return triggerMode;
+    }
+
+    public void setTriggerMode(int triggerMode) {
+        this.triggerMode = triggerMode;
     }
 }

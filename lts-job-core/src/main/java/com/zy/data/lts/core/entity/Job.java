@@ -47,6 +47,8 @@ public class Job {
      */
     private String config;
 
+    private String group = "default";
+
 
     public Integer getId() {
         return id;
@@ -126,5 +128,13 @@ public class Job {
 
     public void setConfig(String config) {
         this.config = config;
+    }
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
     }
 }

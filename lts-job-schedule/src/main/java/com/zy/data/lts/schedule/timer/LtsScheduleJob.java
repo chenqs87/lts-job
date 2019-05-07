@@ -1,5 +1,6 @@
 package com.zy.data.lts.schedule.timer;
 
+import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -18,7 +19,6 @@ public class LtsScheduleJob extends QuartzJobBean {
         int flowId = Integer.parseInt(jobName);
 
         JobTrigger jobTrigger = (JobTrigger) context.getJobDetail().getJobDataMap().get("jobTrigger");
-        jobTrigger.triggerFlow(flowId);
-
+        jobTrigger.triggerFlow(flowId, TriggerMode.Cron);
     }
 }

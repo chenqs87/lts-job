@@ -8,6 +8,7 @@ import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
+import com.zy.data.lts.schedule.state.task.TaskStatus;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -27,7 +28,14 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
         memFlowTask.lock();
         try {
             // 同步操作，kill 完成后，清理
-            memFlowTask.getTasks().forEach(t -> t.handle(new TaskEvent(TaskEventType.Kill)) );
+            memFlowTask.getTasks().forEach(t -> {
+                        switch (TaskStatus.parse(t.getTask().getTaskStatus())) {
+                            case Ready:
+                            case Pending:
+                            case Submitted:
+                            case Running: t.handle(new TaskEvent(TaskEventType.Kill));
+                        }
+                    });
             memFlowTask.clearTasks();
 
             FlowTask ft = memFlowTask.getFlowTask();

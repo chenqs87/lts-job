@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface JobDao extends BaseDao{
+public interface JobDao extends BaseDao {
 
     @Results(id = "job", value = {
             @Result(property = "id", column = "id"),
@@ -25,21 +25,32 @@ public interface JobDao extends BaseDao{
             @Result(property = "content", column = "content"),
             @Result(property = "permit", column = "permit"),
             @Result(property = "shardType", column = "shard_type"),
-            @Result(property = "config", column = "config")
+            @Result(property = "config", column = "config"),
+            @Result(property = "group", column = "group")
+
     })
     @Select("select * from job where id=#{id}")
     Job findById(@Param("id") int id);
 
     @ResultMap("job")
-    @Select("select * from job")
-    List<Job> select();
+    @Select("<script>" +
+            "select * from job where 1=1" +
+            "<if test='name != null'>" +
+            " and name like CONCAT('%',#{name},'%') " +
+            " </if>" +
+            "<if test='group != null'>" +
+            " and `group` like CONCAT('%',#{group},'%') " +
+            " </if>" +
+            "</script>")
+    List<Job> select(Object params);
 
-    @Insert("insert into job (name, handler,job_type,create_time,create_user, content, permit,shard_type, config) " +
-            "values(#{name},#{handler},#{jobType},#{createTime},#{createUser},#{content}, #{permit}, #{shardType}, #{config})")
+    @Insert("insert into job (name, handler,job_type,create_time,create_user, content, permit,shard_type, config, group) " +
+            "values(#{name},#{handler},#{jobType},#{createTime},#{createUser},#{content}, #{permit}, #{shardType}, " +
+            "#{config}, #{group})")
     void insert(Job job);
 
     @Update("update job set name=#{name},handler=#{handler},job_type=#{jobType},content=#{content}," +
-            "permit=#{permit},shard_type=#{shardType},config=#{config} where id=#{id}")
+            "permit=#{permit},shard_type=#{shardType},config=#{config},`group`=#{group} where id=#{id}")
     void update(Job job);
 
     @Delete("delete from job where id = #{id}")

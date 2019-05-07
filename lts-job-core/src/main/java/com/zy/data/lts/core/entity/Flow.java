@@ -60,6 +60,11 @@ public class Flow {
 
     private String flowEditorInfo;
 
+    /**
+     * 后置工作流（子工作流），当前工作流执行成功后触发
+     */
+    private String postFlow;
+
 
     public int getId() {
         return id;
@@ -156,5 +161,13 @@ public class Flow {
 
     public void setFlowEditorInfo(String flowEditorInfo) {
         this.flowEditorInfo = flowEditorInfo;
+    }
+
+    public String getPostFlow() {
+        return postFlow;
+    }
+
+    public void setPostFlow(String postFlow) {
+        this.postFlow = postFlow;
     }
 }

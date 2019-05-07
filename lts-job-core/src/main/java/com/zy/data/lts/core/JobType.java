@@ -7,14 +7,7 @@ package com.zy.data.lts.core;
 public enum JobType {
     shell(1, ".sh"),
     python(2, ".py"),
-    zip(3, ".zip"),
-
-    /**
-     * java executor 内部执行
-     */
-    java(4, ".java"),
-    end(-1,"");
-
+    zip(3, ".zip");
 
     int code;
     String suffix;
@@ -28,7 +21,6 @@ public enum JobType {
             case 1: return shell;
             case 2: return python;
             case 3: return zip;
-            case -1: return end;
             default: throw new IllegalArgumentException("code is illegal!!!");
         }
     }
