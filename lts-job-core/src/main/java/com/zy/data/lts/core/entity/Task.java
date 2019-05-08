@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * 执行的Job, task 属于一个flow, 一个flow 最多不能超过32个子任务
+ *
  * @author chenqingsong
  * @date 2019/3/28 15:49
  */
@@ -90,12 +91,12 @@ public class Task {
         return preTask;
     }
 
-    public void setUpPreTask(int preTask) {
-        this.preTask |= 1 << preTask;
-    }
-
     public void setPreTask(int preTask) {
         this.preTask = preTask;
+    }
+
+    public void setUpPreTask(int preTask) {
+        this.preTask |= 1 << preTask;
     }
 
     public synchronized void completePreTask(int preTask) {
@@ -106,12 +107,12 @@ public class Task {
         return postTask;
     }
 
-    public void setUpPostTask(int postTask) {
-        this.postTask |= 1 << postTask;
-    }
-
     public void setPostTask(int postTask) {
         this.postTask = postTask;
+    }
+
+    public void setUpPostTask(int postTask) {
+        this.postTask |= 1 << postTask;
     }
 
     public int getFlowId() {

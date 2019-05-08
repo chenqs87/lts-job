@@ -13,23 +13,31 @@ public enum FlowTaskStatus {
     Failed(5);
 
     int code;
+
     FlowTaskStatus(int code) {
         this.code = code;
     }
 
-    public int code() {
-        return code;
-    }
-
     public static FlowTaskStatus parse(int code) {
         switch (code) {
-            case 0: return New;
-            case 1: return Pending;
-            case 2: return Running;
-            case 3: return Killed;
-            case 4: return Finished;
-            case 5: return Failed;
-            default: throw new IllegalArgumentException("FlowTaskStatus Code is wrong!!!");
+            case 0:
+                return New;
+            case 1:
+                return Pending;
+            case 2:
+                return Running;
+            case 3:
+                return Killed;
+            case 4:
+                return Finished;
+            case 5:
+                return Failed;
+            default:
+                throw new IllegalArgumentException("FlowTaskStatus Code is wrong!!!");
         }
+    }
+
+    public int code() {
+        return code;
     }
 }

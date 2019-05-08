@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * 工作流配置
+ *
  * @author chenqingsong
  * @date 2019/3/28 15:47
  */
@@ -14,11 +15,11 @@ public class Flow {
     /**
      * 任务关系 DAG 关系图
      * 示例：
-     *  0：1
-     *  1：2
-     *  1：3
-     *  2：4
-     *  3：3
+     * 0：1
+     * 1：2
+     * 1：3
+     * 2：4
+     * 3：3
      */
     private String flowConfig;
 

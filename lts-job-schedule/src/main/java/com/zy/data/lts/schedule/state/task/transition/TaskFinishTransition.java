@@ -29,7 +29,7 @@ public class TaskFinishTransition implements MultipleArcTransition<MemTask, Task
             task.completeShard(event.getShardStatus());
             TaskStatus ret = task.getShardStatus() == 0 ? TaskStatus.Finished : TaskStatus.Running;
 
-            if(ret == TaskStatus.Finished) {
+            if (ret == TaskStatus.Finished) {
                 task.setTaskStatus(ret.code());
                 task.setEndTime(new Date());
                 taskDao.update(task);

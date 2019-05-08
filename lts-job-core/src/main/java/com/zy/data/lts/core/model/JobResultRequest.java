@@ -12,15 +12,9 @@ public class JobResultRequest {
 
     @Expose(serialize = false, deserialize = false)
     private final AtomicInteger times = new AtomicInteger(0);
-
-    public int getAndIncrement() {
-        return times.getAndIncrement();
-    }
-
     private int flowTaskId;
     private int taskId;
     private int shard;
-
     public JobResultRequest() {
     }
 
@@ -28,6 +22,10 @@ public class JobResultRequest {
         this.flowTaskId = flowTaskId;
         this.taskId = taskId;
         this.shard = shard;
+    }
+
+    public int getAndIncrement() {
+        return times.getAndIncrement();
     }
 
     public int getFlowTaskId() {

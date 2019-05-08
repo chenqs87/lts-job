@@ -9,7 +9,8 @@ public class ExecuteModel {
     private int taskId;
     private int shard;
 
-    public ExecuteModel() { }
+    public ExecuteModel() {
+    }
 
     public ExecuteModel(int flowTaskId, int taskId, int shard) {
         this.flowTaskId = flowTaskId;

@@ -38,7 +38,7 @@ public interface FlowDao {
             "is_schedule=#{isSchedule},post_flow=#{postFlow} where id=#{id}")
     void update(Flow flow);
 
-    @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty ="id", before = false, resultType = int.class)
+    @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", before = false, resultType = int.class)
     @Insert("insert into flow(name,flow_config,cron,flow_status,create_user,create_time,permit,params) " +
             "values(#{name},#{flowConfig},#{cron},#{flowStatus},#{createUser},#{createTime},#{permit},#{params},#{postFlow})")
     void insert(Flow flow);
@@ -49,7 +49,6 @@ public interface FlowDao {
     @ResultMap("flow")
     @Select("select * from flow")
     List<Flow> select();
-
 
 
 }

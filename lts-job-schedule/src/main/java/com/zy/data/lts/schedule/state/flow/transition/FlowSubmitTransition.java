@@ -2,9 +2,9 @@ package com.zy.data.lts.schedule.state.flow.transition;
 
 import com.zy.data.lts.core.dao.FlowTaskDao;
 import com.zy.data.lts.core.entity.FlowTask;
-import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.SingleArcTransition;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
+import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
@@ -24,7 +24,7 @@ public class FlowSubmitTransition implements SingleArcTransition<MemFlowTask, Fl
         try {
             memFlowTask.getTasks().forEach(t -> {
                 t.handle(new TaskEvent(TaskEventType.Submit));
-                if(t.getCurrentStatus() == TaskStatus.Pending) {
+                if (t.getCurrentStatus() == TaskStatus.Pending) {
                     t.handle(new TaskEvent(TaskEventType.Send));
                 }
             });

@@ -35,7 +35,7 @@ public class SchedulerConfig {
         return schedulerFactory;
     }
 
-    @Bean(name="scheduler")
+    @Bean(name = "scheduler")
     public Scheduler scheduler(@Qualifier("ltsSchedulerFactoryBean") SchedulerFactoryBean schedulerFactoryBean) {
         return schedulerFactoryBean.getScheduler();
     }

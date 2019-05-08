@@ -27,6 +27,7 @@ public class IntegerTool {
      * 当 value = 3 return [0,1]
      * 当 value = 2 return [1]
      * 当 value = 4 return [2]
+     *
      * @param value 表示2进制位的整数
      * @return 返回二进制位是1的下标
      */
@@ -36,8 +37,8 @@ public class IntegerTool {
         List<Integer> ret = new ArrayList<>(length);
 
         int v = value;
-        for (int i = 0; v > 0; i ++, v = v >> 1) {
-            if((v & 1) > 0) {
+        for (int i = 0; v > 0; i++, v = v >> 1) {
+            if ((v & 1) > 0) {
                 ret.add(i);
             }
         }
@@ -45,20 +46,19 @@ public class IntegerTool {
     }
 
     /**
-     *
      * @param from 包含 最小值0
-     * @param to 不包含 最大值31
+     * @param to   不包含 最大值31
      * @return
      */
     public static int format(int from, int to) {
 
-        if(from > to) {
+        if (from > to) {
             return 0;
         }
 
         int value = 0;
 
-        for(int i= from; i < to; i++) {
+        for (int i = from; i < to; i++) {
             value |= 1 << i;
         }
 

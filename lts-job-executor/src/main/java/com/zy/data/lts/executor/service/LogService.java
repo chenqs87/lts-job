@@ -7,17 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
-import java.nio.ByteBuffer;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author chenqingsong
@@ -33,7 +32,7 @@ public class LogService {
     public void info(JobExecuteEvent event, InputStream is) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         Path logFile = newFileOutput(root);
-        if(logFile != null) {
+        if (logFile != null) {
             Files.deleteIfExists(logFile);
             Files.copy(is, logFile);
         }
@@ -47,8 +46,8 @@ public class LogService {
         long length = file.length() - request.getOffset();
         response.setHeader("FileSize", String.valueOf(length));
 
-        try(FileInputStream fis = new FileInputStream(file);
-            FileChannel channel = fis.getChannel()) {
+        try (FileInputStream fis = new FileInputStream(file);
+             FileChannel channel = fis.getChannel()) {
             WritableByteChannel output = Channels.newChannel(response.getOutputStream());
             channel.transferTo(request.getOffset(), length, output);
         }
@@ -62,8 +61,8 @@ public class LogService {
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));
 
-        try(FileInputStream fis = new FileInputStream(file);
-            FileChannel channel = fis.getChannel()) {
+        try (FileInputStream fis = new FileInputStream(file);
+             FileChannel channel = fis.getChannel()) {
             WritableByteChannel output = Channels.newChannel(response.getOutputStream());
             channel.transferTo(offset, length, output);
         }
@@ -73,7 +72,7 @@ public class LogService {
         try {
             Path logFile = buildOutputPath(rootPah);
 
-            if(!Files.exists(logFile)) {
+            if (!Files.exists(logFile)) {
                 Files.createFile(logFile);
             }
 

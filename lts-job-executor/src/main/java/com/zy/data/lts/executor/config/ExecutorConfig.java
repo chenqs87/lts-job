@@ -28,7 +28,7 @@ public class ExecutorConfig {
     }
 
     public Path getExecDir(int flowTaskId, int taskId, int shard) throws IOException {
-        Path path =  Paths.get(executeRootDir,
+        Path path = Paths.get(executeRootDir,
                 String.valueOf(flowTaskId),
                 String.valueOf(taskId),
                 String.valueOf(shard));

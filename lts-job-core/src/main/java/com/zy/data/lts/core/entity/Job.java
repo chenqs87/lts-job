@@ -4,6 +4,7 @@ import java.util.Date;
 
 /**
  * 作业配置
+ *
  * @author chenqingsong
  * @date 2019/3/28 14:15
  */
@@ -42,7 +43,7 @@ public class Job {
      * 用户自定义配置，分配任务，需要配置在config 中
      * json 格式
      * {
-     *     shardCount: 5
+     * shardCount: 5
      * }
      */
     private String config;
@@ -110,16 +111,16 @@ public class Job {
         return permit;
     }
 
+    public void setPermit(int permit) {
+        this.permit = permit;
+    }
+
     public int getShardType() {
         return shardType;
     }
 
     public void setShardType(int shardType) {
         this.shardType = shardType;
-    }
-
-    public void setPermit(int permit) {
-        this.permit = permit;
     }
 
     public String getConfig() {

@@ -13,7 +13,8 @@ public class JobExecuteEvent {
     private Path output;
     private String params;
 
-    public JobExecuteEvent() { }
+    public JobExecuteEvent() {
+    }
 
     public JobExecuteEvent(int flowTaskId, int taskId, int shard, Path output, String params) {
         this.flowTaskId = flowTaskId;

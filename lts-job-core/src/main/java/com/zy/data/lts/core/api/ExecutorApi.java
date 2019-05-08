@@ -12,7 +12,10 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -24,17 +27,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @date 2019/4/1 13:44
  */
 @Component
-@ConditionalOnProperty(name= "lts.server.role", havingValue = "admin")
+@ConditionalOnProperty(name = "lts.server.role", havingValue = "admin")
 public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
-
-    private ApplicationContext applicationContext;
 
     //<ip:port, executor>
     private final Map<String, Executor> executors = new ConcurrentHashMap<>();
-
     private final BlockingQueue<ExecuteRequest> queue = new LinkedBlockingQueue<>();
-
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
+    private ApplicationContext applicationContext;
 
     @PostConstruct
     public void init() {
@@ -45,8 +45,9 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
         }).start();
 
     }
+
     public void refresh(BeatInfoRequest beat) {
-        if(beat.getPort() > 0) {
+        if (beat.getPort() > 0) {
             String host = beat.getHost() + ":" + beat.getPort();
             updateExecutors(beat, host);
         }
@@ -62,7 +63,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
             for (Executor executor : executors.values()) {
                 if (executor.isActive()) {
                     ExecuteRequest request = queue.poll(2, TimeUnit.SECONDS);
-                    if(request != null && executor.getHandler().equals(request.getHandler())) {
+                    if (request != null && executor.getHandler().equals(request.getHandler())) {
                         try {
                             executor.getApi().execute(request);
                             applicationContext.publishEvent(
@@ -72,7 +73,6 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
                             e.printStackTrace();
                             queue.put(request);
                         }
-
                     }
                 }
             }
@@ -88,7 +88,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
     @Override
     public void kill(KillTaskRequest request) {
         Executor executor = executors.get(request.getHost());
-        if(executor != null) {
+        if (executor != null) {
             executor.getApi().kill(request);
         }
     }
@@ -96,7 +96,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
     private void updateExecutors(BeatInfoRequest beat, String host) {
         String hostAndPort = beat.getHost() + ":" + beat.getPort();
         // 更新executor 心跳时间
-        executors.computeIfPresent(hostAndPort, (k, v)  -> {
+        executors.computeIfPresent(hostAndPort, (k, v) -> {
             v.setLastUpdateTime(System.currentTimeMillis());
             return v;
         });
@@ -130,11 +130,11 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
         executors.values().forEach(executor -> {
             Set<String> hosts = map.computeIfAbsent(executor.getHandler(), f -> new HashSet<>());
-            if(executor.isActive()) {
+            if (executor.isActive()) {
                 hosts.add(executor.getHost());
             }
         });
 
-       return map;
+        return map;
     }
 }

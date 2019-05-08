@@ -2,7 +2,6 @@ package com.zy.data.lts.core.api.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
  * @date 2019/4/1 13:52
  */
 @Configuration
-@ConditionalOnProperty(name= "lts.server.role", havingValue = "executor")
+@ConditionalOnProperty(name = "lts.server.role", havingValue = "executor")
 public class ExecutorApiConfig {
 
     @Value("${lts.server.executor.adminUrls}")

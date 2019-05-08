@@ -11,15 +11,12 @@ import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.JobQueryRequest;
-import com.zy.data.lts.core.model.PagerRequest;
 import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 import java.util.List;
@@ -51,6 +48,7 @@ public class JobService {
 
     /**
      * 创建工作流
+     *
      * @param flow
      * @throws Exception
      */
@@ -69,7 +67,7 @@ public class JobService {
         Flow dbFlow = flowDao.findById(flow.getId());
 
         //更新工作流基本信息
-        if(StringUtils.isNotBlank(flow.getName())) {
+        if (StringUtils.isNotBlank(flow.getName())) {
             dbFlow.setName(flow.getName());
             dbFlow.setCron(flow.getCron());
             dbFlow.setParams(flow.getParams());
@@ -77,7 +75,7 @@ public class JobService {
         }
 
         // 更新工作流配置信息
-        if(StringUtils.isNotBlank(flow.getFlowEditorInfo())) {
+        if (StringUtils.isNotBlank(flow.getFlowEditorInfo())) {
             dbFlow.setFlowConfig(flow.getFlowConfig());
             dbFlow.setFlowEditorInfo(flow.getFlowEditorInfo());
         }
@@ -102,7 +100,7 @@ public class JobService {
     public Job updateJob(Job job) {
         Job dbJob = jobDao.findById(job.getId());
 
-        if(StringUtils.isNotBlank(job.getName())) {
+        if (StringUtils.isNotBlank(job.getName())) {
             dbJob.setName(job.getName());
             dbJob.setConfig(job.getConfig());
             dbJob.setHandler(job.getHandler());
@@ -110,7 +108,7 @@ public class JobService {
             dbJob.setShardType(job.getShardType());
         }
 
-        if(StringUtils.isNotBlank(job.getContent())) {
+        if (StringUtils.isNotBlank(job.getContent())) {
             dbJob.setContent(job.getContent());
         }
 
@@ -121,6 +119,7 @@ public class JobService {
 
     /**
      * 启动定时任务
+     *
      * @return
      */
     @Transactional
@@ -137,6 +136,7 @@ public class JobService {
 
     /**
      * 启动定时任务
+     *
      * @return
      */
     @Transactional
@@ -152,9 +152,10 @@ public class JobService {
 
     /**
      * 执行工作流
+     *
      * @param flowId
      */
-    public void triggerFlow(int flowId, TriggerMode triggerMode , String params) {
+    public void triggerFlow(int flowId, TriggerMode triggerMode, String params) {
         jobTrigger.triggerFlow(flowId, triggerMode, params);
     }
 
@@ -175,7 +176,7 @@ public class JobService {
 
     public List<FlowTask> findByFlowId(int flowId, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
-        return  flowTaskDao.findByFlowId(flowId);
+        return flowTaskDao.findByFlowId(flowId);
     }
 
     public List<Task> findTaskByFlowTaskId(int flowTaskId, Integer pageNum, Integer pageSize) {

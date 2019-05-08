@@ -11,7 +11,8 @@ public class KillTaskRequest {
     private int taskId;
     private int shard;
 
-    public KillTaskRequest() {}
+    public KillTaskRequest() {
+    }
 
     public KillTaskRequest(String host, int flowTaskId, int taskId, int shard) {
         this.host = host;

@@ -2,9 +2,9 @@ package com.zy.data.lts.schedule.state.flow.transition;
 
 import com.zy.data.lts.core.dao.FlowTaskDao;
 import com.zy.data.lts.core.entity.FlowTask;
-import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.SingleArcTransition;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
+import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
@@ -29,13 +29,14 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
         try {
             // 同步操作，kill 完成后，清理
             memFlowTask.getTasks().forEach(t -> {
-                        switch (TaskStatus.parse(t.getTask().getTaskStatus())) {
-                            case Ready:
-                            case Pending:
-                            case Submitted:
-                            case Running: t.handle(new TaskEvent(TaskEventType.Kill));
-                        }
-                    });
+                switch (TaskStatus.parse(t.getTask().getTaskStatus())) {
+                    case Ready:
+                    case Pending:
+                    case Submitted:
+                    case Running:
+                        t.handle(new TaskEvent(TaskEventType.Kill));
+                }
+            });
             memFlowTask.clearTasks();
 
             FlowTask ft = memFlowTask.getFlowTask();

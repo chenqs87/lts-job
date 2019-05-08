@@ -3,7 +3,6 @@ package com.zy.data.lts.core.dao;
 import com.zy.data.lts.core.entity.Job;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
@@ -44,7 +43,7 @@ public interface JobDao {
             "</script>")
     List<Job> select(Object params);
 
-    @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty ="id", before = false, resultType = int.class)
+    @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", before = false, resultType = int.class)
     @Insert("insert into job (name, handler,job_type,create_time,create_user, content, permit,shard_type, config, group) " +
             "values(#{name},#{handler},#{jobType},#{createTime},#{createUser},#{content}, #{permit}, #{shardType}, " +
             "#{config}, #{group})")

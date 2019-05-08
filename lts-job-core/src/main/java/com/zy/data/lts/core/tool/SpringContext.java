@@ -1,7 +1,6 @@
 package com.zy.data.lts.core.tool;
 
 import org.springframework.beans.BeansException;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -17,7 +16,7 @@ public class SpringContext implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
-        applicationContext = (ConfigurableApplicationContext)context;
+        applicationContext = (ConfigurableApplicationContext) context;
     }
 
     public <T> T getBean(Class<T> clazz) {

@@ -7,9 +7,9 @@ import com.zy.data.lts.core.dao.TaskDao;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Task;
-import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.MultipleArcTransition;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
+import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.MemTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
@@ -46,7 +46,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
 
         try {
             int taskId = flowEvent.getCurrentTaskId();
-            if(taskId == -1) {
+            if (taskId == -1) {
                 jobTrigger.handleUnFinishFlow(memFlowTask);
             } else {
                 // handler 回调触发
@@ -54,7 +54,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
                 memTask.handle(new TaskEvent(TaskEventType.Finish, flowEvent.getCurrentTaskShard()));
 
                 //shard作业
-                if(memTask.getTask().getTaskStatus() == TaskStatus.Running.code()) {
+                if (memTask.getTask().getTaskStatus() == TaskStatus.Running.code()) {
                     return FlowTaskStatus.Running;
                 }
 
@@ -62,7 +62,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
 
                 // 判断是否有后置任务，如果没有，则工作流结束
                 Task task = memTask.getTask();
-                if(task.getPostTask() == 0 && memFlowTask.isFinished()) {
+                if (task.getPostTask() == 0 && memFlowTask.isFinished()) {
                     FlowTask ft = memFlowTask.getFlowTask();
                     ft.setStatus(FlowTaskStatus.Finished.code());
                     ft.setEndTime(new Date());
@@ -76,7 +76,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
                 }
 
                 //更新后置任务状态，并触发后置任务执行
-                if(task.getPostTask() > 0) {
+                if (task.getPostTask() > 0) {
                     List<Integer> taskIds = IntegerTool.parseOneBit(task.getPostTask());
                     taskIds.forEach(id -> {
                         /*
@@ -90,7 +90,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
 
                         mt.handle(new TaskEvent(TaskEventType.Pend));
 
-                        if(mt.getCurrentStatus() == TaskStatus.Pending) {
+                        if (mt.getCurrentStatus() == TaskStatus.Pending) {
                             mt.handle(new TaskEvent(TaskEventType.Send));
                         }
 
@@ -107,9 +107,9 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
     private void checkAndTriggerPostFlowTasks(int flowId) {
         try {
             Flow flow = flowDao.findById(flowId);
-            if(StringUtils.isNotBlank(flow.getPostFlow())) {
+            if (StringUtils.isNotBlank(flow.getPostFlow())) {
                 String[] postFlowIds = flow.getPostFlow().split(",");
-                Stream.of(postFlowIds).map(Integer::parseInt).forEach( id -> {
+                Stream.of(postFlowIds).map(Integer::parseInt).forEach(id -> {
                     jobTrigger.triggerFlow(id, TriggerMode.PreTask);
                     // TODO 完善日志
                 });

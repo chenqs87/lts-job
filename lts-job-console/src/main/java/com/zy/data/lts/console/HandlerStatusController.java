@@ -22,7 +22,7 @@ public class HandlerStatusController {
     @Autowired
     ExecutorApi executorApi;
 
-    @ApiOperation(value = "Handler心跳" ,  notes="Handler心跳")
+    @ApiOperation(value = "Handler心跳", notes = "Handler心跳")
     @PostMapping("/beat")
     @ResponseBody
     public ResponseEntity beat(HttpServletRequest request, @RequestBody BeatInfoRequest beatInfo) {

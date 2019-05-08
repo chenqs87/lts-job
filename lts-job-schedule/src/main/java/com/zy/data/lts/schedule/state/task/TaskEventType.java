@@ -4,7 +4,7 @@ package com.zy.data.lts.schedule.state.task;
  * @author chenqingsong
  * @date 2019/4/2 12:18
  */
-public enum  TaskEventType {
+public enum TaskEventType {
     /**
      * 提交作业，入队准备
      */

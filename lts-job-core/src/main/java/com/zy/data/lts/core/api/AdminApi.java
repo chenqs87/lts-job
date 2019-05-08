@@ -33,29 +33,22 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ConditionalOnProperty(name = "lts.server.role", havingValue = "executor")
 public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitializedEvent> {
     private final static Logger logger = LoggerFactory.getLogger(AdminApi.class);
-
-    @Autowired
-    private ExecutorApiConfig executorApiConfig;
-
-    @Autowired
-    private DefaultAdminApi defaultAdminApi;
-
     private final Object masterAdminLock = new Object();
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
-
     /**
      * 所有 admin service
      */
     private final Map<String, IAdminApi> adminServers = new HashMap<>();
-
     /**
      * 存活的admin service
      */
     private final Map<String, IAdminApi> activeServers = new ConcurrentHashMap<>();
-
     private final ScheduledExecutorService beatService = Executors.newSingleThreadScheduledExecutor();
     private final ExecutorService taskStatusService = Executors.newSingleThreadExecutor();
-
+    @Autowired
+    private ExecutorApiConfig executorApiConfig;
+    @Autowired
+    private DefaultAdminApi defaultAdminApi;
     private int serverPort;
 
     @PostConstruct

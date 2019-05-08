@@ -4,22 +4,20 @@ import com.zy.data.lts.core.api.IExecutorApi;
 import com.zy.data.lts.core.entity.Task;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author chenqingsong
  * @date 2019/4/11 11:21
  */
-public class Executor{
+public class Executor {
     private static final long TIME_OUT = 30 * 60 * 1000;
+    private final Map<String, Task> runningTasks = new HashMap<>();
     private IExecutorApi api;
     private float memFree;
     private float cpuIdle;
     private String host;
     private volatile long lastUpdateTime = System.currentTimeMillis();
-    private final Map<String, Task> runningTasks = new HashMap<>();
     private volatile String handler;
 
     public IExecutorApi getApi() {

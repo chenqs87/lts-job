@@ -23,7 +23,7 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
 
     public MemTask(Task task, SpringContext springContext) {
 
-        if(task == null) {
+        if (task == null) {
             throw new IllegalArgumentException("task is null!!");
         }
         this.task = task;
@@ -60,7 +60,7 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
     @Override
     public void handle(TaskEvent event) {
         lock();
-        try{
+        try {
             stateMachine.doTransition(event.getType(), event);
         } finally {
             unlock();

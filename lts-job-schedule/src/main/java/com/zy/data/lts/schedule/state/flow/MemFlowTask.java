@@ -1,13 +1,13 @@
 package com.zy.data.lts.schedule.state.flow;
 
 import com.zy.data.lts.core.entity.FlowTask;
-import com.zy.data.lts.schedule.state.task.TaskStatus;
 import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.schedule.state.EventHandler;
 import com.zy.data.lts.schedule.state.StateMachine;
 import com.zy.data.lts.schedule.state.StateMachineFactory;
 import com.zy.data.lts.schedule.state.flow.transition.*;
 import com.zy.data.lts.schedule.state.task.MemTask;
+import com.zy.data.lts.schedule.state.task.TaskStatus;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
@@ -32,7 +32,7 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
 
         tasks.forEach(task -> {
             TaskStatus status = TaskStatus.parse(task.getTask().getTaskStatus());
-            if(!status.isFinish()) {
+            if (!status.isFinish()) {
                 memTasks.putIfAbsent(task.getTask().getTaskId(), task);
             }
         });
@@ -80,7 +80,7 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
     }
 
     public Collection<MemTask> getTasks() {
-       return memTasks.values();
+        return memTasks.values();
     }
 
     public void clearTasks() {

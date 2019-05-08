@@ -38,11 +38,12 @@ public class JobScheduler {
 
     /**
      * 启动定时任务
-     * @param jobName 作业名称
+     *
+     * @param jobName        作业名称
      * @param cronExpression cron 表达式
      * @throws Exception
      */
-    public  boolean startJob(String jobName, String cronExpression) throws Exception {
+    public boolean startJob(String jobName, String cronExpression) throws Exception {
 
         TriggerKey triggerKey = TriggerKey.triggerKey(jobName);
         JobKey jobKey = new JobKey(jobName);
@@ -59,7 +60,7 @@ public class JobScheduler {
         return true;
     }
 
-    public  void stopJob(String jobName) throws SchedulerException {
+    public void stopJob(String jobName) throws SchedulerException {
         scheduler.deleteJob(new JobKey(jobName));
     }
 

@@ -22,7 +22,7 @@ public class HandlerCallbackController {
     @Autowired
     JobTrigger jobTrigger;
 
-    @ApiOperation(value = "作业执行成功" ,  notes="作业执行成功")
+    @ApiOperation(value = "作业执行成功", notes = "作业执行成功")
     @PostMapping("/success")
     @ResponseBody
     public ResponseEntity successTask(@RequestBody JobResultRequest request) {
@@ -31,7 +31,7 @@ public class HandlerCallbackController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation(value = "作业执行失败" ,  notes="作业执行失败")
+    @ApiOperation(value = "作业执行失败", notes = "作业执行失败")
     @PostMapping("/fail")
     @ResponseBody
     public ResponseEntity failTask(@RequestBody JobResultRequest request) {
@@ -39,7 +39,7 @@ public class HandlerCallbackController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation(value = "作业开始执行" ,  notes="作业开始执行")
+    @ApiOperation(value = "作业开始执行", notes = "作业开始执行")
     @PostMapping("/start")
     @ResponseBody
     public ResponseEntity startTask(@RequestBody JobResultRequest request) {
@@ -47,7 +47,7 @@ public class HandlerCallbackController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation(value = "Executor关闭自动Kill未完成的作业" ,  notes="Executor关闭自动Kill未完成的作业")
+    @ApiOperation(value = "Executor关闭自动Kill未完成的作业", notes = "Executor关闭自动Kill未完成的作业")
     @PostMapping("/kill")
     @ResponseBody
     public ResponseEntity killTask(@RequestBody JobResultRequest request) {

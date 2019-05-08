@@ -36,10 +36,8 @@ import java.util.concurrent.Executors;
 @Service
 public class JobService implements ApplicationContextAware {
 
-    private ApplicationContext applicationContext;
-
     private final ConcurrentHashMap<String, String> runningTasks = new ConcurrentHashMap<>();
-
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
     @Autowired
     FlowTaskDao flowTaskDao;
 
@@ -54,8 +52,7 @@ public class JobService implements ApplicationContextAware {
 
     @Autowired
     ExecutorConfig executorConfig;
-
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+    private ApplicationContext applicationContext;
 
     public void doExec(ExecuteRequest req) throws IOException {
 
@@ -71,9 +68,15 @@ public class JobService implements ApplicationContextAware {
         JobExecuteEvent event = null;
 
         switch (jobType) {
-            case shell: event = new ShellEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
-            case python: event = new PythonEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
-            case zip: event = new ZipEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(),output, params); break;
+            case shell:
+                event = new ShellEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(), output, params);
+                break;
+            case python:
+                event = new PythonEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(), output, params);
+                break;
+            case zip:
+                event = new ZipEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(), output, params);
+                break;
         }
 
         applicationContext.publishEvent(event);
@@ -99,14 +102,14 @@ public class JobService implements ApplicationContextAware {
         String content = job.getContent();
         Path execFile = Paths.get(root.toString(), "exec");
 
-       // Files.createFile(execFile);
+        // Files.createFile(execFile);
         boolean success = execFile.toFile().createNewFile();
 
-        try(InputStream inputStream = new ByteArrayInputStream(content.getBytes())) {
+        try (InputStream inputStream = new ByteArrayInputStream(content.getBytes())) {
             Files.copy(inputStream, execFile, StandardCopyOption.REPLACE_EXISTING);
         }
 
-        if(jobType == JobType.zip) {
+        if (jobType == JobType.zip) {
             // TODO 解压缩
         }
 

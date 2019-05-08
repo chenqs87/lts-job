@@ -11,6 +11,7 @@ public enum JobType {
 
     int code;
     String suffix;
+
     JobType(int code, String suffix) {
         this.code = code;
         this.suffix = suffix;
@@ -18,10 +19,14 @@ public enum JobType {
 
     public static JobType parse(int code) {
         switch (code) {
-            case 1: return shell;
-            case 2: return python;
-            case 3: return zip;
-            default: throw new IllegalArgumentException("code is illegal!!!");
+            case 1:
+                return shell;
+            case 2:
+                return python;
+            case 3:
+                return zip;
+            default:
+                throw new IllegalArgumentException("code is illegal!!!");
         }
     }
 

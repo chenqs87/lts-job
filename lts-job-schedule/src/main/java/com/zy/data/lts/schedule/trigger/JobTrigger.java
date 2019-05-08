@@ -15,8 +15,8 @@ import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
-import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
@@ -54,39 +54,27 @@ import java.util.stream.Collectors;
 @Component
 public class JobTrigger {
 
+    private static final BlockingQueue<Integer> cronFlowQueue = new LinkedBlockingQueue<>();
+    private static final Gson gson = new Gson();
+    private final Map<Integer, MemFlowTask> runningFlowTasks = new ConcurrentHashMap<>();
+    private final AtomicBoolean isRunning = new AtomicBoolean(true);
+    private final CountDownLatch countDownLatch = new CountDownLatch(1);
+    private final ExecutorService flowEventService = Executors.newSingleThreadExecutor();
     @Autowired
     private FlowDao flowDao;
-
     @Autowired
     private FlowTaskDao flowTaskDao;
-
     @Autowired
     private TaskDao taskDao;
-
     @Autowired
     private JobDao jobDao;
-
     @Autowired
     private SpringContext springContext;
-
-    @Autowired
-    private ExecutorApi executorApi;
-
-    private static final BlockingQueue<Integer> cronFlowQueue = new LinkedBlockingQueue<>();
-
-    private final Map<Integer, MemFlowTask> runningFlowTasks = new ConcurrentHashMap<>();
-
-    private final AtomicBoolean isRunning = new AtomicBoolean(true);
-
-    private final CountDownLatch countDownLatch = new CountDownLatch(1);
-
-    private final ExecutorService flowEventService = Executors.newSingleThreadExecutor();
-
     private final Thread flowTaskThread = new Thread(() -> {
         while (isRunning.get()) {
             try {
                 Integer flowId = cronFlowQueue.poll(3, TimeUnit.SECONDS);
-                if(flowId != null) {
+                if (flowId != null) {
                     triggerFlow(flowId, TriggerMode.Cron);
                 }
             } catch (Exception e) {
@@ -95,6 +83,8 @@ public class JobTrigger {
         }
         countDownLatch.countDown();
     });
+    @Autowired
+    private ExecutorApi executorApi;
 
     public static void pushCronFlow(Integer flowId) {
         cronFlowQueue.offer(flowId);
@@ -117,13 +107,13 @@ public class JobTrigger {
             flowTaskThread.interrupt();
             countDownLatch.await();
             flowEventService.shutdown();
-        } catch (InterruptedException ignore) {}
+        } catch (InterruptedException ignore) {
+        }
     }
-
 
     @Transactional
     public void triggerFlow(int flowId, TriggerMode triggerMode) {
-        triggerFlow(flowId, triggerMode,null);
+        triggerFlow(flowId, triggerMode, null);
     }
 
     @Transactional
@@ -141,23 +131,28 @@ public class JobTrigger {
         handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
     }
 
-
     /**
      * 只有主节点才会触发
      */
     @Transactional
     public void loadUnFinishedFlowTasks() {
         List<FlowTask> flowTasks = flowTaskDao.findUnFinishedFlowTasks();
-        if(CollectionUtils.isEmpty(flowTasks)) {
+        if (CollectionUtils.isEmpty(flowTasks)) {
             return;
         }
 
         flowTasks.forEach(ft -> {
             FlowTaskStatus status = FlowTaskStatus.parse(ft.getStatus());
             switch (status) {
-                case New: handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Submit)); break;
-                case Pending: handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Execute)); break;
-                case Running: handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Finish)); break;
+                case New:
+                    handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Submit));
+                    break;
+                case Pending:
+                    handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Execute));
+                    break;
+                case Running:
+                    handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Finish));
+                    break;
                 default:
             }
         });
@@ -184,17 +179,17 @@ public class JobTrigger {
         });
     }
 
-
     public void finishFlowTask(int flowTaskId) {
         runningFlowTasks.remove(flowTaskId);
     }
 
     /**
      * 发送作业到executor
+     *
      * @param task 任务发送队列
      */
     public void sendTask(MemTask task) {
-        if(task!= null) {
+        if (task != null) {
             Task t = task.getTask();
             List<Integer> shards = IntegerTool.parseOneBit(t.getShardStatus());
             for (Integer shard : shards) {
@@ -217,16 +212,16 @@ public class JobTrigger {
         return flowTask;
     }
 
-
     /**
      * 根据 flow 生成task 任务信息
-     * @param config  a:b\na:c\nb:d\nc:d
+     *
+     * @param config   a:b\na:c\nb:d\nc:d
      * @param flowTask flow task
-     * @param flowId flow id  从0开始
+     * @param flowId   flow id  从0开始
      * @return
      */
     private List<MemTask> createAndGetTasks(String config, FlowTask flowTask, int flowId) {
-        BufferedReader bis =  new BufferedReader(new InputStreamReader(new ByteArrayInputStream(config.getBytes())));
+        BufferedReader bis = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(config.getBytes())));
 
         List<Tuple<Integer, Integer>> list = bis.lines()
                 .map(l -> l.split(":"))
@@ -239,7 +234,7 @@ public class JobTrigger {
         Map<Integer, Integer> map = new HashMap<>();
         list.forEach(t -> {
             map.putIfAbsent(t.first(), map.size());
-            if(t.second() > 0) {
+            if (t.second() > 0) {
                 map.putIfAbsent(t.second(), map.size());
             }
         });
@@ -268,7 +263,7 @@ public class JobTrigger {
         list.forEach(t -> {
             Task first = taskMap.get(t.first());
             Task second = taskMap.get(t.second());
-            if(second != null) {
+            if (second != null) {
                 first.setUpPostTask(second.getTaskId());
                 second.setUpPreTask(first.getTaskId());
             }
@@ -282,20 +277,70 @@ public class JobTrigger {
 
     }
 
-    private static final Gson gson = new Gson();
-
     /**
      * params
-     * @param jobConfig
-     * {
-     *     shardCount: 5
-     * }
+     *
+     * @param jobConfig {
+     *                  shardCount: 5
+     *                  }
      * @return
      */
     public int getShardStatus(String jobConfig) {
         ShardTask map = gson.fromJson(jobConfig, ShardTask.class);
         Integer shardCount = map.getShardCount();
         return shardCount == null ? 1 : shardCount;
+    }
+
+    public void handleUnFinishFlow(MemFlowTask memFlowTask) {
+        //程序启动触发，为完成的工作流，当前flow 状态为Running，
+        //flow中的task可能存在各种状态，例如：Ready Pending Running 等等
+        memFlowTask.getTasks()
+                .forEach(t -> {
+                    TaskStatus status = TaskStatus.parse(t.getTask().getTaskStatus());
+                    switch (status) {
+                        case New:
+                            t.handle(new TaskEvent(TaskEventType.Submit));
+                            break;
+                        case Ready:
+                            t.handle(new TaskEvent(TaskEventType.Pend));
+                            break;
+                        case Submitted:
+                            t.handle(new TaskEvent(TaskEventType.Execute));
+                            break;
+                        case Pending:
+                            t.handle(new TaskEvent(TaskEventType.Send));
+                            break;
+                        case Running:
+                            break; // 作业在executor 中运行，极端情况，executor 挂了，可能会造成整个工作流不可用
+                        case Failed:
+                        case Killed:
+                        case Finished:
+                            throw new IllegalStateException("Fail to execute flow " + memFlowTask.getFlowTask().getId());
+                    }
+
+                });
+    }
+
+    public void killTask(KillTaskRequest request) {
+        executorApi.kill(request);
+    }
+
+    @EventListener
+    public void updateTaskHost(UpdateTaskHostEvent event) {
+        MemFlowTask flowTask = runningFlowTasks.get(event.getFlowTaskId());
+        if (flowTask != null) {
+            MemTask memTask = flowTask.getMemTask(event.getTaskId());
+            if (memTask != null) {
+                memTask.lock();
+                try {
+                    Task task = memTask.getTask();
+                    task.setHost(event.getHost());
+                    taskDao.update(task);
+                } finally {
+                    memTask.unlock();
+                }
+            }
+        }
     }
 
     public static class ShardTask {
@@ -307,49 +352,6 @@ public class JobTrigger {
 
         public void setShardCount(Integer shardCount) {
             this.shardCount = shardCount;
-        }
-    }
-
-    public void handleUnFinishFlow(MemFlowTask memFlowTask) {
-        //程序启动触发，为完成的工作流，当前flow 状态为Running，
-        //flow中的task可能存在各种状态，例如：Ready Pending Running 等等
-        memFlowTask.getTasks()
-            .forEach(t -> {
-                TaskStatus status = TaskStatus.parse(t.getTask().getTaskStatus());
-                switch (status) {
-                    case New: t.handle(new TaskEvent(TaskEventType.Submit)); break;
-                    case Ready: t.handle(new TaskEvent(TaskEventType.Pend)); break;
-                    case Submitted: t.handle(new TaskEvent(TaskEventType.Execute)); break;
-                    case Pending: t.handle(new TaskEvent(TaskEventType.Send)); break;
-                    case Running: break; // 作业在executor 中运行，极端情况，executor 挂了，可能会造成整个工作流不可用
-                    case Failed:
-                    case Killed:
-                    case Finished:
-                        throw new IllegalStateException("Fail to execute flow " + memFlowTask.getFlowTask().getId());
-                }
-
-            });
-    }
-
-    public void killTask(KillTaskRequest request) {
-        executorApi.kill(request);
-    }
-
-    @EventListener
-    public void updateTaskHost(UpdateTaskHostEvent event) {
-        MemFlowTask flowTask = runningFlowTasks.get(event.getFlowTaskId());
-        if(flowTask != null) {
-            MemTask memTask = flowTask.getMemTask(event.getTaskId());
-            if(memTask != null) {
-                memTask.lock();
-                try {
-                    Task task = memTask.getTask();
-                    task.setHost(event.getHost());
-                    taskDao.update(task);
-                } finally {
-                    memTask.unlock();
-                }
-            }
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.core.api.AdminApi;
-import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.executor.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CommandService {
 
+    private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
     @Autowired
     AdminApi adminApi;
-
     @Autowired
     LogService logService;
-
-    private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
 
     @EventListener
     public void onApplicationEvent(ShellEvent event) throws IOException {
@@ -36,7 +33,7 @@ public class CommandService {
 
     @EventListener
     public void onApplicationEvent(PythonEvent event) throws IOException {
-        int ret = execCommand(event, "python",event.getOutput().toString() + "/exec");
+        int ret = execCommand(event, "python", event.getOutput().toString() + "/exec");
         callback(ret, event);
     }
 
@@ -51,7 +48,7 @@ public class CommandService {
         try {
             String processKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
             Process process = runningTasks.get(processKey);
-            if(process != null) {
+            if (process != null) {
                 // TODO::  Kill 作业会触发作业失败事件 adminApi.fail(request);
                 process.destroyForcibly();
             }
@@ -63,7 +60,7 @@ public class CommandService {
 
     private void callback(int ret, JobExecuteEvent event) {
         JobResultRequest request = new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        if(ret == 0) {
+        if (ret == 0) {
             adminApi.success(request);
         } else {
             adminApi.fail(request);
@@ -79,7 +76,7 @@ public class CommandService {
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         runningTasks.put(runningKey, process);
 
-        try(InputStream is = process.getInputStream()) {
+        try (InputStream is = process.getInputStream()) {
             logService.info(event, is);
             process.waitFor();
             exitValue = process.exitValue();

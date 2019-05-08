@@ -11,7 +11,8 @@ public class ExecuteRequest {
     private int taskId;
     private int shard;
 
-    public ExecuteRequest() {}
+    public ExecuteRequest() {
+    }
 
     public ExecuteRequest(int flowTaskId, int taskId, int shard, String handler) {
         this.flowTaskId = flowTaskId;

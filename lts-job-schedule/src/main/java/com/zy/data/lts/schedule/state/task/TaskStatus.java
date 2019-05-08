@@ -16,21 +16,31 @@ public enum TaskStatus {
     Killed(7);
 
     int code;
+
     TaskStatus(int code) {
         this.code = code;
     }
 
     public static TaskStatus parse(int code) {
         switch (code) {
-            case 0: return New;
-            case 1: return Ready;
-            case 2: return Pending;
-            case 3: return Submitted;
-            case 4: return Running;
-            case 5: return Failed;
-            case 6: return Finished;
-            case 7: return Killed;
-            default: throw new IllegalArgumentException("Fail to parse code to TaskStatus!");
+            case 0:
+                return New;
+            case 1:
+                return Ready;
+            case 2:
+                return Pending;
+            case 3:
+                return Submitted;
+            case 4:
+                return Running;
+            case 5:
+                return Failed;
+            case 6:
+                return Finished;
+            case 7:
+                return Killed;
+            default:
+                throw new IllegalArgumentException("Fail to parse code to TaskStatus!");
         }
     }
 
@@ -38,8 +48,10 @@ public enum TaskStatus {
         switch (code) {
             case 5:
             case 6:
-            case 7: return true;
-            default: return false;
+            case 7:
+                return true;
+            default:
+                return false;
         }
     }
 
