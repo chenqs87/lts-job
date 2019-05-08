@@ -2,18 +2,30 @@ package com.zy.data.lts.core.model;
 
 /**
  * @author chenqingsong
- * @date 2019/4/10 16:01
+ * @date 2019/5/8 11:32
  */
-public class JobResultRequest {
+public class KillTaskRequest {
+
+    private String host;
     private int flowTaskId;
     private int taskId;
     private int shard;
-    public JobResultRequest() {}
 
-    public JobResultRequest(int flowTaskId, int taskId, int shard) {
+    public KillTaskRequest() {}
+
+    public KillTaskRequest(String host, int flowTaskId, int taskId, int shard) {
+        this.host = host;
         this.flowTaskId = flowTaskId;
         this.taskId = taskId;
         this.shard = shard;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     public int getFlowTaskId() {

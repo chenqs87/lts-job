@@ -1,9 +1,6 @@
 package com.zy.data.lts.core.api;
 
-import com.zy.data.lts.core.model.BeatInfoRequest;
-import com.zy.data.lts.core.model.ExecuteRequest;
-import com.zy.data.lts.core.model.Executor;
-import com.zy.data.lts.core.model.UpdateTaskHostEvent;
+import com.zy.data.lts.core.model.*;
 import feign.Feign;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
@@ -32,7 +29,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
-    //<ip:port,executor>
+    //<ip:port, executor>
     private final Map<String, Executor> executors = new ConcurrentHashMap<>();
 
     private final BlockingQueue<ExecuteRequest> queue = new LinkedBlockingQueue<>();
@@ -86,6 +83,14 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
     public void execute(ExecuteRequest request) {
         queue.offer(request);
+    }
+
+    @Override
+    public void kill(KillTaskRequest request) {
+        Executor executor = executors.get(request.getHost());
+        if(executor != null) {
+            executor.getApi().kill(request);
+        }
     }
 
     private void updateExecutors(BeatInfoRequest beat, String host) {

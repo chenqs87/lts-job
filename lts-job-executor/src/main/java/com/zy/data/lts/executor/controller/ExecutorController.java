@@ -1,6 +1,7 @@
 package com.zy.data.lts.executor.controller;
 
 import com.zy.data.lts.core.model.ExecuteRequest;
+import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.LogQueryRequest;
 import com.zy.data.lts.executor.service.JobService;
 import com.zy.data.lts.executor.service.LogService;
@@ -34,6 +35,14 @@ public class ExecutorController {
     @ResponseBody
     public ResponseEntity executeTask(@RequestBody ExecuteRequest req) throws IOException {
         jobService.exec(req);
+        return ResponseEntity.ok().build();
+    }
+
+    @ApiOperation(value = "kill任务", notes="kill任务")
+    @PostMapping("/kill")
+    @ResponseBody
+    public ResponseEntity killTask(@RequestBody KillTaskRequest req) throws IOException {
+        jobService.killTask(req);
         return ResponseEntity.ok().build();
     }
 

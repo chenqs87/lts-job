@@ -12,8 +12,9 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface FlowTaskDao extends BaseDao{
+public interface FlowTaskDao {
 
+    @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty ="id", before = false, resultType = int.class)
     @Insert("insert into flow_task(flow_id,create_user,status,begin_time,end_time,params,trigger_mode) " +
             "values(#{flowId},#{createUser},#{status},#{beginTime},#{endTime},#{params},#{triggerMode})")
     void insert(FlowTask flowTask);

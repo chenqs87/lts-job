@@ -12,7 +12,7 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface TaskDao extends BaseDao {
+public interface TaskDao {
 
     @Insert("insert into task values(#{flowTaskId},#{taskId},#{jobId},#{flowId},#{taskStatus}," +
             "#{preTask},#{postTask},#{beginTime},#{endTime},#{shardStatus},#{handler},#{host})")

@@ -47,7 +47,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
         try {
             int taskId = flowEvent.getCurrentTaskId();
             if(taskId == -1) {
-                handleUnFinishFlow(memFlowTask);
+                jobTrigger.handleUnFinishFlow(memFlowTask);
             } else {
                 // handler 回调触发
                 MemTask memTask = memFlowTask.getMemTask(taskId);
@@ -118,26 +118,5 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
             e.printStackTrace();
             // TODO 完善日志
         }
-    }
-
-    private void handleUnFinishFlow(MemFlowTask memFlowTask) {
-        //程序启动触发，为完成的工作流，当前flow 状态为Running，
-        //flow中的task可能存在各种状态，例如：Ready Pending Running 等等
-        memFlowTask.getTasks()
-            .forEach(t -> {
-                TaskStatus status = TaskStatus.parse(t.getTask().getTaskStatus());
-                switch (status) {
-                    case New: t.handle(new TaskEvent(TaskEventType.Submit)); break;
-                    case Ready: t.handle(new TaskEvent(TaskEventType.Pend)); break;
-                    case Submitted: t.handle(new TaskEvent(TaskEventType.Execute)); break;
-                    case Pending: t.handle(new TaskEvent(TaskEventType.Send)); break;
-                    case Running: break; // 作业在executor 中运行，极端情况，executor 挂了，可能会造成整个工作流不可用
-                    case Failed:
-                    case Killed:
-                    case Finished:
-                        throw new IllegalStateException("Fail to execute flow " + memFlowTask.getFlowTask().getId());
-                }
-
-            });
     }
 }

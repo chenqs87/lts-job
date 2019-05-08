@@ -13,6 +13,7 @@ import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.ExecuteRequest;
+import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.core.tool.SpringContext;
@@ -21,6 +22,8 @@ import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.MemTask;
+import com.zy.data.lts.schedule.state.task.TaskEvent;
+import com.zy.data.lts.schedule.state.task.TaskEventType;
 import com.zy.data.lts.schedule.state.task.TaskStatus;
 import com.zy.data.lts.schedule.tools.IntegerTool;
 import org.apache.commons.collections.CollectionUtils;
@@ -69,7 +72,7 @@ public class JobTrigger {
     @Autowired
     private ExecutorApi executorApi;
 
-    private final BlockingQueue<Integer> flowQueue = new LinkedBlockingQueue<>();
+    private static final BlockingQueue<Integer> cronFlowQueue = new LinkedBlockingQueue<>();
 
     private final Map<Integer, MemFlowTask> runningFlowTasks = new ConcurrentHashMap<>();
 
@@ -77,22 +80,31 @@ public class JobTrigger {
 
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
 
-   /* private final Thread flowTaskThread = new Thread(() -> {
+    private final ExecutorService flowEventService = Executors.newSingleThreadExecutor();
+
+    private final Thread flowTaskThread = new Thread(() -> {
         while (isRunning.get()) {
             try {
-                Integer flowId = flowQueue.poll(5, TimeUnit.SECONDS);
+                Integer flowId = cronFlowQueue.poll(3, TimeUnit.SECONDS);
                 if(flowId != null) {
-                    triggerFlow(flowId);
+                    triggerFlow(flowId, TriggerMode.Cron);
                 }
-            } catch (InterruptedException ignore) {}
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         countDownLatch.countDown();
-    });*/
+    });
+
+    public static void pushCronFlow(Integer flowId) {
+        cronFlowQueue.offer(flowId);
+        System.out.println("=====Print==== flowID:" + flowId);
+    }
 
     @PostConstruct
     public void init() {
         // load all un finished flowTasks
-       // flowTaskThread.start();
+        flowTaskThread.start();
 
         //判断是否是主节点，主节点加载
         loadUnFinishedFlowTasks();
@@ -101,10 +113,11 @@ public class JobTrigger {
     @PreDestroy
     public void destroy() {
         isRunning.set(false);
-       /* try {
+        try {
             flowTaskThread.interrupt();
             countDownLatch.await();
-        } catch (InterruptedException ignore) {}*/
+            flowEventService.shutdown();
+        } catch (InterruptedException ignore) {}
     }
 
 
@@ -152,15 +165,14 @@ public class JobTrigger {
 
     @Transactional
     public void handleFlowTask(FlowEvent flowEvent) {
-        MemFlowTask flowTask = getMemFlowTask(flowEvent.getFlowTaskId());
-        flowTask.handle(flowEvent);
+        flowEventService.execute(() -> {
+            MemFlowTask flowTask = getMemFlowTask(flowEvent.getFlowTaskId());
+            flowTask.handle(flowEvent);
+        });
     }
 
     public void killFlowTask(int flowTaskId) {
-        MemFlowTask flowTask = runningFlowTasks.get(flowTaskId);
-        if(flowTask != null) {
-            flowTask.handle(new FlowEvent(FlowEventType.Kill));
-        }
+        handleFlowTask(new FlowEvent(flowTaskId, FlowEventType.Kill));
     }
 
     private MemFlowTask getMemFlowTask(int flowTaskId) {
@@ -200,8 +212,8 @@ public class JobTrigger {
         flowTask.setTriggerMode(triggerMode.getCode());
 
         flowTaskDao.insert(flowTask);
-        int id = flowTaskDao.getId();
-        flowTask.setId(id);
+        //int id = flowTaskDao.getId();
+        //flowTask.setId(id);
         return flowTask;
     }
 
@@ -298,10 +310,46 @@ public class JobTrigger {
         }
     }
 
+    public void handleUnFinishFlow(MemFlowTask memFlowTask) {
+        //程序启动触发，为完成的工作流，当前flow 状态为Running，
+        //flow中的task可能存在各种状态，例如：Ready Pending Running 等等
+        memFlowTask.getTasks()
+            .forEach(t -> {
+                TaskStatus status = TaskStatus.parse(t.getTask().getTaskStatus());
+                switch (status) {
+                    case New: t.handle(new TaskEvent(TaskEventType.Submit)); break;
+                    case Ready: t.handle(new TaskEvent(TaskEventType.Pend)); break;
+                    case Submitted: t.handle(new TaskEvent(TaskEventType.Execute)); break;
+                    case Pending: t.handle(new TaskEvent(TaskEventType.Send)); break;
+                    case Running: break; // 作业在executor 中运行，极端情况，executor 挂了，可能会造成整个工作流不可用
+                    case Failed:
+                    case Killed:
+                    case Finished:
+                        throw new IllegalStateException("Fail to execute flow " + memFlowTask.getFlowTask().getId());
+                }
+
+            });
+    }
+
+    public void killTask(KillTaskRequest request) {
+        executorApi.kill(request);
+    }
+
     @EventListener
     public void updateTaskHost(UpdateTaskHostEvent event) {
-        Task task = taskDao.findById(event.getFlowTaskId(), event.getTaskId());
-        task.setHost(event.getHost());
-        taskDao.update(task);
+        MemFlowTask flowTask = runningFlowTasks.get(event.getFlowTaskId());
+        if(flowTask != null) {
+            MemTask memTask = flowTask.getMemTask(event.getTaskId());
+            if(memTask != null) {
+                memTask.lock();
+                try {
+                    Task task = memTask.getTask();
+                    task.setHost(event.getHost());
+                    taskDao.update(task);
+                } finally {
+                    memTask.unlock();
+                }
+            }
+        }
     }
 }

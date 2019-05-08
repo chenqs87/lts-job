@@ -34,6 +34,7 @@ public class TaskFinishTransition implements MultipleArcTransition<MemTask, Task
                 task.setEndTime(new Date());
                 taskDao.update(task);
             }
+
             return ret;
         } finally {
             memTask.unlock();

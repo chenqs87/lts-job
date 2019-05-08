@@ -32,15 +32,13 @@ public class ConsoleFlowController {
     @ApiOperation(value = "启动定时任务",  notes="启动定时任务")
     @PostMapping("/cronFlow")
     public ResponseEntity startCronFlow(@RequestParam("flowId") Integer flowId) throws Exception {
-        jobService.startCronFlow(flowId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(jobService.startCronFlow(flowId));
     }
 
     @ApiOperation(value = "停止定时任务",  notes="停止定时任务")
     @DeleteMapping ("/cronFlow")
     public ResponseEntity stopCronFlow(@RequestParam("flowId") Integer flowId) throws Exception {
-        jobService.stopCronFlow(flowId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(jobService.stopCronFlow(flowId));
     }
 
     @ApiOperation(value = "新建工作流",  notes="新建工作流")

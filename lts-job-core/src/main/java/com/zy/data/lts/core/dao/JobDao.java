@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Mapper
 @Repository
-public interface JobDao extends BaseDao {
+public interface JobDao {
 
     @Results(id = "job", value = {
             @Result(property = "id", column = "id"),
@@ -44,6 +44,7 @@ public interface JobDao extends BaseDao {
             "</script>")
     List<Job> select(Object params);
 
+    @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty ="id", before = false, resultType = int.class)
     @Insert("insert into job (name, handler,job_type,create_time,create_user, content, permit,shard_type, config, group) " +
             "values(#{name},#{handler},#{jobType},#{createTime},#{createUser},#{content}, #{permit}, #{shardType}, " +
             "#{config}, #{group})")

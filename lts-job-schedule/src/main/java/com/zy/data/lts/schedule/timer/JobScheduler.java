@@ -54,8 +54,6 @@ public class JobScheduler {
         CronTrigger cronTrigger = createCronTrigger(cronExpression, triggerKey);
         JobDetail jobDetail = JobBuilder.newJob(LtsScheduleJob.class).withIdentity(jobKey).build();
 
-        jobDetail.getJobDataMap().put("jobTrigger", jobTrigger);
-
         Date date = scheduler.scheduleJob(jobDetail, cronTrigger);
         logger.info("Begin to start a cron job. time: {}", date);
         return true;

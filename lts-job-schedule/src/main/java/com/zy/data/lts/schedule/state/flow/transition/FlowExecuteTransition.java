@@ -8,6 +8,8 @@ import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
+import com.zy.data.lts.schedule.state.task.TaskStatus;
+import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,9 @@ public class FlowExecuteTransition implements SingleArcTransition<MemFlowTask, F
     @Autowired
     FlowTaskDao flowTaskDao;
 
+    @Autowired
+    JobTrigger jobTrigger;
+
     @Override
     public void transition(MemFlowTask memFlowTask, FlowEvent flowEvent) {
 
@@ -25,7 +30,8 @@ public class FlowExecuteTransition implements SingleArcTransition<MemFlowTask, F
         try {
             int taskId = flowEvent.getCurrentTaskId();
             if(taskId == -1) {
-                memFlowTask.getTasks().forEach(t -> t.handle(new TaskEvent(TaskEventType.Submit)));
+               // memFlowTask.getTasks().forEach(t -> t.handle(new TaskEvent(TaskEventType.Submit)));
+                jobTrigger.handleUnFinishFlow(memFlowTask);
             } else {
 
                 memFlowTask.getMemTask(taskId).handle(new TaskEvent(TaskEventType.Execute));
@@ -42,7 +48,5 @@ public class FlowExecuteTransition implements SingleArcTransition<MemFlowTask, F
         } finally {
             memFlowTask.unlock();
         }
-
-
     }
 }

@@ -58,7 +58,6 @@ public class JobService {
         flow.setCreateTime(new Date());
         flow.setCreateUser(0);
         flowDao.insert(flow);
-        flow.setId(flowDao.getId());
         return flow;
     }
 
@@ -93,7 +92,6 @@ public class JobService {
         job.setCreateTime(new Date());
         job.setCreateUser(0);
         jobDao.insert(job);
-        job.setId(jobDao.getId());
         return job;
     }
 
@@ -126,14 +124,15 @@ public class JobService {
      * @return
      */
     @Transactional
-    public boolean startCronFlow(int flowId) throws Exception {
+    public Flow startCronFlow(int flowId) throws Exception {
         // quartz 调度
         Flow flow = flowDao.findById(flowId);
-        flow.setFlowStatus(1);
+        flow.setIsSchedule(1);
         flow.setStartTime(new Date());
         flowDao.update(flow);
 
-        return jobScheduler.startJob(String.valueOf(flow.getId()), flow.getCron());
+        jobScheduler.startJob(String.valueOf(flow.getId()), flow.getCron());
+        return flow;
     }
 
     /**
@@ -141,14 +140,14 @@ public class JobService {
      * @return
      */
     @Transactional
-    public boolean stopCronFlow(int flowId) throws Exception {
+    public Flow stopCronFlow(int flowId) throws Exception {
         // quartz 调度
         Flow flow = flowDao.findById(flowId);
-        flow.setFlowStatus(0);
+        flow.setIsSchedule(0);
         flowDao.update(flow);
 
         jobScheduler.stopJob(String.valueOf(flow.getId()));
-        return false;
+        return flow;
     }
 
     /**

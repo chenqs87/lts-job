@@ -2,6 +2,7 @@ package com.zy.data.lts.schedule.state.task.transition;
 
 import com.zy.data.lts.core.dao.TaskDao;
 import com.zy.data.lts.core.entity.Task;
+import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.schedule.state.task.TaskStatus;
 import com.zy.data.lts.schedule.state.SingleArcTransition;
 import com.zy.data.lts.schedule.state.task.MemTask;
@@ -24,10 +25,21 @@ public class TaskKillTransition implements SingleArcTransition<MemTask, TaskEven
     JobTrigger jobTrigger;
 
     @Override
-    public void transition(MemTask job, TaskEvent event) {
+    public void transition(MemTask memTask, TaskEvent event) {
 
-        Task task = job.getTask();
+        Task task = memTask.getTask();
         task.setTaskStatus(TaskStatus.Killed.code());
         taskDao.update(task);
+
+        try {
+
+
+            jobTrigger.killTask(new KillTaskRequest(task.getHost(),
+                    task.getFlowTaskId(),
+                    task.getTaskId(),
+                    0));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

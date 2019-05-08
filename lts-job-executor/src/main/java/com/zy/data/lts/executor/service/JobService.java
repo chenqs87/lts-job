@@ -9,6 +9,7 @@ import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.ExecuteRequest;
+import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.*;
 import org.springframework.beans.BeansException;
@@ -25,6 +26,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author chenqingsong
@@ -52,7 +55,10 @@ public class JobService implements ApplicationContextAware {
     @Autowired
     ExecutorConfig executorConfig;
 
-    public void exec(ExecuteRequest req) throws IOException {
+    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+    public void doExec(ExecuteRequest req) throws IOException {
+
         Task task = taskDao.findById(req.getFlowTaskId(), req.getTaskId());
         Job job = jobDao.findById(task.getJobId());
 
@@ -71,6 +77,20 @@ public class JobService implements ApplicationContextAware {
         }
 
         applicationContext.publishEvent(event);
+    }
+
+    public void exec(ExecuteRequest req) {
+        executorService.execute(() -> {
+            try {
+                doExec(req);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    public void killTask(KillTaskRequest req) {
+        applicationContext.publishEvent(new KillJobEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
     }
 
     private Path createOutputDir(ExecuteRequest req, Job job, JobType jobType) throws IOException {

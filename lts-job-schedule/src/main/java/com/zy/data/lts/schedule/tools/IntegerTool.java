@@ -22,6 +22,14 @@ public class IntegerTool {
         return ret;
     }*/
 
+    /**
+     * 二进制位转换
+     * 当 value = 3 return [0,1]
+     * 当 value = 2 return [1]
+     * 当 value = 4 return [2]
+     * @param value 表示2进制位的整数
+     * @return 返回二进制位是1的下标
+     */
     public static List<Integer> parseOneBit(int value) {
 
         int length = Integer.bitCount(value);

@@ -2,7 +2,13 @@ package com.zy.data.lts;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
+
+import javax.sql.DataSource;
 
 /**
  * @author chenqingsong
@@ -10,9 +16,15 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootApplication
 @ComponentScan("com.zy.data.lts.*")
+@EnableTransactionManagement
 public class LtsJobAdminApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(LtsJobAdminApplication.class, args);
+    }
+
+    @Bean
+    public PlatformTransactionManager txManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 }

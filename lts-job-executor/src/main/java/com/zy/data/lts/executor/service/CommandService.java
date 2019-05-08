@@ -1,17 +1,16 @@
 package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.core.api.AdminApi;
+import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.JobResultRequest;
-import com.zy.data.lts.executor.model.JobExecuteEvent;
-import com.zy.data.lts.executor.model.PythonEvent;
-import com.zy.data.lts.executor.model.ShellEvent;
-import com.zy.data.lts.executor.model.ZipEvent;
+import com.zy.data.lts.executor.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author chenqingsong
@@ -25,6 +24,8 @@ public class CommandService {
 
     @Autowired
     LogService logService;
+
+    public final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
 
     @EventListener
     public void onApplicationEvent(ShellEvent event) throws IOException {
@@ -59,12 +60,38 @@ public class CommandService {
         Process process = Runtime.getRuntime().exec(
                 new String[]{command, file, String.valueOf(event.getShard()), event.getParams() == null ? "" : event.getParams()});
 
+        String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+        runningTasks.put(runningKey, process);
+
         try(InputStream is = process.getInputStream()) {
             logService.info(event, is);
             process.waitFor();
             exitValue = process.exitValue();
         } catch (InterruptedException ignore) { }
+        finally {
+            runningTasks.remove(runningKey);
+        }
+
 
         return exitValue;
+    }
+
+    @EventListener
+    public void onApplicationEvent(KillJobEvent event) {
+        try {
+            String processKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+            Process process = runningTasks.get(processKey);
+            if(process != null) {
+                process.destroyForcibly();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // todo 添加日志
+        }
+
+    }
+
+    private String buildKey(int flowTaskId, int taskId, int shard) {
+        return flowTaskId + "_" + taskId + "_" + shard;
     }
 }
