@@ -23,13 +23,4 @@ public class SpringContext implements ApplicationContextAware {
     public <T> T getBean(Class<T> clazz) {
         return applicationContext.getBean(clazz);
     }
-
-    public void registerBean(String beanName, Object obj) {
-        applicationContext.getBeanFactory().registerSingleton(beanName, obj);
-    }
-
-    public boolean contain(String beanName) {
-        return applicationContext.getBeanFactory().containsBean(beanName);
-    }
-
 }
