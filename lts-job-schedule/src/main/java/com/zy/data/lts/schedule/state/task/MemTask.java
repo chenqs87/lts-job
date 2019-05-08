@@ -59,7 +59,12 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
 
     @Override
     public void handle(TaskEvent event) {
-        stateMachine.doTransition(event.getType(), event);
+        lock();
+        try{
+            stateMachine.doTransition(event.getType(), event);
+        } finally {
+            unlock();
+        }
     }
 
     public TaskStatus getCurrentStatus() {

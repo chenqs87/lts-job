@@ -30,7 +30,6 @@ public class FlowExecuteTransition implements SingleArcTransition<MemFlowTask, F
         try {
             int taskId = flowEvent.getCurrentTaskId();
             if(taskId == -1) {
-               // memFlowTask.getTasks().forEach(t -> t.handle(new TaskEvent(TaskEventType.Submit)));
                 jobTrigger.handleUnFinishFlow(memFlowTask);
             } else {
 

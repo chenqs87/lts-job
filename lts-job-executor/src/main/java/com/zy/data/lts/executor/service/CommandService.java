@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
@@ -25,7 +26,7 @@ public class CommandService {
     @Autowired
     LogService logService;
 
-    public final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
 
     @EventListener
     public void onApplicationEvent(ShellEvent event) throws IOException {
@@ -43,6 +44,21 @@ public class CommandService {
     public void onApplicationEvent(ZipEvent event) throws IOException {
         int ret = execCommand(event, "sh", event.getOutput().toString() + "/exec");
         callback(ret, event);
+    }
+
+    @EventListener
+    public void onApplicationEvent(KillJobEvent event) {
+        try {
+            String processKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+            Process process = runningTasks.get(processKey);
+            if(process != null) {
+                // TODO::  Kill 作业会触发作业失败事件 adminApi.fail(request);
+                process.destroyForcibly();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            // todo 添加日志
+        }
     }
 
     private void callback(int ret, JobExecuteEvent event) {
@@ -67,8 +83,8 @@ public class CommandService {
             logService.info(event, is);
             process.waitFor();
             exitValue = process.exitValue();
-        } catch (InterruptedException ignore) { }
-        finally {
+        } catch (InterruptedException ignore) {
+        } finally {
             runningTasks.remove(runningKey);
         }
 
@@ -76,19 +92,20 @@ public class CommandService {
         return exitValue;
     }
 
-    @EventListener
-    public void onApplicationEvent(KillJobEvent event) {
-        try {
-            String processKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-            Process process = runningTasks.get(processKey);
-            if(process != null) {
+    @PreDestroy
+    public void destroy() {
+        runningTasks.forEach((key, process) -> {
+            try {
                 process.destroyForcibly();
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                // TODO::  Kill 作业会触发作业失败事件 adminApi.fail(request);
+                String[] ids = key.split("_");
+                adminApi.kill(new JobResultRequest(Integer.parseInt(ids[0]),
+                        Integer.parseInt(ids[1]), Integer.parseInt(ids[2])));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-            // todo 添加日志
-        }
-
+        });
     }
 
     private String buildKey(int flowTaskId, int taskId, int shard) {

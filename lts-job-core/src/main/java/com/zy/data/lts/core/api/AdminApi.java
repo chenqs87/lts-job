@@ -6,6 +6,8 @@ import com.zy.data.lts.core.model.JobResultRequest;
 import feign.Feign;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
@@ -17,25 +19,29 @@ import javax.annotation.PreDestroy;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- *
  * AdminServer API 由 executor 调用
+ *
  * @author chenqingsong
  * @date 2019/4/1 13:44
  */
 
 @Component
-@ConditionalOnProperty(name= "lts.server.role", havingValue = "executor")
+@ConditionalOnProperty(name = "lts.server.role", havingValue = "executor")
 public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitializedEvent> {
-
+    private final static Logger logger = LoggerFactory.getLogger(AdminApi.class);
 
     @Autowired
     private ExecutorApiConfig executorApiConfig;
+
+    @Autowired
+    private DefaultAdminApi defaultAdminApi;
+
+    private final Object masterAdminLock = new Object();
+    private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
     /**
      * 所有 admin service
@@ -47,7 +53,8 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
      */
     private final Map<String, IAdminApi> activeServers = new ConcurrentHashMap<>();
 
-    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService beatService = Executors.newSingleThreadScheduledExecutor();
+    private final ExecutorService taskStatusService = Executors.newSingleThreadExecutor();
 
     private int serverPort;
 
@@ -62,82 +69,103 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
             adminServers.putIfAbsent(url, adminApi);
         });
 
-        executorService.scheduleWithFixedDelay(this::beat, 0, 5, TimeUnit.SECONDS);
+        beatService.scheduleWithFixedDelay(this::beat, 0, 5, TimeUnit.SECONDS);
     }
 
     @PreDestroy
     public void destroy() {
         try {
-            executorService.shutdownNow();
-        } catch (Exception ignore) {}
+            isRunning.set(true);
+            masterAdminLock.notifyAll();
+            taskStatusService.shutdownNow();
+            beatService.shutdownNow();
+        } catch (Exception ignore) {
+        }
 
     }
 
-    public IAdminApi getIAdminApi() {
-        if(activeServers.values().iterator().hasNext()) {
-            return activeServers.values().iterator().next();
+    public IAdminApi getMasterAdminApi() {
+
+        while (isRunning.get()) {
+            // TODO master 高可用时，需要调整，当前适合单Master
+            if (activeServers.values().iterator().hasNext()) {
+                return activeServers.values().iterator().next();
+            }
+
+            synchronized (masterAdminLock) {
+                try {
+                    logger.info("Active Masters is 0!");
+                    masterAdminLock.wait();
+                } catch (InterruptedException ignore) {
+                }
+            }
         }
 
-        return null;
+        return defaultAdminApi;
+
     }
 
     @Override
     public void success(JobResultRequest request) {
-        while (true) {
-            try {
-                getIAdminApi().success(request);
-                return;
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException ignore) { }
-            }
-
+        try {
+            getMasterAdminApi().success(request);
+        } catch (Exception e) {
+            e.printStackTrace();
+            execute(request, () -> success(request));
         }
+
     }
 
     @Override
     public void fail(JobResultRequest request) {
-        while (true) {
-            try {
-                getIAdminApi().fail(request);
-                return;
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException ignore) { }
-            }
 
+        try {
+            getMasterAdminApi().fail(request);
+        } catch (Exception e) {
+            execute(request, () -> fail(request));
+        }
+    }
+
+    public void execute(JobResultRequest request, Runnable runnable) {
+        if (request.getAndIncrement() < 10) {
+            taskStatusService.execute(runnable);
         }
 
     }
 
     @Override
     public void start(JobResultRequest request) {
-        while (true) {
-            try {
-                getIAdminApi().start(request);
-                return;
-            } catch (Exception e) {
-                e.printStackTrace();
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException ignore) { }
-            }
 
+        try {
+            getMasterAdminApi().start(request);
+        } catch (Exception e) {
+            execute(request, () -> start(request));
         }
 
     }
 
     @Override
+    public void kill(JobResultRequest request) {
+        try {
+            getMasterAdminApi().kill(request);
+        } catch (Exception e) {
+            execute(request, () -> kill(request));
+        }
+    }
+
+    @Override
     public void beat(BeatInfoRequest request) {
-        adminServers.forEach((k,v) -> {
+        adminServers.forEach((k, v) -> {
             try {
-                 v.beat(request);
+                v.beat(request);
                 activeServers.putIfAbsent(k, v);
+
+                synchronized (masterAdminLock) {
+                    masterAdminLock.notifyAll();
+                }
+
             } catch (Exception e) {
+                logger.warn("Fail to connect to master [{}]", k);
                 activeServers.remove(k);
             }
         });

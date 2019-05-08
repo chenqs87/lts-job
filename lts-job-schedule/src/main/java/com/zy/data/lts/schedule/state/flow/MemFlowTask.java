@@ -67,7 +67,12 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
 
     @Override
     public void handle(FlowEvent event) {
-        stateMachine.doTransition(event.getType(), event);
+        lock();
+        try {
+            stateMachine.doTransition(event.getType(), event);
+        } finally {
+            unlock();
+        }
     }
 
     public void finishTask(int taskId) {

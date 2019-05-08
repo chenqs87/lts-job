@@ -46,4 +46,14 @@ public class HandlerCallbackController {
         jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Execute, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }
+
+    @ApiOperation(value = "Executor关闭自动Kill未完成的作业" ,  notes="Executor关闭自动Kill未完成的作业")
+    @PostMapping("/kill")
+    @ResponseBody
+    public ResponseEntity killTask(@RequestBody JobResultRequest request) {
+        jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Kill, request.getTaskId(), request.getShard()));
+        return ResponseEntity.ok().build();
+    }
+
+
 }

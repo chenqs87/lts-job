@@ -24,6 +24,10 @@ public interface IAdminApi {
     @Headers("Content-Type: application/json")
     void start(JobResultRequest request);
 
+    @RequestLine("POST /handler/callback/kill")
+    @Headers("Content-Type: application/json")
+    void kill(JobResultRequest request);
+
     /**
      * 心跳API
      */
