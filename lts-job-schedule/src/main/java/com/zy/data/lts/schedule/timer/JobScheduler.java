@@ -23,9 +23,6 @@ public class JobScheduler {
     @Autowired
     private Scheduler scheduler;
 
-    @Autowired
-    private JobTrigger jobTrigger;
-
     @PostConstruct
     public void init() throws SchedulerException {
         scheduler.start();

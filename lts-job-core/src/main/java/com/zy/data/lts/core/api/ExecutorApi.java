@@ -12,10 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,7 +28,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
     //<ip:port, executor>
-    private final Map<String, Executor> executors = new ConcurrentHashMap<>();
+    private final Map<String, Executor> executorMap = new ConcurrentHashMap<>();
+
+    // <handler, <ip:port, executor>>
+    private final Map<String, Map<String, Executor>> handlers = new ConcurrentHashMap<>();
     private final BlockingQueue<ExecuteRequest> queue = new LinkedBlockingQueue<>();
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
     private ApplicationContext applicationContext;
@@ -43,7 +43,6 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
                 doExec();
             }
         }).start();
-
     }
 
     public void refresh(BeatInfoRequest beat) {
@@ -60,7 +59,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
     private void doExec() {
         try {
-            for (Executor executor : executors.values()) {
+            for (Executor executor : executorMap.values()) {
                 if (executor.isActive()) {
                     ExecuteRequest request = queue.poll(2, TimeUnit.SECONDS);
                     if (request != null && executor.getHandler().equals(request.getHandler())) {
@@ -87,7 +86,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
 
     @Override
     public void kill(KillTaskRequest request) {
-        Executor executor = executors.get(request.getHost());
+        Executor executor = executorMap.get(request.getHost());
         if (executor != null) {
             executor.getApi().kill(request);
         }
@@ -96,13 +95,17 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
     private void updateExecutors(BeatInfoRequest beat, String host) {
         String hostAndPort = beat.getHost() + ":" + beat.getPort();
         // 更新executor 心跳时间
-        executors.computeIfPresent(hostAndPort, (k, v) -> {
+        executorMap.computeIfPresent(hostAndPort, (k, v) -> {
             v.setLastUpdateTime(System.currentTimeMillis());
             return v;
         });
 
         // 新增executors
-        executors.computeIfAbsent(hostAndPort, f -> createExecutor(beat, host));
+        executorMap.computeIfAbsent(hostAndPort, f -> createExecutor(beat, host));
+
+        handlers.computeIfAbsent(beat.getHandler(), f -> new ConcurrentHashMap<>())
+                .computeIfAbsent(beat.getHost(), f -> executorMap.get(beat.getHost()));
+
     }
 
     private Executor createExecutor(BeatInfoRequest beat, String host) {
@@ -128,7 +131,7 @@ public class ExecutorApi implements IExecutorApi, ApplicationContextAware {
         // <handler,<ip:port>
         Map<String, Set<String>> map = new HashMap<>();
 
-        executors.values().forEach(executor -> {
+        executorMap.values().forEach(executor -> {
             Set<String> hosts = map.computeIfAbsent(executor.getHandler(), f -> new HashSet<>());
             if (executor.isActive()) {
                 hosts.add(executor.getHost());

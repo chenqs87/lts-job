@@ -3,6 +3,8 @@ package com.zy.data.lts.executor.service;
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.executor.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -18,8 +20,12 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class CommandService {
+    private static final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
+    private static final Object EMPTY_OBJECT = new Object();
     private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Object> killedTasks = new ConcurrentHashMap<>();
+
     @Autowired
     AdminApi adminApi;
     @Autowired
@@ -45,16 +51,17 @@ public class CommandService {
 
     @EventListener
     public void onApplicationEvent(KillJobEvent event) {
+        String processKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         try {
-            String processKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+
             Process process = runningTasks.get(processKey);
             if (process != null) {
-                // TODO::  Kill 作业会触发作业失败事件 adminApi.fail(request);
+                // kill task 之后，作业失败，exitValue != 0, 避免由于主动kill task，造成向Master发起Fail操作
+                killedTasks.putIfAbsent(processKey, EMPTY_OBJECT);
                 process.destroyForcibly();
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            // todo 添加日志
+            logger.warn("Fail to kill task [{}]!", processKey, e);
         }
     }
 
@@ -63,7 +70,12 @@ public class CommandService {
         if (ret == 0) {
             adminApi.success(request);
         } else {
-            adminApi.fail(request);
+            String key = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+            if(killedTasks.get(key) == EMPTY_OBJECT) {
+                killedTasks.remove(key);
+            } else {
+                adminApi.fail(request);
+            }
         }
     }
 
@@ -80,11 +92,11 @@ public class CommandService {
             logService.info(event, is);
             process.waitFor();
             exitValue = process.exitValue();
+
         } catch (InterruptedException ignore) {
         } finally {
             runningTasks.remove(runningKey);
         }
-
 
         return exitValue;
     }
@@ -93,11 +105,12 @@ public class CommandService {
     public void destroy() {
         runningTasks.forEach((key, process) -> {
             try {
+                // kill task 之后，作业失败，exitValue != 0, 避免由于主动kill task，造成向Master发起Fail操作
+                killedTasks.putIfAbsent(key, EMPTY_OBJECT);
                 process.destroyForcibly();
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.warn("Fail to kill task [{}]", key);
             } finally {
-                // TODO::  Kill 作业会触发作业失败事件 adminApi.fail(request);
                 String[] ids = key.split("_");
                 adminApi.kill(new JobResultRequest(Integer.parseInt(ids[0]),
                         Integer.parseInt(ids[1]), Integer.parseInt(ids[2])));
