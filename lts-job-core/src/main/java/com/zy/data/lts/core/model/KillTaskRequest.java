@@ -52,4 +52,8 @@ public class KillTaskRequest {
     public void setShard(int shard) {
         this.shard = shard;
     }
+
+    public String toString() {
+        return "{host: "+host+", flowTaskId: "+flowTaskId+", taskId: "+taskId+", shard:" +shard +" }";
+    }
 }

@@ -9,19 +9,6 @@ import java.util.List;
  */
 public class IntegerTool {
 
-/*    public static List<Integer> parseOneBit2(int value) {
-
-        int length = Integer.bitCount(value);
-        List<Integer> ret = new ArrayList<>(length);
-
-        for (int i = 0; i < 32; i ++) {
-            if((value & (1 << i)) > 0) {
-                ret.add(i);
-            }
-        }
-        return ret;
-    }*/
-
     /**
      * 二进制位转换
      * 当 value = 3 return [0,1]

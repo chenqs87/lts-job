@@ -2,11 +2,11 @@ package com.zy.data.lts.console;
 
 import com.github.pagehelper.PageInfo;
 import com.zy.data.lts.core.TriggerMode;
-import com.zy.data.lts.core.api.ExecutorApi;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.core.model.PagerRequest;
+import com.zy.data.lts.schedule.handler.ExecutorsApi;
 import com.zy.data.lts.schedule.service.JobService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -27,7 +27,8 @@ public class ConsoleFlowController {
     JobService jobService;
 
     @Autowired
-    ExecutorApi executorApi;
+    //ExecutorApi executorApi;
+     ExecutorsApi executorApi;
 
     @ApiOperation(value = "启动定时任务", notes = "启动定时任务")
     @PostMapping("/cronFlow")

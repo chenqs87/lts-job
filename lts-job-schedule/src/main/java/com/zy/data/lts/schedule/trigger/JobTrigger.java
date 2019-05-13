@@ -3,7 +3,6 @@ package com.zy.data.lts.schedule.trigger;
 import com.google.gson.Gson;
 import com.zy.data.lts.core.JobShardType;
 import com.zy.data.lts.core.TriggerMode;
-import com.zy.data.lts.core.api.ExecutorApi;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
 import com.zy.data.lts.core.dao.JobDao;
@@ -16,6 +15,7 @@ import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.schedule.handler.ExecutorsApi;
 import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
@@ -83,8 +83,10 @@ public class JobTrigger {
         }
         countDownLatch.countDown();
     });
+
     @Autowired
-    private ExecutorApi executorApi;
+    //private ExecutorApi executorApi;
+    private ExecutorsApi executorApi;
 
     public static void pushCronFlow(Integer flowId) {
         cronFlowQueue.offer(flowId);

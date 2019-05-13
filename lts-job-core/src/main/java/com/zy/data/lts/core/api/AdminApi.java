@@ -33,7 +33,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @ConditionalOnProperty(name = "lts.server.role", havingValue = "executor")
 public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitializedEvent> {
     private final static Logger logger = LoggerFactory.getLogger(AdminApi.class);
-    private final Object masterAdminLock = new Object();
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
     /**
      * 所有 admin service
@@ -69,7 +68,7 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
     public void destroy() {
         try {
             isRunning.set(true);
-            masterAdminLock.notifyAll();
+            this.notifyAll();
             taskStatusService.shutdownNow();
             beatService.shutdownNow();
         } catch (Exception ignore) {
@@ -85,10 +84,10 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
                 return activeServers.values().iterator().next();
             }
 
-            synchronized (masterAdminLock) {
+            synchronized (this) {
                 try {
                     logger.info("Active Masters is 0!");
-                    masterAdminLock.wait();
+                    this.wait();
                 } catch (InterruptedException ignore) {
                 }
             }
@@ -153,8 +152,8 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
                 v.beat(request);
                 activeServers.putIfAbsent(k, v);
 
-                synchronized (masterAdminLock) {
-                    masterAdminLock.notifyAll();
+                synchronized (this) {
+                    this.notifyAll();
                 }
 
             } catch (Exception e) {
