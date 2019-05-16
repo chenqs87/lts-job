@@ -8,7 +8,7 @@ import java.util.Date;
  * @author chenqingsong
  * @date 2019/3/28 14:15
  */
-public class Job {
+public class Job extends RepmPolicy {
     private Integer id;
 
     private String name;
@@ -27,17 +27,12 @@ public class Job {
 
     private Date createTime;
 
-    private int createUser;
+    private String createUser;
 
     /**
      * Job的内容，如果是脚本则为脚本的内容
      */
     private String content;
-
-    /**
-     * 权限二进制表示
-     */
-    private int permit;
 
     /**
      * 用户自定义配置，分配任务，需要配置在config 中
@@ -91,11 +86,11 @@ public class Job {
         this.createTime = createTime;
     }
 
-    public int getCreateUser() {
+    public String getCreateUser() {
         return createUser;
     }
 
-    public void setCreateUser(int createUser) {
+    public void setCreateUser(String createUser) {
         this.createUser = createUser;
     }
 
@@ -107,13 +102,6 @@ public class Job {
         this.content = content;
     }
 
-    public int getPermit() {
-        return permit;
-    }
-
-    public void setPermit(int permit) {
-        this.permit = permit;
-    }
 
     public int getShardType() {
         return shardType;

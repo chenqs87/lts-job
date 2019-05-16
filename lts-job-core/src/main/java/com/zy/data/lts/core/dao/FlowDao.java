@@ -23,7 +23,6 @@ public interface FlowDao {
             @Result(property = "startTime", column = "start_time"),
             @Result(property = "createTime", column = "create_time"),
             @Result(property = "createUser", column = "create_user"),
-            @Result(property = "permit", column = "permit"),
             @Result(property = "params", column = "params"),
             @Result(property = "isSchedule", column = "is_schedule"),
             @Result(property = "flowEditorInfo", column = "flow_editor_info"),
@@ -34,13 +33,13 @@ public interface FlowDao {
     Flow findById(@Param("id") int id);
 
     @Update("update flow set name=#{name},flow_config=#{flowConfig},cron=#{cron},flow_status=#{flowStatus}," +
-            "permit=#{permit},params=#{params},start_time=#{startTime},flow_editor_info=#{flowEditorInfo}," +
+            "params=#{params},start_time=#{startTime},flow_editor_info=#{flowEditorInfo}," +
             "is_schedule=#{isSchedule},post_flow=#{postFlow} where id=#{id}")
     void update(Flow flow);
 
     @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", before = false, resultType = int.class)
-    @Insert("insert into flow(name,flow_config,cron,flow_status,create_user,create_time,permit,params) " +
-            "values(#{name},#{flowConfig},#{cron},#{flowStatus},#{createUser},#{createTime},#{permit},#{params},#{postFlow})")
+    @Insert("insert into flow(name,flow_config,cron,flow_status,create_user,create_time,params,post_flow) " +
+            "values(#{name},#{flowConfig},#{cron},#{flowStatus},#{createUser},#{createTime},#{params},#{postFlow})")
     void insert(Flow flow);
 
     @Delete("delete from flow where id = #{id}")
@@ -50,5 +49,14 @@ public interface FlowDao {
     @Select("select * from flow")
     List<Flow> select();
 
+    @ResultMap("flow")
+    @Select("select f.*,rp.permit from repm_policy rp inner join flow f on  f.id =  rp.resource " +
+            "where  policy_name=concat('u_',#{username}) and `type` = 'Flow' and (rp.permit &amp; #{permit}) > 0  ")
+    List<Flow> selectByUser(@Param("username") String username, int permit);
+
+    @ResultMap("flow")
+    @Select("select f.*,rp.permit from repm_policy rp inner join flow f on  f.id =  rp.resource " +
+            "where  policy_name=concat('g_',#{group}) and `type` = 'Flow' and (rp.permit &amp; #{permit}) > 0 ")
+    List<Flow> selectByGroup(@Param("group") String group, int permit);
 
 }

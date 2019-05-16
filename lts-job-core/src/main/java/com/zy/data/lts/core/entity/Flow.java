@@ -8,7 +8,7 @@ import java.util.Date;
  * @author chenqingsong
  * @date 2019/3/28 15:47
  */
-public class Flow {
+public class Flow extends RepmPolicy {
     private int id;
 
     private String name;
@@ -44,13 +44,7 @@ public class Flow {
     /**
      * 创建工作流的用户
      */
-    private int createUser;
-
-    /**
-     * 二进制表示，
-     * 例如1， 1<<1 , 1<<2 等等
-     */
-    private int permit;
+    private String createUser;
 
     /**
      * 定时任务启动时需要的默认参数配置
@@ -123,20 +117,12 @@ public class Flow {
         this.startTime = startTime;
     }
 
-    public int getCreateUser() {
+    public String getCreateUser() {
         return createUser;
     }
 
-    public void setCreateUser(int createUser) {
+    public void setCreateUser(String createUser) {
         this.createUser = createUser;
-    }
-
-    public int getPermit() {
-        return permit;
-    }
-
-    public void setPermit(int permit) {
-        this.permit = permit;
     }
 
     public String getParams() {

@@ -2,10 +2,7 @@ package com.zy.data.lts.schedule.service;
 
 import com.github.pagehelper.PageHelper;
 import com.zy.data.lts.core.TriggerMode;
-import com.zy.data.lts.core.dao.FlowDao;
-import com.zy.data.lts.core.dao.FlowTaskDao;
-import com.zy.data.lts.core.dao.JobDao;
-import com.zy.data.lts.core.dao.TaskDao;
+import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
@@ -46,6 +43,9 @@ public class JobService {
     @Autowired
     TaskDao taskDao;
 
+    @Autowired
+    RepmPolicyDao repmPolicyDao;
+
     /**
      * 创建工作流
      *
@@ -54,12 +54,17 @@ public class JobService {
      */
     public Flow createFlow(Flow flow) {
         flow.setCreateTime(new Date());
-        flow.setCreateUser(0);
         flowDao.insert(flow);
+
+        flow.setPolicyName(repmPolicyDao.wrapUsername(flow.getCreateUser()));
+        flow.setResource(flow.getId());
+        repmPolicyDao.insert(flow);
         return flow;
     }
 
+    @Transactional
     public void deleteFlow(int flowId) {
+        repmPolicyDao.delete("Flow", flowId);
         flowDao.delete(flowId);
     }
 
@@ -88,12 +93,17 @@ public class JobService {
     @Transactional
     public Job createJob(Job job) {
         job.setCreateTime(new Date());
-        job.setCreateUser(0);
         jobDao.insert(job);
+
+        job.setPolicyName(repmPolicyDao.wrapUsername(job.getCreateUser()));
+        job.setResource(job.getId());
+        repmPolicyDao.insert(job);
         return job;
     }
 
+    @Transactional
     public void deleteJob(int jobId) {
+        repmPolicyDao.delete("Job", jobId);
         jobDao.delete(jobId);
     }
 
@@ -164,9 +174,31 @@ public class JobService {
         return jobDao.select(request);
     }
 
+    public List<Job> findJobsByUser(JobQueryRequest request) {
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
+        return jobDao.selectByUser(request);
+    }
+
+    public List<Job> findJobsByGroup(JobQueryRequest request) {
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
+        return jobDao.selectByUser(request);
+    }
+
     public List<Flow> findAllFlows(Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         return flowDao.select();
+    }
+
+    public List<Flow> findFlowsByUser(Integer pageNum, Integer pageSize,
+                                        String userName, int permit) {
+        PageHelper.startPage(pageNum, pageSize);
+        return flowDao.selectByUser(userName, permit);
+    }
+
+    public List<Flow> findFlowsByGroup(Integer pageNum, Integer pageSize,
+                                      String groupName, int permit) {
+        PageHelper.startPage(pageNum, pageSize);
+        return flowDao.selectByGroup(groupName, permit);
     }
 
     public List<FlowTask> findAllFlowTask(Integer pageNum, Integer pageSize) {

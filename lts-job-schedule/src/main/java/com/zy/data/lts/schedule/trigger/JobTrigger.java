@@ -209,8 +209,6 @@ public class JobTrigger {
         flowTask.setTriggerMode(triggerMode.getCode());
 
         flowTaskDao.insert(flowTask);
-        //int id = flowTaskDao.getId();
-        //flowTask.setId(id);
         return flowTask;
     }
 
@@ -319,7 +317,6 @@ public class JobTrigger {
                         case Finished:
                             throw new IllegalStateException("Fail to execute flow " + memFlowTask.getFlowTask().getId());
                     }
-
                 });
     }
 

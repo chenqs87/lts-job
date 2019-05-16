@@ -1,7 +1,6 @@
 spring:
   profiles:
     active: @profileActive@
-    include: quartz
 lts:
   server:
     role: admin
