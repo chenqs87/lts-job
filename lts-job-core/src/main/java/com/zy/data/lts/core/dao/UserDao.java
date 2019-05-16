@@ -31,7 +31,7 @@ public interface UserDao {
     User findByName(@Param("username") String username);
 
     @ResultMap("user")
-    @Select("select * from users")
+    @Select("select username,role,iphone,email,group_name,create_time from users")
     List<User> findAll();
 
 

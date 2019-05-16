@@ -30,6 +30,12 @@ public class ConsoleManagerController {
         return ResponseEntity.ok(new PageInfo<>(userService.getAllUsers(request)));
     }
 
+    @ApiOperation(value = "查询所有用户", notes = "查询所有用户")
+    @GetMapping("/getUsers")
+    public ResponseEntity getUsers() {
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
     @ApiOperation(value = "查询所有用户组", notes = "查询所有用户组")
     @GetMapping("/getAllGroups")
     public ResponseEntity getAllGroups(PagerRequest request) {

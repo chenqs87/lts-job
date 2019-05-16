@@ -25,6 +25,10 @@ public class UserService {
     @Autowired
     private GroupDao groupDao;
 
+    public List<User> getAllUsers() {
+        return userDao.findAll();
+    }
+
     public List<User> getAllUsers(PagerRequest request) {
         PageHelper.startPage(request.getPageNum(), request.getPageSize());
         return userDao.findAll();
