@@ -118,7 +118,9 @@ public class ConsoleFlowController {
     @ApiOperation(value = "查询所有工作流", notes = "查询所有工作流")
     @GetMapping("/getAllFlows")
     public ResponseEntity getAllFlows(PagerRequest request) {
-        return ResponseEntity.ok(new PageInfo<>(jobService.findAllFlows(request.getPageNum(), request.getPageSize())));
+
+        return ResponseEntity.ok(new PageInfo<>(jobService.findFlowsByUser(request.getPageNum(),
+                request.getPageSize(), getCurrentUserName(), LtsPermitEnum.FlowView.code)));
     }
 
     @ApiOperation(value = "查询工作流", notes = "查询工作流")

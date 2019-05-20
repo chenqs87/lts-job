@@ -2,10 +2,13 @@ package com.zy.data.lts.service;
 
 import com.github.pagehelper.PageHelper;
 import com.zy.data.lts.core.dao.GroupDao;
+import com.zy.data.lts.core.dao.RepmPolicyDao;
 import com.zy.data.lts.core.dao.UserDao;
 import com.zy.data.lts.core.entity.Group;
+import com.zy.data.lts.core.entity.RepmPolicy;
 import com.zy.data.lts.core.entity.User;
 import com.zy.data.lts.core.model.PagerRequest;
+import com.zy.data.lts.model.PermitRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +28,15 @@ public class UserService {
     @Autowired
     private GroupDao groupDao;
 
+    @Autowired
+    RepmPolicyDao repmPolicyDao;
+
     public List<User> getAllUsers() {
         return userDao.findAll();
+    }
+
+    public List<Group> getAllGroups() {
+        return groupDao.findAll();
     }
 
     public List<User> getAllUsers(PagerRequest request) {
@@ -63,5 +73,46 @@ public class UserService {
 
     public void deleteGroup(String groupName) {
         groupDao.delete(groupName);
+    }
+
+    public Integer getResourcePermit(PermitRequest request) {
+        if("User".equalsIgnoreCase(request.getUserOrGroup())) {
+            return repmPolicyDao.findUserPermit(request.getName(), request.getResourceType(), request.getResource());
+        } else if("Group".equalsIgnoreCase(request.getUserOrGroup())) {
+            return repmPolicyDao.findGroupPermit(request.getName(), request.getResourceType(), request.getResource());
+        } else {
+            return 0;
+        }
+    }
+
+    public void updatePermit(PermitRequest request) {
+        if("User".equalsIgnoreCase(request.getUserOrGroup())) {
+            RepmPolicy rp = new RepmPolicy();
+            rp.setCreateTime(new Date());
+            rp.setPermit(request.getPermit());
+            rp.setType(request.getResourceType());
+            rp.setPolicyName(repmPolicyDao.wrapUsername(request.getName()));
+            rp.setResource(request.getResource());
+
+            if(repmPolicyDao.findUserPermit(request.getName(), request.getResourceType(), request.getResource()) != null) {
+                repmPolicyDao.update(rp);
+            } else {
+                repmPolicyDao.insert(rp);
+            }
+
+        } else if("Group".equalsIgnoreCase(request.getUserOrGroup())) {
+            RepmPolicy rp = new RepmPolicy();
+            rp.setCreateTime(new Date());
+            rp.setPermit(request.getPermit());
+            rp.setType(request.getResourceType());
+            rp.setPolicyName(repmPolicyDao.wrapGroup(request.getName()));
+            rp.setResource(request.getResource());
+
+            if(repmPolicyDao.findGroupPermit(request.getName(), request.getResourceType(), request.getResource()) != null) {
+                repmPolicyDao.update(rp);
+            } else {
+                repmPolicyDao.insert(rp);
+            }
+        }
     }
 }

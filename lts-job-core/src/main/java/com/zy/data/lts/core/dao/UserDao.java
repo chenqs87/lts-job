@@ -31,9 +31,8 @@ public interface UserDao {
     User findByName(@Param("username") String username);
 
     @ResultMap("user")
-    @Select("select username,role,iphone,email,group_name,create_time from users")
+    @Select("select user_name,role,iphone,email,group_name,create_time from users")
     List<User> findAll();
-
 
     @Update("update users set password=#{password},role=#{role},iphone=#{iphone},email=#{email} " +
             "where user_name=#{username}")

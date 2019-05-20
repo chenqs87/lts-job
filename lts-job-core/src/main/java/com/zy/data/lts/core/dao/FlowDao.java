@@ -51,12 +51,12 @@ public interface FlowDao {
 
     @ResultMap("flow")
     @Select("select f.*,rp.permit from repm_policy rp inner join flow f on  f.id =  rp.resource " +
-            "where  policy_name=concat('u_',#{username}) and `type` = 'Flow' and (rp.permit &amp; #{permit}) > 0  ")
-    List<Flow> selectByUser(@Param("username") String username, int permit);
+            "where  policy_name=concat('u_',#{username}) and `type` = 'Flow' and (rp.permit & #{permit}) > 0  ")
+    List<Flow> selectByUser(@Param("username") String username, @Param("permit") int permit);
 
     @ResultMap("flow")
     @Select("select f.*,rp.permit from repm_policy rp inner join flow f on  f.id =  rp.resource " +
-            "where  policy_name=concat('g_',#{group}) and `type` = 'Flow' and (rp.permit &amp; #{permit}) > 0 ")
-    List<Flow> selectByGroup(@Param("group") String group, int permit);
+            "where  policy_name=concat('g_',#{group}) and `type` = 'Flow' and (rp.permit & #{permit}) > 0 ")
+    List<Flow> selectByGroup(@Param("group") String group, @Param("permit") int permit);
 
 }

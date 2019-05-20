@@ -4,6 +4,7 @@ import com.github.pagehelper.PageInfo;
 import com.zy.data.lts.core.entity.Group;
 import com.zy.data.lts.core.entity.User;
 import com.zy.data.lts.core.model.PagerRequest;
+import com.zy.data.lts.model.PermitRequest;
 import com.zy.data.lts.security.LtsPermitEnum;
 import com.zy.data.lts.service.UserService;
 import io.swagger.annotations.Api;
@@ -34,6 +35,12 @@ public class ConsoleManagerController {
     @GetMapping("/getUsers")
     public ResponseEntity getUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @ApiOperation(value = "查询所有用户", notes = "查询所有用户")
+    @GetMapping("/getGroups")
+    public ResponseEntity getGroups() {
+        return ResponseEntity.ok(userService.getAllGroups());
     }
 
     @ApiOperation(value = "查询所有用户组", notes = "查询所有用户组")
@@ -95,4 +102,21 @@ public class ConsoleManagerController {
     public ResponseEntity getFlowPermit() {
         return ResponseEntity.ok(LtsPermitEnum.getFlowPermits());
     }
+
+    @ApiOperation(value = "查询资源权限", notes = "查询资源权限")
+    @GetMapping("/getResourcePermit")
+    public ResponseEntity getResourcePermit(PermitRequest request) {
+        return ResponseEntity.ok(userService.getResourcePermit(request));
+    }
+
+
+    @ApiOperation(value = "更新资源权限", notes = "更新资源权限")
+    @PostMapping("/updatePermit")
+    public ResponseEntity updatePermit(@RequestBody PermitRequest request) {
+        userService.updatePermit(request);
+        return ResponseEntity.ok().build();
+    }
+
+
+
 }
