@@ -88,8 +88,10 @@ public class CommandService {
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         runningTasks.put(runningKey, process);
 
-        try (InputStream is = process.getInputStream()) {
+        try (InputStream is = process.getInputStream();
+            InputStream error = process.getErrorStream()) {
             logService.info(event, is);
+            logService.error(event, error);
             process.waitFor();
             exitValue = process.exitValue();
 

@@ -51,12 +51,6 @@ public class ExecutorController {
                           @RequestParam("taskId") Integer taskId,
                           @RequestParam("shardStatus") Integer shardStatus,
                           HttpServletResponse response) throws IOException {
-        response.setHeader("Access-Control-Allow-Origin", "*");
-        response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, DELETE");
-        response.setHeader("Access-Control-Allow-Headers", "content-type");
-        response.setHeader("Cache-Control", "no store");
-        response.setHeader("Pragma", "no store");
-        response.setDateHeader("Expires", 0);
 
         logService.queryLog(flowTaskId, taskId, shardStatus, response);
     }

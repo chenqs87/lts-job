@@ -12,6 +12,7 @@ import com.zy.data.lts.security.LtsPermitEnum;
 import com.zy.data.lts.security.LtsPermitType;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +20,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 
 /**
  * @author chenqingsong
@@ -171,6 +177,23 @@ public class ConsoleFlowController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
         return user.getUsername();
+    }
+
+    @ApiOperation(value = "任务日志查询", notes = "任务日志查询")
+    @GetMapping("/query/logs")
+    public void queryLogs(@RequestParam("flowTaskId") Integer flowTaskId,
+                          @RequestParam("taskId") Integer taskId,
+                          @RequestParam("shardStatus") Integer shardStatus,
+                          @RequestParam("host") String host,
+                          HttpServletResponse response) throws IOException {
+
+        URL url = new URL("http://" + host + "/executor/query/logs?flowTaskId=" + flowTaskId +
+                "&taskId="+ taskId + "&shardStatus=" + shardStatus);
+
+        try(InputStream inputStream = url.openStream()) {
+            int count = IOUtils.copy(inputStream, response.getOutputStream());
+            response.setHeader("FileSize", String.valueOf(count));
+        }
     }
 
 }

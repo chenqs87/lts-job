@@ -7,6 +7,7 @@ import com.zy.data.lts.core.dao.TaskDao;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Task;
+import com.zy.data.lts.schedule.alert.CommonAlerter;
 import com.zy.data.lts.schedule.state.MultipleArcTransition;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
@@ -40,6 +41,9 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
     @Autowired
     FlowDao flowDao;
 
+    @Autowired
+    CommonAlerter alerter;
+
     @Override
     public FlowTaskStatus transition(MemFlowTask memFlowTask, FlowEvent flowEvent) {
         memFlowTask.lock();
@@ -71,7 +75,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
 
                     // 触发子工作流
                     checkAndTriggerPostFlowTasks(ft.getFlowId());
-
+                    alerter.success(memFlowTask.getFlowTask());
                     return FlowTaskStatus.Finished;
                 }
 
@@ -83,7 +87,6 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
                          * 正常情况下，这一步不是必须的，我们一般只判断内存对象的状态，
                          * 更新数据库是为了避免由于master切换或者重启造成的状态不一致
                          */
-
                         MemTask mt = memFlowTask.getMemTask(id);
                         mt.getTask().completePreTask(taskId);
                         taskDao.update(mt.getTask());

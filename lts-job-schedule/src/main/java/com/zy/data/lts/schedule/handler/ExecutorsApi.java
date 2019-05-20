@@ -5,9 +5,11 @@ import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
+import com.zy.data.lts.core.tool.SpringContext;
 import feign.Feign;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -29,6 +31,9 @@ public class ExecutorsApi implements IExecutorApi {
 
     //<host:port, Executor>
     private final Map<String, Executor> executorMap = new ConcurrentHashMap<>();
+
+    @Autowired
+    SpringContext springContext;
 
 
     public void beat(BeatInfoRequest beat) {
@@ -52,7 +57,7 @@ public class ExecutorsApi implements IExecutorApi {
         HandlerApi handlerApi = handlerApiMap.computeIfAbsent(beat.getHandler(), f -> {
             synchronized (ExecutorsApi.this) {
                 ExecutorsApi.this.notifyAll();
-                return new HandlerApi(new RoundRobinHandler(beat.getHandler()));
+                return new HandlerApi(new RoundRobinHandler(beat.getHandler()), springContext.getApplicationContext());
             }});
 
         handlerApi.beat(executor);

@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 public class HandlerStatusController {
 
     @Autowired
-    ExecutorsApi executorApi;
+    private ExecutorsApi executorApi;
 
     @ApiOperation(value = "Handler心跳", notes = "Handler心跳")
     @PostMapping("/beat")

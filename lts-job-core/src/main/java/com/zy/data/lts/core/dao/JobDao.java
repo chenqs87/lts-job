@@ -49,7 +49,7 @@ public interface JobDao {
     void insert(Job job);
 
     @Update("update job set name=#{name},handler=#{handler},job_type=#{jobType},content=#{content}," +
-            "permit=#{permit},shard_type=#{shardType},config=#{config},`group`=#{group} where id=#{id}")
+            "shard_type=#{shardType},config=#{config},`group`=#{group} where id=#{id}")
     void update(Job job);
 
     @Delete("delete from job where id = #{id}")

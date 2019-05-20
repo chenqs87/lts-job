@@ -1,9 +1,12 @@
 package com.zy.data.lts.schedule.handler;
 
+import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 
 import java.io.Closeable;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author chenqingsong

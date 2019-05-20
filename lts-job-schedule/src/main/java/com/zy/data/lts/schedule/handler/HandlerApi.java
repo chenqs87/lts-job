@@ -4,13 +4,17 @@ import com.zy.data.lts.core.api.IExecutorApi;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
+import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import feign.RetryableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * @author chenqingsong
@@ -24,9 +28,12 @@ public class HandlerApi implements IExecutorApi, IHandler {
 
     private ExecutorService executorService = Executors.newSingleThreadExecutor();
 
+    private ApplicationContext applicationContext;
 
-    public HandlerApi (IHandler handler) {
+
+    public HandlerApi (IHandler handler, ApplicationContext applicationContext) {
         this.handler = handler;
+        this.applicationContext = applicationContext;
     }
 
     @Override
@@ -38,11 +45,14 @@ public class HandlerApi implements IExecutorApi, IHandler {
         executorService.execute(() ->
             asyncExec(executor -> {
                 try {
+                    applicationContext.publishEvent(
+                            new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));
+
                     executor.getApi().execute(request);
                 } catch (Exception e) {
                     //失败重发
                     logger.warn("Fail to asyncExec Job", e);
-                    if(e instanceof RetryableException) {
+                    if (e instanceof RetryableException) {
                         remove(executor.getHost());
                     }
 

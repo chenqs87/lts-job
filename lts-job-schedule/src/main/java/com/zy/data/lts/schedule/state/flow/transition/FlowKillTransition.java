@@ -2,6 +2,7 @@ package com.zy.data.lts.schedule.state.flow.transition;
 
 import com.zy.data.lts.core.dao.FlowTaskDao;
 import com.zy.data.lts.core.entity.FlowTask;
+import com.zy.data.lts.schedule.alert.CommonAlerter;
 import com.zy.data.lts.schedule.state.SingleArcTransition;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowTaskStatus;
@@ -22,6 +23,8 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
     @Autowired
     JobTrigger jobTrigger;
 
+    @Autowired
+    CommonAlerter alerter;
 
     @Override
     public void transition(MemFlowTask memFlowTask, FlowEvent flowEvent) {
@@ -33,8 +36,7 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
                     case Ready:
                     case Pending:
                     case Submitted:
-                    case Running:
-                        t.handle(new TaskEvent(TaskEventType.Kill));
+                    case Running: t.handle(new TaskEvent(TaskEventType.Kill));
                 }
             });
             memFlowTask.clearTasks();
@@ -43,6 +45,7 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
             ft.setStatus(FlowTaskStatus.Killed.code());
             flowTaskDao.update(ft);
             jobTrigger.finishFlowTask(ft.getId());
+            alerter.failed(memFlowTask.getFlowTask());
         } finally {
             memFlowTask.unlock();
         }

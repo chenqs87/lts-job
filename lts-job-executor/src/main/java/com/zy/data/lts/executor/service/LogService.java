@@ -31,32 +31,27 @@ public class LogService {
 
     public void info(JobExecuteEvent event, InputStream is) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path logFile = newFileOutput(root);
+        Path logFile = newFileOutput(root, "syslog.log");
         if (logFile != null) {
             Files.deleteIfExists(logFile);
             Files.copy(is, logFile);
         }
     }
 
-    public void queryLog(LogQueryRequest request, HttpServletResponse response) throws IOException {
-
-        Path root = executorConfig.getExecDir(request.getFlowTaskId(), request.getTaskId(), request.getShard());
-        Path path = newFileOutput(root);
-        File file = path.toFile();
-        long length = file.length() - request.getOffset();
-        response.setHeader("FileSize", String.valueOf(length));
-
-        try (FileInputStream fis = new FileInputStream(file);
-             FileChannel channel = fis.getChannel()) {
-            WritableByteChannel output = Channels.newChannel(response.getOutputStream());
-            channel.transferTo(request.getOffset(), length, output);
+    public void error(JobExecuteEvent event, InputStream is) throws IOException {
+        Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+        Path logFile = newFileOutput(root, "error.log");
+        if (logFile != null) {
+            Files.deleteIfExists(logFile);
+            Files.copy(is, logFile);
         }
     }
+
 
     public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, HttpServletResponse response) throws IOException {
         int offset = 0;
         Path root = executorConfig.getExecDir(flowTaskId, taskId, shard);
-        Path path = newFileOutput(root);
+        Path path = newFileOutput(root, "syslog.log");
         File file = path.toFile();
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));
@@ -68,9 +63,9 @@ public class LogService {
         }
     }
 
-    private Path newFileOutput(Path rootPah) {
+    private Path newFileOutput(Path rootPah, String fileName) {
         try {
-            Path logFile = buildOutputPath(rootPah);
+            Path logFile = buildOutputPath(rootPah, fileName);
 
             if (!Files.exists(logFile)) {
                 Files.createFile(logFile);
@@ -83,8 +78,11 @@ public class LogService {
         }
     }
 
-    private Path buildOutputPath(Path root) {
-        return Paths.get(root.toString(), "syslog.log");
+    private Path buildOutputPath(Path root, String fileName) {
+        return Paths.get(root.toString(), fileName);
     }
+
+
+
 
 }

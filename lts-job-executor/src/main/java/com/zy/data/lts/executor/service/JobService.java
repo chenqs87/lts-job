@@ -1,6 +1,7 @@
 package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.core.JobType;
+import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
 import com.zy.data.lts.core.dao.JobDao;
@@ -9,9 +10,12 @@ import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.ExecuteRequest;
+import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -35,9 +39,14 @@ import java.util.concurrent.Executors;
  */
 @Service
 public class JobService implements ApplicationContextAware {
+    private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
     private final ConcurrentHashMap<String, String> runningTasks = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
+
+    @Autowired
+    AdminApi adminApi;
+
     @Autowired
     FlowTaskDao flowTaskDao;
 
@@ -87,7 +96,8 @@ public class JobService implements ApplicationContextAware {
             try {
                 doExec(req);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Fail to execute task [{}]", req);
+                adminApi.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
             }
         });
     }

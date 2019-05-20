@@ -54,6 +54,4 @@ public class HandlerCallbackController {
         jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Kill, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }
-
-
 }
