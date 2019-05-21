@@ -14,8 +14,8 @@ import java.util.List;
 @Repository
 public interface UserDao {
 
-    @Insert("insert into task(username,password,role,iphone,email,create_time) " +
-            "values(#{username},#{password},#{role},#{iphone},#{email},#{createTime})")
+    @Insert("insert into users(user_name,password,role,iphone,email,group_name,create_time) " +
+            "values(#{username},#{password},#{role},#{iphone},#{email},#{groupName},#{createTime})")
     void insert(User user);
 
     @Results(id = "user", value = {

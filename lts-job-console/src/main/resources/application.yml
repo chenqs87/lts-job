@@ -14,6 +14,8 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+
+
 #pagehelper分页插件
 pagehelper:
   helperDialect: mysql
@@ -24,6 +26,10 @@ pagehelper:
 lts:
   server:
     role: admin
+  alerter:
+    phone:
+      url: http://192.168.7.175:8080/notify/sms/send_warn_sms
+      default-list: 18710072485
   job:
     console:
       security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**
