@@ -20,6 +20,7 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
     private final StateMachine<TaskStatus, TaskEventType, TaskEvent> stateMachine;
 
     private Task task;
+    private boolean isSkip;
 
     public MemTask(Task task, SpringContext springContext) {
 
@@ -27,7 +28,7 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
             throw new IllegalArgumentException("task is null!!");
         }
         this.task = task;
-
+        this.isSkip = false;
         stateMachineFactory
                 = new StateMachineFactory<MemTask, TaskStatus, TaskEventType, TaskEvent>(TaskStatus.parse(task.getTaskStatus()))
                 .addTransition(TaskStatus.New, EnumSet.of(TaskStatus.Ready, TaskStatus.Pending),
@@ -75,4 +76,11 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
         return this.task;
     }
 
+    public boolean isSkip() {
+        return isSkip;
+    }
+
+    public void setSkip(boolean skip) {
+        isSkip = skip;
+    }
 }

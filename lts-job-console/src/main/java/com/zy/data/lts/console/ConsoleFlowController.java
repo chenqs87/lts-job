@@ -2,7 +2,7 @@ package com.zy.data.lts.console;
 
 import com.github.pagehelper.PageInfo;
 import com.zy.data.lts.core.TriggerMode;
-import com.zy.data.lts.core.entity.Flow;
+import com.zy.data.lts.core.entity.AlertConfig;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.core.model.PagerRequest;
@@ -57,7 +57,7 @@ public class ConsoleFlowController {
 
     @ApiOperation(value = "新建工作流", notes = "新建工作流")
     @PutMapping("/flow")
-    public ResponseEntity createFlow(@RequestBody Flow flow) {
+    public ResponseEntity createFlow(@RequestBody AlertConfig flow) {
         flow.setCreateUser(getCurrentUserName());
         flow.setPermit(LtsPermitEnum.getAllFlowPermit());
         flow.setType(LtsPermitType.Flow.name());
@@ -75,10 +75,9 @@ public class ConsoleFlowController {
     @ApiOperation(value = "更新工作流", notes = "更新工作流")
     @PostMapping("/flow")
     @PreAuthorize("hasPermission(#flow.id, 'FlowEdit')")
-    public ResponseEntity updateFlow(@RequestBody Flow flow) {
+    public ResponseEntity updateFlow(@RequestBody AlertConfig flow) {
         return ResponseEntity.ok(jobService.updateFlow(flow));
     }
-
 
     @ApiOperation(value = "新建任务", notes = "新建任务")
     @PutMapping("/job")
@@ -110,6 +109,17 @@ public class ConsoleFlowController {
     public ResponseEntity triggerFlow(@RequestParam("flowId") Integer flowId,
                                       @RequestParam("params") String params) {
         jobService.triggerFlow(flowId, TriggerMode.Click, params);
+        return ResponseEntity.ok().build();
+    }
+
+
+    @ApiOperation(value = "重新执行工作流", notes = "重新执行工作流")
+    @PostMapping("/reTriggerFlow")
+    @PreAuthorize("hasPermission(#flowId, 'FlowExec')")
+    public ResponseEntity reTriggerFlow(@RequestParam("flowId") Integer flowId,
+                                        @RequestParam("flowTaskId") Integer flowTaskId,
+                                        @RequestParam("params") String params) {
+        jobService.reTriggerFlow(flowTaskId, params);
         return ResponseEntity.ok().build();
     }
 
@@ -196,4 +206,9 @@ public class ConsoleFlowController {
         }
     }
 
+    @ApiOperation(value = "查询指定flow的报警配置", notes = "查询指定flow的报警配置")
+    @GetMapping("/getAlertConfig")
+    public ResponseEntity getAlertConfig(@RequestParam("flowId") Integer flowId) {
+        return ResponseEntity.ok(jobService.getAlertConfig(flowId));
+    }
 }

@@ -3,10 +3,7 @@ package com.zy.data.lts.schedule.service;
 import com.github.pagehelper.PageHelper;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.dao.*;
-import com.zy.data.lts.core.entity.Flow;
-import com.zy.data.lts.core.entity.FlowTask;
-import com.zy.data.lts.core.entity.Job;
-import com.zy.data.lts.core.entity.Task;
+import com.zy.data.lts.core.entity.*;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
@@ -46,19 +43,27 @@ public class JobService {
     @Autowired
     RepmPolicyDao repmPolicyDao;
 
+    @Autowired
+    AlertConfigDao alertConfigDao;
+
     /**
      * 创建工作流
      *
      * @param flow
      * @throws Exception
      */
-    public Flow createFlow(Flow flow) {
+    @Transactional
+    public Flow createFlow(AlertConfig flow) {
+
         flow.setCreateTime(new Date());
         flowDao.insert(flow);
 
         flow.setPolicyName(repmPolicyDao.wrapUsername(flow.getCreateUser()));
         flow.setResource(flow.getId());
         repmPolicyDao.insert(flow);
+
+        flow.setFlowId(flow.getId());
+        alertConfigDao.insert(flow);
         return flow;
     }
 
@@ -68,7 +73,8 @@ public class JobService {
         flowDao.delete(flowId);
     }
 
-    public Flow updateFlow(Flow flow) {
+    @Transactional
+    public Flow updateFlow(AlertConfig flow) {
         Flow dbFlow = flowDao.findById(flow.getId());
 
         //更新工作流基本信息
@@ -87,6 +93,11 @@ public class JobService {
 
         flowDao.update(dbFlow);
 
+
+        if(StringUtils.isNotBlank(flow.getPhoneList())
+                || StringUtils.isNotBlank(flow.getEmailList())) {
+            alertConfigDao.update(flow);
+        }
         return flow;
     }
 
@@ -107,6 +118,7 @@ public class JobService {
         jobDao.delete(jobId);
     }
 
+    @Transactional
     public Job updateJob(Job job) {
         Job dbJob = jobDao.findById(job.getId());
 
@@ -165,8 +177,19 @@ public class JobService {
      *
      * @param flowId
      */
+    @Transactional
     public void triggerFlow(int flowId, TriggerMode triggerMode, String params) {
         jobTrigger.triggerFlow(flowId, triggerMode, params);
+    }
+
+    /**
+     * 执行工作流
+     *
+     * @param flowTaskId
+     */
+    @Transactional
+    public void reTriggerFlow(int flowTaskId, String params) {
+        jobTrigger.reTriggerFlow(flowTaskId, params);
     }
 
     public List<Job> findAllJobs(JobQueryRequest request) {
@@ -190,13 +213,13 @@ public class JobService {
     }
 
     public List<Flow> findFlowsByUser(Integer pageNum, Integer pageSize,
-                                        String userName, int permit) {
+                                      String userName, int permit) {
         PageHelper.startPage(pageNum, pageSize);
         return flowDao.selectByUser(userName, permit);
     }
 
     public List<Flow> findFlowsByGroup(Integer pageNum, Integer pageSize,
-                                      String groupName, int permit) {
+                                       String groupName, int permit) {
         PageHelper.startPage(pageNum, pageSize);
         return flowDao.selectByGroup(groupName, permit);
     }
@@ -224,4 +247,7 @@ public class JobService {
         jobTrigger.killFlowTask(flowTaskId);
     }
 
+    public AlertConfig getAlertConfig(Integer flowId) {
+        return alertConfigDao.findByFlowId(flowId);
+    }
 }

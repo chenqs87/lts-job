@@ -7,10 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
@@ -32,9 +29,20 @@ public class LogService {
     public void info(JobExecuteEvent event, InputStream is) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         Path logFile = newFileOutput(root, "syslog.log");
+
         if (logFile != null) {
             Files.deleteIfExists(logFile);
-            Files.copy(is, logFile);
+
+            try(BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+                OutputStream fos = Files.newOutputStream(logFile)) {
+                String str;
+                while ((str = bis.readLine()) != null) {
+                    fos.write(str.getBytes());
+                    fos.flush();
+                }
+            }
+            //Files.copy(is, logFile);
+
         }
     }
 
