@@ -3,3 +3,9 @@
 ##概述
 主要针对数据中心复杂的任务依赖设计，主要参考开源项目azkaban(https://azkaban.github.io/)和xxl-job(http://www.xuxueli.com/xxl-job/)设计实现。
 
+##编译
+### lts-console 编译
+mvn clean install -DskipTests -Plts-executor -U
+### lts-executor 编译
+mvn clean install -DskipTests -Plts-console -U
+

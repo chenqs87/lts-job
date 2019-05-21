@@ -51,7 +51,7 @@ public class ExecutorController {
                           @RequestParam("taskId") Integer taskId,
                           @RequestParam("shardStatus") Integer shardStatus,
                           HttpServletResponse response) throws IOException {
-
+        response.setHeader("header1", "value1");
         logService.queryLog(flowTaskId, taskId, shardStatus, response);
     }
 }

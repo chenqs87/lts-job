@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
   servlet:
     context-path: /
 
@@ -7,7 +7,7 @@ spring:
   session:
     store-type: none
   datasource:
-    name: test
+    name: lts-executor
     url: jdbc:mysql://localhost:3306/lts-job
     username: root
     password: root
@@ -20,3 +20,10 @@ pagehelper:
   reasonable: true
   supportMethodsArguments: true
   params: count=countSql
+
+lts:
+  server:
+    role: admin
+  job:
+    console:
+      security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**
