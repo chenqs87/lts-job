@@ -15,7 +15,7 @@
 
 pid=`ps ax | grep -i 'lts.job.console' | grep java | grep -v grep | awk '{print $1}'`
 if [ -z "$pid" ] ; then
-        echo "No nacosServer running."
+        echo "No Job Console running."
         exit -1;
 fi
 

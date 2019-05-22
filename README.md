@@ -9,3 +9,23 @@ mvn clean install -DskipTests -Plts-executor -U
 ### lts-executor 编译
 mvn clean install -DskipTests -Plts-console -U
 
+### 部署
+#### lts-console 部署
+目前lts-console为单节点部署，只需要部署一个实例即可。
+
+在指定目录下解压lts-console-server-0.0.1-SNAPSHOT.zip
+修改 ${解压目录}/lts-console/conf/application.yml 配置文件。主要修改数据库配置，静态资源配置等信息
+````
+spring.resources.static-locations 配置指定静态文件地址，需要在该配置最后添加前端js项目根目录配置
+例如：前端js项目部署目录为 /data/www/lts-job/web，则
+spring.resources.static-locations: file:/data/www/lts-job/web,file:/data/www/lts-job/web/static
+
+````
+ 
+#### lts-executor 部署
+
+在指定目录下解压lts-executor--0.0.1-SNAPSHOT.zip，
+修改 ${解压目录}/lts-server/conf/application.yml 配置文件,主要修改数据库配置等信息。
+
+#### lts-job-web 部署
+lts-job-web 前端js项目，单独打包，由lts-console 实例加载运行。
