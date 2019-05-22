@@ -66,15 +66,10 @@ public class JwtTokenUtils {
      * @return token
      */
     public String createToken(Authentication authentication) {
-        /**
-         * Current time
-         */
+
         long now = (new Date()).getTime();
-        /**
-         * Validity date
-         */
-        Date validity;
-        validity = new Date(now + this.tokenValidityInMilliseconds);
+
+        Date validity = new Date(now + this.tokenValidityInMilliseconds);
 
         List<String> authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 

@@ -27,9 +27,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * jwt auth fail point
  *
- * @author wfnuser
+ * @author chenqingsong
  */
 @Component
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -51,6 +52,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "新增用户", notes = "新增用户")
     @PutMapping("/addUser")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity addUser(@RequestBody User user) {
         userService.insert(user);
         return ResponseEntity.ok(user);
@@ -58,6 +60,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "新增用户组", notes = "新增用户组")
     @PutMapping("/addGroup")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity addGroup(@RequestBody Group group) {
         userService.insert(group);
         return ResponseEntity.ok(group);
@@ -65,6 +68,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "新增用户", notes = "新增用户")
     @PostMapping("/updateUser")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity updateUser(@RequestBody User user) {
         userService.update(user);
         return ResponseEntity.ok(user);
@@ -72,6 +76,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "新增用户", notes = "新增用户")
     @PostMapping("/updateGroup")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity updateGroup(@RequestBody Group group) {
         userService.insert(group);
         return ResponseEntity.ok(group);
@@ -79,6 +84,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "删除用户组", notes = "删除用户组")
     @DeleteMapping("/deleteGroup")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity deleteGroup(@RequestParam("groupName") String groupName) {
         userService.deleteGroup(groupName);
         return ResponseEntity.ok().build();
@@ -86,6 +92,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "删除用户", notes = "删除用户")
     @DeleteMapping("/deleteUser")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity deleteUser(@RequestParam("userName") String userName) {
         userService.deleteUser(userName);
         return ResponseEntity.ok().build();
@@ -111,6 +118,7 @@ public class ConsoleManagerController {
 
     @ApiOperation(value = "更新资源权限", notes = "更新资源权限")
     @PostMapping("/updatePermit")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity updatePermit(@RequestBody PermitRequest request) {
         userService.updatePermit(request);
         return ResponseEntity.ok().build();
