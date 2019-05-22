@@ -29,3 +29,5 @@ lts:
       handler:
         name: test
         host: localhost:8081
+
+lts.job.executor.dir: /tmp/lts-executor/logs

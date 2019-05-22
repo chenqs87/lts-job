@@ -41,5 +41,4 @@ public interface UserDao {
     @Delete("delete from users where user_name=#{username}")
     void delete(@Param("username") String username);
 
-
 }

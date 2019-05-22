@@ -26,7 +26,6 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
 
     private FlowTask flowTask;
 
-
     public MemFlowTask(FlowTask flowTask, List<MemTask> tasks, SpringContext springContext) {
         this.flowTask = flowTask;
 

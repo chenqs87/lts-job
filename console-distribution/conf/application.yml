@@ -14,6 +14,9 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+#末尾添加静态文件目录 file:/data/www/lts-job/web,file:/data/www/lts-job/web/static
+spring.resources.static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:/data/www/lts-job/web,file:/data/www/lts-job/web/static
+
 #pagehelper分页插件
 pagehelper:
   helperDialect: mysql
@@ -26,4 +29,4 @@ lts:
     role: admin
   job:
     console:
-      security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**
+      security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.jpg,/**/*.woff2,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**

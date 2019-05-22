@@ -24,7 +24,15 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
  */
 public class PasswordEncoderUtil {
 
+    private static BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
     public static void main(String[] args) {
-        System.out.println(new BCryptPasswordEncoder().encode("admin"));
+        System.out.println(encoder.encode("admin"));
+    }
+
+    /**
+     * 默认密码123456
+     */
+    public static String getDefaultPassword() {
+        return encoder.encode("123456");
     }
 }

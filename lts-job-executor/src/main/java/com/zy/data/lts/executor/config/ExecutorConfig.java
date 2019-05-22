@@ -16,7 +16,7 @@ import java.nio.file.Paths;
  */
 @Configuration
 public class ExecutorConfig {
-    @Value("${lts.job.executor.dir:/Users/chenqs/lts-executor}")
+    @Value("${lts.job.executor.dir:/tmp/lts-executor}")
     private String executeRootDir;
 
     public String getExecuteRootDir() {

@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 
+import static com.zy.data.lts.security.utils.PasswordEncoderUtil.getDefaultPassword;
+
 /**
  * @author chenqingsong
  * @date 2019/5/15 16:59
@@ -55,6 +57,7 @@ public class UserService {
 
     public void insert(User user) {
         user.setCreateTime(new Date());
+        user.setPassword(getDefaultPassword());
         userDao.insert(user);
     }
 

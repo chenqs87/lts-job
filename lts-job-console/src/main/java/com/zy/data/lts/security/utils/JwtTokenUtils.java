@@ -56,7 +56,7 @@ public class JwtTokenUtils {
     @PostConstruct
     public void init() {
         this.secretKey = "SecretKey012345678901234567890123456789012345678901234567890123456789";
-        this.tokenValidityInMilliseconds = 1000 * 60 * 30L;
+        this.tokenValidityInMilliseconds = 1000 * 60 * 60 * 2L;
     }
 
     /**

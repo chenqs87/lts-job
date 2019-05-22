@@ -19,6 +19,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * @author chenqingsong
@@ -34,6 +36,7 @@ public class PhoneAlerter implements IAlerter {
     @Value("${lts.alerter.phone.default-list}")
     private String defaultList;
 
+    private ExecutorService service = Executors.newFixedThreadPool(5);
 
     private IPhoneAlerterApi api;
 
@@ -73,7 +76,9 @@ public class PhoneAlerter implements IAlerter {
             logger.warn(msg);
             String phoneList = StringUtils.isNotBlank(config.getPhoneList()) ?
                     defaultList + config.getPhoneList() : defaultList;
-            api.send(phoneList, msg);
+            service.submit(() -> {
+                api.send(phoneList, msg);
+            });
         } catch (Exception e) {
             logger.error("Fail to send msg to phone!!", e);
         }

@@ -109,14 +109,11 @@ public class ConsoleManagerController {
         return ResponseEntity.ok(userService.getResourcePermit(request));
     }
 
-
     @ApiOperation(value = "更新资源权限", notes = "更新资源权限")
     @PostMapping("/updatePermit")
     public ResponseEntity updatePermit(@RequestBody PermitRequest request) {
         userService.updatePermit(request);
         return ResponseEntity.ok().build();
     }
-
-
 
 }
