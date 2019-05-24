@@ -71,7 +71,7 @@ JAVA_OPT="${JAVA_OPT} -Djava.ext.dirs=${JAVA_HOME}/jre/lib/ext:${JAVA_HOME}/lib/
 JAVA_OPT="${JAVA_OPT} -Xloggc:${BASE_DIR}/logs/nacos_gc.log -verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -XX:+PrintGCTimeStamps -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=10 -XX:GCLogFileSize=100M"
 
 
-JAVA_OPT="${JAVA_OPT} -jar ${BASE_DIR}/target/lts-job-executor.jar"
+JAVA_OPT="${JAVA_OPT} -jar ${BASE_DIR}/target/lts-job-executor-import.jar"
 JAVA_OPT="${JAVA_OPT} --spring.config.location=${CUSTOM_SEARCH_LOCATIONS}"
 JAVA_OPT="${JAVA_OPT} --logging.config=${BASE_DIR}/conf/logback.xml"
 JAVA_OPT="${JAVA_OPT} --server.max-http-header-size=524288"

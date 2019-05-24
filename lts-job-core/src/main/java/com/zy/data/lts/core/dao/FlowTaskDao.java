@@ -15,8 +15,8 @@ import java.util.List;
 public interface FlowTaskDao {
 
     @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", before = false, resultType = int.class)
-    @Insert("insert into flow_task(flow_id,create_user,status,begin_time,end_time,params,trigger_mode) " +
-            "values(#{flowId},#{createUser},#{status},#{beginTime},#{endTime},#{params},#{triggerMode})")
+    @Insert("insert into flow_task(flow_id,status,begin_time,end_time,params,trigger_mode) " +
+            "values(#{flowId},#{status},#{beginTime},#{endTime},#{params},#{triggerMode})")
     void insert(FlowTask flowTask);
 
     @Results(id = "flowTask", value = {
@@ -24,7 +24,6 @@ public interface FlowTaskDao {
             @Result(property = "flowId", column = "flow_id"),
             @Result(property = "beginTime", column = "begin_time"),
             @Result(property = "endTime", column = "end_time"),
-            @Result(property = "createUser", column = "create_user"),
             @Result(property = "status", column = "status"),
             @Result(property = "params", column = "params"),
             @Result(property = "triggerMode", column = "trigger_mode"),

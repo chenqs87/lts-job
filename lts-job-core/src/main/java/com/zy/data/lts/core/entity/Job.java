@@ -21,7 +21,7 @@ public class Job extends RepmPolicy {
     /**
      * 作业类型 shell python java 等等
      */
-    private int jobType;
+    private String jobType;
 
     private int shardType;
 
@@ -70,11 +70,11 @@ public class Job extends RepmPolicy {
         this.handler = handler;
     }
 
-    public int getJobType() {
+    public String getJobType() {
         return jobType;
     }
 
-    public void setJobType(int jobType) {
+    public void setJobType(String jobType) {
         this.jobType = jobType;
     }
 

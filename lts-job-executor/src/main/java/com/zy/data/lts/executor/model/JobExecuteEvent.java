@@ -1,5 +1,7 @@
 package com.zy.data.lts.executor.model;
 
+import com.zy.data.lts.core.entity.Task;
+
 import java.nio.file.Path;
 
 /**
@@ -9,7 +11,14 @@ import java.nio.file.Path;
 public class JobExecuteEvent {
     private int flowTaskId;
     private int taskId;
-    private int shard;
+    private int flowId;
+    private int jobId;
+    private int shard = 0;
+    private String jobType;
+
+    /**
+     * 脚本所在目录
+     */
     private Path output;
     private String params;
 
@@ -22,6 +31,16 @@ public class JobExecuteEvent {
         this.shard = shard;
         this.output = output;
         this.params = params;
+    }
+
+    public JobExecuteEvent(Task task, Path output, String params, String jobType) {
+        this.flowTaskId = task.getFlowTaskId();
+        this.taskId = task.getTaskId();
+        this.flowId = task.getFlowId();
+        this.jobId = task.getJobId();
+        this.params = params;
+        this.jobType = jobType;
+        this.output = output;
     }
 
     public int getFlowTaskId() {
@@ -62,5 +81,29 @@ public class JobExecuteEvent {
 
     public void setParams(String params) {
         this.params = params;
+    }
+
+    public String getJobType() {
+        return jobType;
+    }
+
+    public void setJobType(String jobType) {
+        this.jobType = jobType;
+    }
+
+    public int getFlowId() {
+        return flowId;
+    }
+
+    public void setFlowId(int flowId) {
+        this.flowId = flowId;
+    }
+
+    public int getJobId() {
+        return jobId;
+    }
+
+    public void setJobId(int jobId) {
+        this.jobId = jobId;
     }
 }

@@ -1,7 +1,5 @@
 package com.zy.data.lts.model;
 
-import org.springframework.web.bind.annotation.RequestParam;
-
 /**
  * @author chenqingsong
  * @date 2019/5/20 12:00

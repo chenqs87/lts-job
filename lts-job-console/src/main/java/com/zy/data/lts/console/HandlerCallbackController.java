@@ -26,7 +26,6 @@ public class HandlerCallbackController {
     @PostMapping("/success")
     @ResponseBody
     public ResponseEntity successTask(@RequestBody JobResultRequest request) {
-
         jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Finish, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }

@@ -1,6 +1,5 @@
 package com.zy.data.lts.executor.service;
 
-import com.zy.data.lts.core.JobType;
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
@@ -13,7 +12,8 @@ import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
-import com.zy.data.lts.executor.model.*;
+import com.zy.data.lts.executor.model.JobExecuteEvent;
+import com.zy.data.lts.executor.model.KillJobEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -41,7 +40,6 @@ import java.util.concurrent.Executors;
 public class JobService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
-    private final ConcurrentHashMap<String, String> runningTasks = new ConcurrentHashMap<>();
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Autowired
@@ -65,28 +63,16 @@ public class JobService implements ApplicationContextAware {
 
     public void doExec(ExecuteRequest req) throws IOException {
 
+
         Task task = taskDao.findById(req.getFlowTaskId(), req.getTaskId());
         Job job = jobDao.findById(task.getJobId());
 
         FlowTask flowTask = flowTaskDao.findById(task.getFlowTaskId());
-        JobType jobType = JobType.parse(job.getJobType());
-        Path output = createOutputDir(req, job, jobType);
+        Path output = createOutputDir(req, job);
 
         String params = flowTask.getParams();
 
-        JobExecuteEvent event = null;
-
-        switch (jobType) {
-            case shell:
-                event = new ShellEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(), output, params);
-                break;
-            case python:
-                event = new PythonEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(), output, params);
-                break;
-            case zip:
-                event = new ZipEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard(), output, params);
-                break;
-        }
+        JobExecuteEvent event = new JobExecuteEvent(task, output, params, job.getJobType());
 
         applicationContext.publishEvent(event);
     }
@@ -96,7 +82,7 @@ public class JobService implements ApplicationContextAware {
             try {
                 doExec(req);
             } catch (Exception e) {
-                logger.error("Fail to execute task [{}]", req);
+                logger.error("Fail to execute task [{}]", req, e);
                 adminApi.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
             }
         });
@@ -106,21 +92,16 @@ public class JobService implements ApplicationContextAware {
         applicationContext.publishEvent(new KillJobEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
     }
 
-    private Path createOutputDir(ExecuteRequest req, Job job, JobType jobType) throws IOException {
+    private Path createOutputDir(ExecuteRequest req, Job job) throws IOException {
         Path root = executorConfig.getExecDir(req.getFlowTaskId(), req.getTaskId(), req.getShard());
 
         String content = job.getContent();
         Path execFile = Paths.get(root.toString(), "exec");
 
-        // Files.createFile(execFile);
         boolean success = execFile.toFile().createNewFile();
 
         try (InputStream inputStream = new ByteArrayInputStream(content.getBytes())) {
             Files.copy(inputStream, execFile, StandardCopyOption.REPLACE_EXISTING);
-        }
-
-        if (jobType == JobType.zip) {
-            // TODO 解压缩
         }
 
         return root;

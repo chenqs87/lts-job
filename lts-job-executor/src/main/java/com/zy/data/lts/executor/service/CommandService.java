@@ -3,15 +3,21 @@ package com.zy.data.lts.executor.service;
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.executor.model.*;
+import com.zy.data.lts.executor.type.IJobTypeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -19,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2019/4/9 17:09
  */
 @Service
-public class CommandService {
+public class CommandService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
     private static final Object EMPTY_OBJECT = new Object();
@@ -28,26 +34,26 @@ public class CommandService {
 
     @Autowired
     AdminApi adminApi;
+
     @Autowired
     LogService logService;
 
+    private ApplicationContext applicationContext;
+
     @EventListener
-    public void onApplicationEvent(ShellEvent event) throws IOException {
-        int ret = execCommand(event, "sh", event.getOutput().toString() + "/exec");
+    public void onApplicationEvent(JobExecuteEvent event) throws IOException {
+        Map<String, IJobTypeHandler> jobTypeHandlers =  applicationContext.getBeansOfType(IJobTypeHandler.class);
+        IJobTypeHandler jobTypeHandler = jobTypeHandlers.get(event.getJobType());
+
+        if(jobTypeHandler == null) {
+            throw new IllegalArgumentException("JobType [" + event.getJobType() + "] is not exist!!!");
+        }
+
+        String[] command = jobTypeHandler.createCommand(event);
+        int ret = execCommand(event, command);
         callback(ret, event);
     }
 
-    @EventListener
-    public void onApplicationEvent(PythonEvent event) throws IOException {
-        int ret = execCommand(event, "python", event.getOutput().toString() + "/exec");
-        callback(ret, event);
-    }
-
-    @EventListener
-    public void onApplicationEvent(ZipEvent event) throws IOException {
-        int ret = execCommand(event, "sh", event.getOutput().toString() + "/exec");
-        callback(ret, event);
-    }
 
     @EventListener
     public void onApplicationEvent(KillJobEvent event) {
@@ -79,11 +85,10 @@ public class CommandService {
         }
     }
 
-    private int execCommand(JobExecuteEvent event, String command, String file) throws IOException {
+    private int execCommand(JobExecuteEvent event, String[] command) throws IOException {
         int exitValue = -1;
         adminApi.start(new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard()));
-        Process process = Runtime.getRuntime().exec(
-                new String[]{command, file, String.valueOf(event.getShard()), event.getParams() == null ? "" : event.getParams()});
+        Process process = Runtime.getRuntime().exec(command);
 
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         runningTasks.put(runningKey, process);
@@ -122,5 +127,10 @@ public class CommandService {
 
     private String buildKey(int flowTaskId, int taskId, int shard) {
         return flowTaskId + "_" + taskId + "_" + shard;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

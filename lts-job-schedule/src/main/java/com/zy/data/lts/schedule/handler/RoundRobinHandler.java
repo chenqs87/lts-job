@@ -13,6 +13,9 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Consumer;
 
 /**
+ * 轮询调度，依次对handler中的所有executor进行任务分配和调度，如果当前Handler中没有可用executor时，
+ * 则阻塞所有请求，当有新的executor加入进来时，继续进行调度
+ *
  * @author chenqingsong
  * @date 2019/5/8 20:30
  */

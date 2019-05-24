@@ -29,6 +29,8 @@ import com.zy.data.lts.schedule.tools.IntegerTool;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -50,13 +52,14 @@ import java.util.stream.Collectors;
  */
 @Component
 public class JobTrigger {
+    private static final Logger logger = LoggerFactory.getLogger(JobTrigger.class);
 
     private static final BlockingQueue<Integer> cronFlowQueue = new LinkedBlockingQueue<>();
     private static final Gson gson = new Gson();
     private final Map<Integer, MemFlowTask> runningFlowTasks = new ConcurrentHashMap<>();
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
     private final CountDownLatch countDownLatch = new CountDownLatch(1);
-    private final ExecutorService flowEventService = Executors.newSingleThreadExecutor();
+    private final ExecutorService flowEventService = Executors.newFixedThreadPool(10);
     @Autowired
     private FlowDao flowDao;
     @Autowired
@@ -75,7 +78,7 @@ public class JobTrigger {
                     triggerFlow(flowId, TriggerMode.Cron);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Fail to cron trigger flow !!!", e);
             }
         }
         countDownLatch.countDown();
@@ -86,7 +89,6 @@ public class JobTrigger {
 
     public static void pushCronFlow(Integer flowId) {
         cronFlowQueue.offer(flowId);
-        System.out.println("=====Print==== flowID:" + flowId);
     }
 
     @PostConstruct
@@ -254,7 +256,7 @@ public class JobTrigger {
     /**
      * 根据 flow 生成task 任务信息
      * 为了便于存储解析和管理，所有task的 taskId 从0开始计算
-     * 最大为31
+     * 最大为31,所以一个工作流的最大任务数是32，如果任务数超过32个，建议拆成两个父子工作流来调度
      * @param config   a:b\na:c\nb:d\nc:d
      * @param flowTask flow task
      * @param flowId   flow id  从0开始

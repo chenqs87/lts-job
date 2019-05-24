@@ -8,8 +8,8 @@
         <module>lts-job-core</module>
         <module>lts-job-schedule</module>
         <module>lts-job-executor</module>
-        <module>console-distribution</module>
-        <module>executor-distribution</module>
+        <module>lts-job-executor-import</module>
+        <module>distribution</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -52,6 +52,11 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>console-distribution</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>${project.groupId}</groupId>
+                <artifactId>lts-job-executor-import</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

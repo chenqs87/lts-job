@@ -15,11 +15,11 @@
 
 pid=`ps ax | grep -i 'lts.job.executor' | grep java | grep -v grep | awk '{print $1}'`
 if [ -z "$pid" ] ; then
-        echo "No Lts Job Console running."
+        echo "No Lts Job Executor running."
         exit -1;
 fi
 
-echo "The Lts Job Console(${pid}) is running..."
+echo "The Lts Job Executor(${pid}) is running..."
 
 kill ${pid}
 

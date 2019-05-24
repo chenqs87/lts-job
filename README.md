@@ -4,10 +4,7 @@
 主要针对数据中心复杂的任务依赖设计，主要参考开源项目azkaban(https://azkaban.github.io/)和xxl-job(http://www.xuxueli.com/xxl-job/)设计实现。
 
 ##编译
-### lts-console 编译
-mvn clean install -DskipTests -Plts-executor -U
-### lts-executor 编译
-mvn clean install -DskipTests -Plts-console -U
+mvn clean package -DskipTests -U
 
 ### 部署
 #### lts-console 部署
@@ -24,8 +21,8 @@ spring.resources.static-locations: file:/data/www/lts-job/web,file:/data/www/lts
  
 #### lts-executor 部署
 
-在指定目录下解压lts-executor--0.0.1-SNAPSHOT.zip，
-修改 ${解压目录}/lts-server/conf/application.yml 配置文件,主要修改数据库配置等信息。
+在指定目录下解压lts-executor-0.0.1-SNAPSHOT.zip，
+修改 ${解压目录}/lts-executor/conf/application.yml 配置文件,主要修改数据库配置等信息。
 
 #### lts-job-web 部署
 lts-job-web 前端js项目，单独打包，由lts-console 实例加载运行。

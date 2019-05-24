@@ -33,15 +33,16 @@ public class LogService {
         if (logFile != null) {
             Files.deleteIfExists(logFile);
 
-            try(BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+            /*try(BufferedReader bis = new BufferedReader(new InputStreamReader(is));
                 OutputStream fos = Files.newOutputStream(logFile)) {
                 String str;
                 while ((str = bis.readLine()) != null) {
                     fos.write(str.getBytes());
+                    fos.write('\n');
                     fos.flush();
                 }
-            }
-            //Files.copy(is, logFile);
+            }*/
+            Files.copy(is, logFile);
 
         }
     }

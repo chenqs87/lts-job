@@ -10,9 +10,9 @@ import org.springframework.context.annotation.ComponentScan;
  */
 @SpringBootApplication
 @ComponentScan("com.zy.data.lts.*")
-public class LtsJobExecutorApplication {
+public class LtsJobExecutorImportDataApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(LtsJobExecutorApplication.class, args);
+        SpringApplication.run(LtsJobExecutorImportDataApplication.class, args);
     }
 }
