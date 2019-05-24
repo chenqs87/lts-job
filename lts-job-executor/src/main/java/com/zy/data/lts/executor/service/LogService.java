@@ -1,6 +1,5 @@
 package com.zy.data.lts.executor.service;
 
-import com.zy.data.lts.core.model.LogQueryRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,17 +22,20 @@ import java.nio.file.Paths;
 @Service
 public class LogService {
 
+    private static final String SYS_LOG_FILE = "syslog";
+    private static final String SYS_ERR_FILE = "syserr";
+
     @Autowired
     private ExecutorConfig executorConfig;
 
     public void info(JobExecuteEvent event, InputStream is) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path logFile = newFileOutput(root, "syslog.log");
+        Path logFile = newFileOutput(root, SYS_LOG_FILE);
 
         if (logFile != null) {
             Files.deleteIfExists(logFile);
 
-            /*try(BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+            try(BufferedReader bis = new BufferedReader(new InputStreamReader(is));
                 OutputStream fos = Files.newOutputStream(logFile)) {
                 String str;
                 while ((str = bis.readLine()) != null) {
@@ -41,15 +43,15 @@ public class LogService {
                     fos.write('\n');
                     fos.flush();
                 }
-            }*/
-            Files.copy(is, logFile);
+            }
+           // Files.copy(is, logFile);
 
         }
     }
 
     public void error(JobExecuteEvent event, InputStream is) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path logFile = newFileOutput(root, "error.log");
+        Path logFile = newFileOutput(root, SYS_ERR_FILE);
         if (logFile != null) {
             Files.deleteIfExists(logFile);
             Files.copy(is, logFile);
@@ -57,10 +59,10 @@ public class LogService {
     }
 
 
-    public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, HttpServletResponse response) throws IOException {
+    public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, String logName, HttpServletResponse response) throws IOException {
         int offset = 0;
         Path root = executorConfig.getExecDir(flowTaskId, taskId, shard);
-        Path path = newFileOutput(root, "syslog.log");
+        Path path = newFileOutput(root, logName);
         File file = path.toFile();
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));

@@ -50,8 +50,8 @@ public class ExecutorController {
     public void queryLogs(@RequestParam("flowTaskId") Integer flowTaskId,
                           @RequestParam("taskId") Integer taskId,
                           @RequestParam("shardStatus") Integer shardStatus,
+                          @RequestParam("logName") String logName,
                           HttpServletResponse response) throws IOException {
-        response.setHeader("header1", "value1");
-        logService.queryLog(flowTaskId, taskId, shardStatus, response);
+        logService.queryLog(flowTaskId, taskId, shardStatus, logName,response);
     }
 }

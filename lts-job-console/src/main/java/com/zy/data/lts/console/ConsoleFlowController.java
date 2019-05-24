@@ -194,11 +194,12 @@ public class ConsoleFlowController {
     public void queryLogs(@RequestParam("flowTaskId") Integer flowTaskId,
                           @RequestParam("taskId") Integer taskId,
                           @RequestParam("shardStatus") Integer shardStatus,
+                          @RequestParam("logName") String logName,
                           @RequestParam("host") String host,
                           HttpServletResponse response) throws IOException {
 
         URL url = new URL("http://" + host + "/executor/query/logs?flowTaskId=" + flowTaskId +
-                "&taskId="+ taskId + "&shardStatus=" + shardStatus);
+                "&taskId="+ taskId + "&shardStatus=" + shardStatus + "&logName=" + logName);
 
         try(InputStream inputStream = url.openStream()) {
             int count = IOUtils.copy(inputStream, response.getOutputStream());
