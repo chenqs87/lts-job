@@ -16,9 +16,6 @@ public class TaskPendTransition implements MultipleArcTransition<MemTask, TaskEv
     @Autowired
     TaskDao taskDao;
 
-    @Autowired
-    JobTrigger jobTrigger;
-
     @Override
     public TaskStatus transition(MemTask job, TaskEvent event) {
         Task task = job.getTask();

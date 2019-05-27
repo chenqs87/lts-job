@@ -10,6 +10,7 @@ import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,6 +19,7 @@ public class FlowExecuteTransition implements SingleArcTransition<MemFlowTask, F
     @Autowired
     FlowTaskDao flowTaskDao;
 
+    @Lazy
     @Autowired
     JobTrigger jobTrigger;
 

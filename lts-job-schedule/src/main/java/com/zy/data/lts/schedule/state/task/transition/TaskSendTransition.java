@@ -8,6 +8,7 @@ import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskStatus;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,6 +18,7 @@ public class TaskSendTransition implements SingleArcTransition<MemTask, TaskEven
     TaskDao taskDao;
 
     @Autowired
+    @Lazy
     JobTrigger jobTrigger;
 
     @Override

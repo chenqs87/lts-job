@@ -18,7 +18,6 @@ package com.zy.data.lts.security;
 
 import com.zy.data.lts.core.dao.UserDao;
 import com.zy.data.lts.core.entity.User;
-import com.zy.data.lts.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -26,9 +25,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 /**
- * Custem user service
- *
- * @author wfnuser
+ * 加载用户信息
+ * @author chenqingsong
  */
 @Service
 public class LtsUserDetailsServiceImpl implements UserDetailsService {

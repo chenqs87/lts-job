@@ -26,7 +26,7 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
 
     private FlowTask flowTask;
 
-    public MemFlowTask(FlowTask flowTask, List<MemTask> tasks, SpringContext springContext) {
+    public MemFlowTask(FlowTask flowTask, List<MemTask> tasks) {
         this.flowTask = flowTask;
 
         tasks.forEach(task -> {
@@ -38,19 +38,19 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
 
         stateMachineFactory = new StateMachineFactory<MemFlowTask, FlowTaskStatus, FlowEventType, FlowEvent>(FlowTaskStatus.parse(flowTask.getStatus()))
                 .addTransition(FlowTaskStatus.New, FlowTaskStatus.Pending, FlowEventType.Submit,
-                        springContext.getBean(FlowSubmitTransition.class))
+                        SpringContext.getBean(FlowSubmitTransition.class))
                 .addTransition(FlowTaskStatus.Pending, FlowTaskStatus.Running, FlowEventType.Execute,
-                        springContext.getBean(FlowExecuteTransition.class))
+                        SpringContext.getBean(FlowExecuteTransition.class))
                 .addTransition(FlowTaskStatus.Running, FlowTaskStatus.Running, FlowEventType.Execute,
-                        springContext.getBean(FlowExecuteTransition.class))
+                        SpringContext.getBean(FlowExecuteTransition.class))
                 .addTransition(FlowTaskStatus.Pending, FlowTaskStatus.Killed, FlowEventType.Kill,
-                        springContext.getBean(FlowKillTransition.class))
+                        SpringContext.getBean(FlowKillTransition.class))
                 .addTransition(FlowTaskStatus.Running, FlowTaskStatus.Killed, FlowEventType.Kill,
-                        springContext.getBean(FlowKillTransition.class))
+                        SpringContext.getBean(FlowKillTransition.class))
                 .addTransition(FlowTaskStatus.Running, EnumSet.of(FlowTaskStatus.Finished, FlowTaskStatus.Running),
-                        FlowEventType.Finish, springContext.getBean(FlowFinishTransition.class))
+                        FlowEventType.Finish, SpringContext.getBean(FlowFinishTransition.class))
                 .addTransition(FlowTaskStatus.Running, FlowTaskStatus.Failed, FlowEventType.Fail,
-                        springContext.getBean(FlowFailTransition.class))
+                        SpringContext.getBean(FlowFailTransition.class))
                 .installTopology();
 
         stateMachine = stateMachineFactory.make(this);

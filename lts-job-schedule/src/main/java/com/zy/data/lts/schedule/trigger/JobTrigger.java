@@ -3,6 +3,7 @@ package com.zy.data.lts.schedule.trigger;
 import com.google.gson.Gson;
 import com.zy.data.lts.core.JobShardType;
 import com.zy.data.lts.core.TriggerMode;
+import com.zy.data.lts.core.config.ThreadPoolsConfig;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
 import com.zy.data.lts.core.dao.JobDao;
@@ -32,7 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,61 +58,40 @@ import java.util.stream.Collectors;
 public class JobTrigger {
     private static final Logger logger = LoggerFactory.getLogger(JobTrigger.class);
 
-    private static final BlockingQueue<Integer> cronFlowQueue = new LinkedBlockingQueue<>();
-    private static final Gson gson = new Gson();
+    //private static final Gson gson = new Gson();
+
+    @Autowired
+    private Gson gson;
+
     private final Map<Integer, MemFlowTask> runningFlowTasks = new ConcurrentHashMap<>();
-    private final AtomicBoolean isRunning = new AtomicBoolean(true);
-    private final CountDownLatch countDownLatch = new CountDownLatch(1);
-    private final ExecutorService flowEventService = Executors.newFixedThreadPool(10);
+
     @Autowired
     private FlowDao flowDao;
+
     @Autowired
     private FlowTaskDao flowTaskDao;
+
     @Autowired
     private TaskDao taskDao;
+
     @Autowired
     private JobDao jobDao;
-    @Autowired
-    private SpringContext springContext;
-    private final Thread flowTaskThread = new Thread(() -> {
-        while (isRunning.get()) {
-            try {
-                Integer flowId = cronFlowQueue.poll(3, TimeUnit.SECONDS);
-                if (flowId != null) {
-                    triggerFlow(flowId, TriggerMode.Cron);
-                }
-            } catch (Exception e) {
-                logger.error("Fail to cron trigger flow !!!", e);
-            }
-        }
-        countDownLatch.countDown();
-    });
 
     @Autowired
     private ExecutorsApi executorApi;
 
-    public static void pushCronFlow(Integer flowId) {
-        cronFlowQueue.offer(flowId);
+    public static void triggerCronFlow(Integer flowId) {
+        JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
+        jobTrigger.triggerFlow(flowId, TriggerMode.Cron);
     }
 
     @PostConstruct
     public void init() {
-        // load all un finished flowTasks
-        flowTaskThread.start();
-
-        //判断是否是主节点，主节点加载
         loadUnFinishedFlowTasks();
     }
 
     @PreDestroy
     public void destroy() {
-        isRunning.set(false);
-        try {
-            flowTaskThread.interrupt();
-            countDownLatch.await();
-            flowEventService.shutdown();
-        } catch (InterruptedException ignore) {
-        }
     }
 
     @Transactional
@@ -125,7 +108,7 @@ public class JobTrigger {
 
         List<MemTask> tasks = createAndGetTasks(config, flowTask, flowId);
 
-        MemFlowTask memFlowTask = new MemFlowTask(flowTask, tasks, springContext);
+        MemFlowTask memFlowTask = new MemFlowTask(flowTask, tasks);
         runningFlowTasks.putIfAbsent(flowTask.getId(), memFlowTask);
 
         handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
@@ -133,8 +116,8 @@ public class JobTrigger {
 
     /**
      * 任务失败后，手动触发任务重新执行
-     * @param flowTaskId
-     * @param params
+     * @param flowTaskId 工作流任务ID
+     * @param params 工作流任务参数
      */
     @Transactional
     public void reTriggerFlow(int flowTaskId, String params) {
@@ -155,7 +138,7 @@ public class JobTrigger {
         String config = flow.getFlowConfig();
         List<MemTask> newTasks = createAndGetTasks(config, newFlowTask, flow.getId());
 
-        MemFlowTask memFlowTask = new MemFlowTask(newFlowTask, newTasks, springContext);
+        MemFlowTask memFlowTask = new MemFlowTask(newFlowTask, newTasks);
         runningFlowTasks.putIfAbsent(newFlowTask.getId(), memFlowTask);
 
         newTasks.forEach(mt -> {
@@ -165,13 +148,11 @@ public class JobTrigger {
         });
 
         handleFlowTask(new FlowEvent(newFlowTask.getId(), FlowEventType.Submit));
-
     }
 
     /**
      * 只有主节点才会触发
      */
-    @Transactional
     public void loadUnFinishedFlowTasks() {
         List<FlowTask> flowTasks = flowTaskDao.findUnFinishedFlowTasks();
         if (CollectionUtils.isEmpty(flowTasks)) {
@@ -196,11 +177,10 @@ public class JobTrigger {
     }
 
     @Transactional
+    @Async(ThreadPoolsConfig.SUBMIT_FLOW_TASK_THREAD_POOL)
     public void handleFlowTask(FlowEvent flowEvent) {
-        flowEventService.execute(() -> {
-            MemFlowTask flowTask = getMemFlowTask(flowEvent.getFlowTaskId());
-            flowTask.handle(flowEvent);
-        });
+        MemFlowTask flowTask = getMemFlowTask(flowEvent.getFlowTaskId());
+        flowTask.handle(flowEvent);
     }
 
     public void killFlowTask(int flowTaskId) {
@@ -211,8 +191,8 @@ public class JobTrigger {
         return runningFlowTasks.computeIfAbsent(flowTaskId, f -> {
             FlowTask ft = flowTaskDao.findById(flowTaskId);
             List<Task> tasks = taskDao.findByFlowTaskId(flowTaskId);
-            List<MemTask> memTasks = tasks.stream().map(t -> new MemTask(t, springContext)).collect(Collectors.toList());
-            return new MemFlowTask(ft, memTasks, springContext);
+            List<MemTask> memTasks = tasks.stream().map(MemTask::new).collect(Collectors.toList());
+            return new MemFlowTask(ft, memTasks);
         });
     }
 
@@ -314,7 +294,7 @@ public class JobTrigger {
         taskMap.values().forEach(task -> taskDao.insert(task));
 
         return taskMap.values().stream()
-                .map(t -> new MemTask(t, springContext))
+                .map(MemTask::new)
                 .collect(Collectors.toList());
 
     }

@@ -16,9 +16,6 @@ public class TaskExecuteTransition implements SingleArcTransition<MemTask, TaskE
     @Autowired
     TaskDao taskDao;
 
-    @Autowired
-    JobTrigger jobTrigger;
-
     @Override
     public void transition(MemTask job, TaskEvent event) {
         Task task = job.getTask();

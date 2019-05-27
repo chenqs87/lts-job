@@ -18,9 +18,6 @@ public class TaskFinishTransition implements MultipleArcTransition<MemTask, Task
     @Autowired
     TaskDao taskDao;
 
-    @Autowired
-    JobTrigger jobTrigger;
-
     @Override
     public TaskStatus transition(MemTask memTask, TaskEvent event) {
         memTask.lock();

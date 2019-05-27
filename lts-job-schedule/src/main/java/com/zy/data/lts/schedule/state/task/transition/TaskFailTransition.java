@@ -16,9 +16,6 @@ public class TaskFailTransition implements SingleArcTransition<MemTask, TaskEven
     @Autowired
     TaskDao taskDao;
 
-    @Autowired
-    JobTrigger jobTrigger;
-
     @Override
     public void transition(MemTask job, TaskEvent event) {
         Task task = job.getTask();

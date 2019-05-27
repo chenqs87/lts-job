@@ -14,8 +14,8 @@ import java.util.List;
 @ConditionalOnProperty(name = "lts.server.role", havingValue = "executor")
 public class ExecutorApiConfig {
 
-    @Value("${lts.server.executor.adminUrls}")
-    private List<String> adminUrls;
+    @Value("${lts.server.executor.adminUrl}")
+    private String adminUrl;
 
     @Value("${lts.server.executor.handler.name}")
     private String handler;
@@ -23,12 +23,13 @@ public class ExecutorApiConfig {
     @Value("${lts.server.executor.handler.host}")
     private String host;
 
-    public List<String> getAdminUrls() {
-        return adminUrls;
+
+    public String getAdminUrl() {
+        return adminUrl;
     }
 
-    public void setAdminUrls(List<String> adminUrls) {
-        this.adminUrls = adminUrls;
+    public void setAdminUrl(String adminUrl) {
+        this.adminUrl = adminUrl;
     }
 
     public String getHandler() {

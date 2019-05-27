@@ -22,7 +22,7 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
     private Task task;
     private boolean isSkip;
 
-    public MemTask(Task task, SpringContext springContext) {
+    public MemTask(Task task) {
 
         if (task == null) {
             throw new IllegalArgumentException("task is null!!");
@@ -32,27 +32,27 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
         stateMachineFactory
                 = new StateMachineFactory<MemTask, TaskStatus, TaskEventType, TaskEvent>(TaskStatus.parse(task.getTaskStatus()))
                 .addTransition(TaskStatus.New, EnumSet.of(TaskStatus.Ready, TaskStatus.Pending),
-                        TaskEventType.Submit, springContext.getBean(TaskPendTransition.class))
+                        TaskEventType.Submit, SpringContext.getBean(TaskPendTransition.class))
                 .addTransition(TaskStatus.Ready, EnumSet.of(TaskStatus.Ready, TaskStatus.Pending), TaskEventType.Pend,
-                        springContext.getBean(TaskPendTransition.class))
+                        SpringContext.getBean(TaskPendTransition.class))
                 .addTransition(TaskStatus.Ready, TaskStatus.Killed, TaskEventType.Kill,
-                        springContext.getBean(TaskKillTransition.class))
+                        SpringContext.getBean(TaskKillTransition.class))
                 .addTransition(TaskStatus.Pending, TaskStatus.Killed, TaskEventType.Kill,
-                        springContext.getBean(TaskKillTransition.class))
+                        SpringContext.getBean(TaskKillTransition.class))
                 .addTransition(TaskStatus.Submitted, TaskStatus.Killed, TaskEventType.Kill,
-                        springContext.getBean(TaskKillTransition.class))
+                        SpringContext.getBean(TaskKillTransition.class))
                 .addTransition(TaskStatus.Running, TaskStatus.Killed, TaskEventType.Kill,
-                        springContext.getBean(TaskKillTransition.class))
+                        SpringContext.getBean(TaskKillTransition.class))
                 .addTransition(TaskStatus.Pending, TaskStatus.Submitted, TaskEventType.Send,
-                        springContext.getBean(TaskSendTransition.class))
+                        SpringContext.getBean(TaskSendTransition.class))
                 .addTransition(TaskStatus.Submitted, TaskStatus.Running, TaskEventType.Execute,
-                        springContext.getBean(TaskExecuteTransition.class))
+                        SpringContext.getBean(TaskExecuteTransition.class))
                 .addTransition(TaskStatus.Running, TaskStatus.Running, TaskEventType.Execute,
-                        springContext.getBean(TaskExecuteTransition.class))
+                        SpringContext.getBean(TaskExecuteTransition.class))
                 .addTransition(TaskStatus.Running, EnumSet.of(TaskStatus.Finished, TaskStatus.Running),
-                        TaskEventType.Finish, springContext.getBean(TaskFinishTransition.class))
+                        TaskEventType.Finish, SpringContext.getBean(TaskFinishTransition.class))
                 .addTransition(TaskStatus.Running, TaskStatus.Failed, TaskEventType.Fail,
-                        springContext.getBean(TaskFailTransition.class))
+                        SpringContext.getBean(TaskFailTransition.class))
                 .installTopology();
 
         this.stateMachine = stateMachineFactory.make(this);

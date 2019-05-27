@@ -20,6 +20,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -32,6 +33,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static com.zy.data.lts.core.config.ThreadPoolsConfig.EXECUTOR_THREAD_POOL;
+
 /**
  * @author chenqingsong
  * @date 2019/4/9 17:37
@@ -39,8 +42,6 @@ import java.util.concurrent.Executors;
 @Service
 public class JobService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
-
-    private final ExecutorService executorService = Executors.newFixedThreadPool(10);
 
     @Autowired
     AdminApi adminApi;
@@ -77,15 +78,14 @@ public class JobService implements ApplicationContextAware {
         applicationContext.publishEvent(event);
     }
 
+    @Async(EXECUTOR_THREAD_POOL)
     public void exec(ExecuteRequest req) {
-        executorService.execute(() -> {
-            try {
-                doExec(req);
-            } catch (Exception e) {
-                logger.error("Fail to execute task [{}]", req, e);
-                adminApi.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
-            }
-        });
+        try {
+            doExec(req);
+        } catch (Exception e) {
+            logger.error("Fail to execute task [{}]", req, e);
+            adminApi.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
+        }
     }
 
     public void killTask(KillTaskRequest req) {
@@ -98,7 +98,7 @@ public class JobService implements ApplicationContextAware {
         String content = job.getContent();
         Path execFile = Paths.get(root.toString(), "exec");
 
-        boolean success = execFile.toFile().createNewFile();
+        execFile.toFile().createNewFile();
 
         try (InputStream inputStream = new ByteArrayInputStream(content.getBytes())) {
             Files.copy(inputStream, execFile, StandardCopyOption.REPLACE_EXISTING);

@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 @Order(0)
 public class SpringContext implements ApplicationContextAware {
 
-    private ConfigurableApplicationContext applicationContext;
+    private static ConfigurableApplicationContext applicationContext;
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext context) throws BeansException {
@@ -24,7 +24,16 @@ public class SpringContext implements ApplicationContextAware {
         return  applicationContext;
     }
 
-    public <T> T getBean(Class<T> clazz) {
+    public static <T> T getBean(Class<T> clazz) {
         return applicationContext.getBean(clazz);
     }
+
+    public static <T> T getBeanByName(String name, Class<T> clazz) {
+        return applicationContext.getBean(name, clazz);
+    }
+
+    public void registerBean(String beanName, Object object) {
+        applicationContext.getBeanFactory().registerSingleton(beanName, object);
+    }
+
 }
