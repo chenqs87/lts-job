@@ -15,6 +15,7 @@ public class JobResultRequest {
     private int flowTaskId;
     private int taskId;
     private int shard;
+
     public JobResultRequest() {
     }
 

@@ -94,7 +94,7 @@ public class JobService {
         flowDao.update(dbFlow);
 
 
-        if(StringUtils.isNotBlank(flow.getPhoneList())
+        if (StringUtils.isNotBlank(flow.getPhoneList())
                 || StringUtils.isNotBlank(flow.getEmailList())) {
             alertConfigDao.update(flow);
         }

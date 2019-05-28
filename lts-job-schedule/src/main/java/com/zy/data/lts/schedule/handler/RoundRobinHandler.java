@@ -40,7 +40,7 @@ public class RoundRobinHandler implements IHandler {
         this.roundIndex = roundIndex;
         virtualExecutors = new AtomicReferenceArray<>(roundIndex);
 
-        for(int i = 0; i < roundIndex; i ++) {
+        for (int i = 0; i < roundIndex; i++) {
             virtualExecutors.compareAndSet(i, null, new VirtualExecutor());
         }
     }
@@ -50,8 +50,8 @@ public class RoundRobinHandler implements IHandler {
     }
 
     private synchronized void reInstall() {
-        if(executorMap.isEmpty()) {
-            for(int i = 0; i < roundIndex; i ++) {
+        if (executorMap.isEmpty()) {
+            for (int i = 0; i < roundIndex; i++) {
                 virtualExecutors.get(i).current = null;
             }
             return;
@@ -62,8 +62,8 @@ public class RoundRobinHandler implements IHandler {
                 .filter(Executor::isActive)
                 .toArray(Executor[]::new);
 
-        if(ArrayUtils.isEmpty(executors)) {
-            for(int i = 0; i < roundIndex; i ++) {
+        if (ArrayUtils.isEmpty(executors)) {
+            for (int i = 0; i < roundIndex; i++) {
                 virtualExecutors.get(i).current = null;
             }
         } else {
@@ -85,7 +85,7 @@ public class RoundRobinHandler implements IHandler {
 
         });
 
-        if(change.get()) {
+        if (change.get()) {
             reInstall();
             synchronized (this) {
                 this.notifyAll();
@@ -105,12 +105,12 @@ public class RoundRobinHandler implements IHandler {
     private int nextIndex() {
         do {
             int current = index.get();
-            int next  =  current + 1;
-            if(next > roundIndex || next < 0) {
+            int next = current + 1;
+            if (next > roundIndex || next < 0) {
                 next = 0;
             }
 
-            if(index.compareAndSet(current, next)) {
+            if (index.compareAndSet(current, next)) {
                 return next;
             }
         } while (true);
@@ -121,15 +121,15 @@ public class RoundRobinHandler implements IHandler {
 
         int count = executorMap.size();
         do {
-            int current =  nextIndex();
+            int current = nextIndex();
 
             int executorIndex = current % roundIndex;
-            String key =  virtualExecutors.get(executorIndex).current;
-            if(key != null) {
+            String key = virtualExecutors.get(executorIndex).current;
+            if (key != null) {
                 Executor executor = executorMap.get(key);
 
-                if(executor != null) {
-                    if(executor.isActive() && executor.getHandler().equals(handlerName)) {
+                if (executor != null) {
+                    if (executor.isActive() && executor.getHandler().equals(handlerName)) {
                         return executor;
                     } else {
                         // 当executor变更所属handler时，从原来的handler中删除
@@ -138,11 +138,12 @@ public class RoundRobinHandler implements IHandler {
                 }
             }
 
-            if(-- count < 1) {
+            if (--count < 1) {
                 synchronized (this) {
                     try {
                         wait();
-                    } catch (InterruptedException ignore) {}
+                    } catch (InterruptedException ignore) {
+                    }
                 }
             }
         } while (isRunning.get());
@@ -158,7 +159,7 @@ public class RoundRobinHandler implements IHandler {
     private void doExec(Consumer<Executor> consumer) {
         Executor executor = nextExecutor();
         // 如果executor 为空，说明当前进程准备关闭了，不再处理请求
-        if(executor != null) {
+        if (executor != null) {
             consumer.accept(executor);
         }
     }

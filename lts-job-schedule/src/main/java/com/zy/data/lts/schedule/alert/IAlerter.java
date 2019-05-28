@@ -8,5 +8,6 @@ import com.zy.data.lts.core.entity.FlowTask;
  */
 public interface IAlerter {
     void success(FlowTask task);
+
     void failed(FlowTask task);
 }

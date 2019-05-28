@@ -2,7 +2,8 @@ package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.model.JobResultRequest;
-import com.zy.data.lts.executor.model.*;
+import com.zy.data.lts.executor.model.JobExecuteEvent;
+import com.zy.data.lts.executor.model.KillJobEvent;
 import com.zy.data.lts.executor.type.IJobTypeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +15,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -42,10 +42,10 @@ public class CommandService implements ApplicationContextAware {
 
     @EventListener
     public void onApplicationEvent(JobExecuteEvent event) throws IOException {
-        Map<String, IJobTypeHandler> jobTypeHandlers =  applicationContext.getBeansOfType(IJobTypeHandler.class);
+        Map<String, IJobTypeHandler> jobTypeHandlers = applicationContext.getBeansOfType(IJobTypeHandler.class);
         IJobTypeHandler jobTypeHandler = jobTypeHandlers.get(event.getJobType());
 
-        if(jobTypeHandler == null) {
+        if (jobTypeHandler == null) {
             throw new IllegalArgumentException("JobType [" + event.getJobType() + "] is not exist!!!");
         }
 
@@ -77,7 +77,7 @@ public class CommandService implements ApplicationContextAware {
             adminApi.success(request);
         } else {
             String key = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-            if(killedTasks.get(key) == EMPTY_OBJECT) {
+            if (killedTasks.get(key) == EMPTY_OBJECT) {
                 killedTasks.remove(key);
             } else {
                 adminApi.fail(request);
@@ -94,7 +94,7 @@ public class CommandService implements ApplicationContextAware {
         runningTasks.put(runningKey, process);
 
         try (InputStream is = process.getInputStream();
-            InputStream error = process.getErrorStream()) {
+             InputStream error = process.getErrorStream()) {
             logService.info(event, is);
             logService.error(event, error);
             process.waitFor();

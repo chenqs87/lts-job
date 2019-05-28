@@ -1,10 +1,6 @@
 package com.zy.data.lts.executor.type;
 
 import com.zy.data.lts.executor.model.JobExecuteEvent;
-import com.zy.data.lts.executor.type.IJobTypeHandler;
-import com.zy.data.lts.executor.type.JobType;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import java.nio.file.Paths;
 

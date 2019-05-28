@@ -17,6 +17,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * 初始化线程池
+ *
  * @author chenqingsong
  * @date 2019/5/24 14:20
  */
@@ -49,7 +50,7 @@ public class ThreadPoolsConfig implements ApplicationContextAware {
     @PostConstruct
     void init() {
 
-        if(executors == null) {
+        if (executors == null) {
             logger.warn("Config [lts.job.thread.pools.executors] is empty!!!");
             return;
         }

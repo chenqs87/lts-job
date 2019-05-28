@@ -27,11 +27,10 @@ import java.util.*;
  * StateMachineFactory there's no operation in the API that changes
  * its semantic properties.
  *
- * @param <OPERAND> The object type on which this state machine operates.
- * @param <STATE> The state of the entity.
+ * @param <OPERAND>   The object type on which this state machine operates.
+ * @param <STATE>     The state of the entity.
  * @param <EVENTTYPE> The external eventType to be handled.
- * @param <EVENT> The event object.
- *
+ * @param <EVENT>     The event object.
  */
 final public class StateMachineFactory
         <OPERAND, STATE extends Enum<STATE>,
@@ -45,9 +44,8 @@ final public class StateMachineFactory
 
     /**
      * Constructor
-     *
+     * <p>
      * This is the only constructor in the API.
-     *
      */
     public StateMachineFactory(STATE defaultInitialState) {
         this.transitionsListNode = null;
@@ -80,18 +78,17 @@ final public class StateMachineFactory
     }
 
     /**
-     * @return a NEW StateMachineFactory just like {@code this} with the current
-     *          transition added as a new legal transition.  This overload
-     *          has no hook object.
-     *
-     *         Note that the returned StateMachineFactory is a distinct
-     *         object.
-     *
-     *         This method is part of the API.
-     *
-     * @param preState pre-transition state
+     * @param preState  pre-transition state
      * @param postState post-transition state
      * @param eventType stimulus for the transition
+     * @return a NEW StateMachineFactory just like {@code this} with the current
+     * transition added as a new legal transition.  This overload
+     * has no hook object.
+     * <p>
+     * Note that the returned StateMachineFactory is a distinct
+     * object.
+     * <p>
+     * This method is part of the API.
      */
     public StateMachineFactory
             <OPERAND, STATE, EVENTTYPE, EVENT>
@@ -100,19 +97,18 @@ final public class StateMachineFactory
     }
 
     /**
-     * @return a NEW StateMachineFactory just like {@code this} with the current
-     *          transition added as a new legal transition.  This overload
-     *          has no hook object.
-     *
-     *
-     *         Note that the returned StateMachineFactory is a distinct
-     *         object.
-     *
-     *         This method is part of the API.
-     *
-     * @param preState pre-transition state
-     * @param postState post-transition state
+     * @param preState   pre-transition state
+     * @param postState  post-transition state
      * @param eventTypes List of stimuli for the transitions
+     * @return a NEW StateMachineFactory just like {@code this} with the current
+     * transition added as a new legal transition.  This overload
+     * has no hook object.
+     * <p>
+     * <p>
+     * Note that the returned StateMachineFactory is a distinct
+     * object.
+     * <p>
+     * This method is part of the API.
      */
     public StateMachineFactory<OPERAND, STATE, EVENTTYPE, EVENT> addTransition(
             STATE preState, STATE postState, Set<EVENTTYPE> eventTypes) {
@@ -120,18 +116,17 @@ final public class StateMachineFactory
     }
 
     /**
-     * @return a NEW StateMachineFactory just like {@code this} with the current
-     *          transition added as a new legal transition
-     *
-     *         Note that the returned StateMachineFactory is a distinct
-     *         object.
-     *
-     *         This method is part of the API.
-     *
-     * @param preState pre-transition state
-     * @param postState post-transition state
+     * @param preState   pre-transition state
+     * @param postState  post-transition state
      * @param eventTypes List of stimuli for the transitions
-     * @param hook transition hook
+     * @param hook       transition hook
+     * @return a NEW StateMachineFactory just like {@code this} with the current
+     * transition added as a new legal transition
+     * <p>
+     * Note that the returned StateMachineFactory is a distinct
+     * object.
+     * <p>
+     * This method is part of the API.
      */
     public StateMachineFactory<OPERAND, STATE, EVENTTYPE, EVENT> addTransition(
             STATE preState, STATE postState, Set<EVENTTYPE> eventTypes,
@@ -148,17 +143,16 @@ final public class StateMachineFactory
     }
 
     /**
-     * @return a NEW StateMachineFactory just like {@code this} with the current
-     *          transition added as a new legal transition
-     *
-     *         Note that the returned StateMachineFactory is a distinct object.
-     *
-     *         This method is part of the API.
-     *
-     * @param preState pre-transition state
+     * @param preState  pre-transition state
      * @param postState post-transition state
      * @param eventType stimulus for the transition
-     * @param hook transition hook
+     * @param hook      transition hook
+     * @return a NEW StateMachineFactory just like {@code this} with the current
+     * transition added as a new legal transition
+     * <p>
+     * Note that the returned StateMachineFactory is a distinct object.
+     * <p>
+     * This method is part of the API.
      */
     public StateMachineFactory
             <OPERAND, STATE, EVENTTYPE, EVENT>
@@ -171,17 +165,16 @@ final public class StateMachineFactory
     }
 
     /**
-     * @return a NEW StateMachineFactory just like {@code this} with the current
-     *          transition added as a new legal transition
-     *
-     *         Note that the returned StateMachineFactory is a distinct object.
-     *
-     *         This method is part of the API.
-     *
-     * @param preState pre-transition state
+     * @param preState   pre-transition state
      * @param postStates valid post-transition states
-     * @param eventType stimulus for the transition
-     * @param hook transition hook
+     * @param eventType  stimulus for the transition
+     * @param hook       transition hook
+     * @return a NEW StateMachineFactory just like {@code this} with the current
+     * transition added as a new legal transition
+     * <p>
+     * Note that the returned StateMachineFactory is a distinct object.
+     * <p>
+     * This method is part of the API.
      */
     public StateMachineFactory
             <OPERAND, STATE, EVENTTYPE, EVENT>
@@ -196,19 +189,19 @@ final public class StateMachineFactory
 
     /**
      * @return a StateMachineFactory just like {@code this}, except that if
-     *         you won't need any synchronization to build a state machine
-     *
-     *         Note that the returned StateMachineFactory is a distinct object.
-     *
-     *         This method is part of the API.
-     *
-     *         The only way you could distinguish the returned
-     *         StateMachineFactory from {@code this} would be by
-     *         measuring the performance of the derived
-     *         {@code StateMachine} you can get from it.
-     *
+     * you won't need any synchronization to build a state machine
+     * <p>
+     * Note that the returned StateMachineFactory is a distinct object.
+     * <p>
+     * This method is part of the API.
+     * <p>
+     * The only way you could distinguish the returned
+     * StateMachineFactory from {@code this} would be by
+     * measuring the performance of the derived
+     * {@code StateMachine} you can get from it.
+     * <p>
      * Calling this is optional.  It doesn't change the semantics of the factory,
-     *   if you call it then when you use the factory there is no synchronization.
+     * if you call it then when you use the factory there is no synchronization.
      */
     public StateMachineFactory
             <OPERAND, STATE, EVENTTYPE, EVENT>

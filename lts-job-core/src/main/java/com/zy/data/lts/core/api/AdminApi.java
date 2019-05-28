@@ -14,18 +14,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.context.WebServerInitializedEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
@@ -64,7 +58,7 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
 
     @Scheduled(fixedDelay = 5000)
     public void beat() {
-        if(serverPort == 0) {
+        if (serverPort == 0) {
             return;
         }
 
@@ -81,13 +75,14 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
             synchronized (this) {
                 this.notifyAll();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {
+        }
     }
 
     public IAdminApi getMasterAdminApi() {
 
         while (isRunning.get()) {
-            if(hasAdminServer) {
+            if (hasAdminServer) {
                 return adminServer;
             }
 
@@ -95,7 +90,8 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
                 try {
                     logger.info("Active Masters is 0!");
                     this.wait();
-                } catch (InterruptedException ignore) { }
+                } catch (InterruptedException ignore) {
+                }
             }
         }
 
@@ -167,7 +163,7 @@ public class AdminApi implements IAdminApi, ApplicationListener<WebServerInitial
 
         try {
             adminServer.beat(request);
-            if(!hasAdminServer) {
+            if (!hasAdminServer) {
                 synchronized (this) {
                     this.notifyAll();
                 }

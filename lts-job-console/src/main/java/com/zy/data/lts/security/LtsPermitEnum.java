@@ -33,13 +33,19 @@ public enum LtsPermitEnum {
     static {
         Stream.of(LtsPermitEnum.values()).forEach(lp -> {
             switch (lp.type) {
-                case Flow: flowPermit.put(lp.name(), lp.code); break;
-                case Job: jobPermit.putIfAbsent(lp.name(), lp.code); break;
+                case Flow:
+                    flowPermit.put(lp.name(), lp.code);
+                    break;
+                case Job:
+                    jobPermit.putIfAbsent(lp.name(), lp.code);
+                    break;
             }
         });
     }
+
     public int code;
     public LtsPermitType type;
+
     LtsPermitEnum(LtsPermitType type, int code) {
         this.type = type;
         this.code = 1 << code;

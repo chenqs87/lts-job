@@ -58,7 +58,8 @@ public class ExecutorsApi implements IExecutorApi {
             synchronized (ExecutorsApi.this) {
                 ExecutorsApi.this.notifyAll();
                 return new HandlerApi(new RoundRobinHandler(beat.getHandler()), springContext.getApplicationContext());
-            }});
+            }
+        });
 
         handlerApi.beat(executor);
 
@@ -82,7 +83,7 @@ public class ExecutorsApi implements IExecutorApi {
     public void execute(ExecuteRequest request) {
         HandlerApi handlerApi = handlerApiMap.get(request.getHandler());
 
-        if(handlerApi == null) {
+        if (handlerApi == null) {
             throw new IllegalArgumentException("Handler [" + request.getHandler() + "] is not exist!");
         }
 
@@ -93,13 +94,13 @@ public class ExecutorsApi implements IExecutorApi {
     public void kill(KillTaskRequest request) {
         Executor executor = executorMap.get(request.getHost());
 
-        if(executor == null) {
+        if (executor == null) {
             return;
         }
 
         HandlerApi handlerApi = handlerApiMap.get(executor.getHandler());
 
-        if(handlerApi != null) {
+        if (handlerApi != null) {
             handlerApi.kill(request);
         }
     }

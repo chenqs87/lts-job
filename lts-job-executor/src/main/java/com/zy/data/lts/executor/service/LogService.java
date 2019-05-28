@@ -35,8 +35,8 @@ public class LogService {
         if (logFile != null) {
             Files.deleteIfExists(logFile);
 
-            try(BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-                OutputStream fos = Files.newOutputStream(logFile)) {
+            try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+                 OutputStream fos = Files.newOutputStream(logFile)) {
                 String str;
                 while ((str = bis.readLine()) != null) {
                     fos.write(str.getBytes());
@@ -44,7 +44,7 @@ public class LogService {
                     fos.flush();
                 }
             }
-           // Files.copy(is, logFile);
+            // Files.copy(is, logFile);
 
         }
     }
@@ -92,8 +92,6 @@ public class LogService {
     private Path buildOutputPath(Path root, String fileName) {
         return Paths.get(root.toString(), fileName);
     }
-
-
 
 
 }

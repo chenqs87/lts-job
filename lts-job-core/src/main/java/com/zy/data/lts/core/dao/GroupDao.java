@@ -1,7 +1,6 @@
 package com.zy.data.lts.core.dao;
 
 import com.zy.data.lts.core.entity.Group;
-import com.zy.data.lts.core.entity.User;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 

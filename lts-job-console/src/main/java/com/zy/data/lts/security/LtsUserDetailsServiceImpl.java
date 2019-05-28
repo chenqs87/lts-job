@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * 加载用户信息
+ *
  * @author chenqingsong
  */
 @Service
@@ -39,7 +40,7 @@ public class LtsUserDetailsServiceImpl implements UserDetailsService {
 
         User user = userDao.findByName(username);
 
-        if(user == null) {
+        if (user == null) {
             throw new UsernameNotFoundException("UserName [" + username + "] is not exist!");
         }
 

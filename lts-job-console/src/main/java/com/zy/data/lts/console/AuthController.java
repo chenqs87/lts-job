@@ -30,7 +30,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.server.PathParam;
 import java.util.Iterator;
 
 /**
@@ -65,13 +64,13 @@ public class AuthController {
             String role = "";
             Iterator<? extends GrantedAuthority> iter = authentication.getAuthorities().iterator();
 
-            if(iter.hasNext()) {
+            if (iter.hasNext()) {
                 role = iter.next().getAuthority();
             }
 
             return ResponseEntity.ok(new LoginSuccess(token, role));
         } catch (BadCredentialsException authentication) {
-           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -100,7 +99,8 @@ public class AuthController {
         private String token;
         private String role;
 
-        public LoginSuccess (){}
+        public LoginSuccess() {
+        }
 
         public LoginSuccess(String token, String role) {
             this.token = token;

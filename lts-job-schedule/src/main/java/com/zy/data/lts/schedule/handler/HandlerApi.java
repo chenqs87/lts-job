@@ -29,46 +29,46 @@ public class HandlerApi implements IExecutorApi, IHandler {
     private ApplicationContext applicationContext;
 
 
-    public HandlerApi (IHandler handler, ApplicationContext applicationContext) {
+    public HandlerApi(IHandler handler, ApplicationContext applicationContext) {
         this.handler = handler;
         this.applicationContext = applicationContext;
     }
 
     @Override
     public void execute(ExecuteRequest request) {
-        if(executorService.isShutdown()) {
+        if (executorService.isShutdown()) {
             return;
         }
 
         executorService.execute(() ->
-            asyncExec(executor -> {
-                try {
-                    applicationContext.publishEvent(
-                            new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));
+                asyncExec(executor -> {
+                    try {
+                        applicationContext.publishEvent(
+                                new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));
 
-                    executor.getApi().execute(request);
-                } catch (Exception e) {
-                    //失败重发
-                    logger.warn("Fail to asyncExec Job", e);
-                    if (e instanceof RetryableException) {
-                        remove(executor.getHost());
+                        executor.getApi().execute(request);
+                    } catch (Exception e) {
+                        //失败重发
+                        logger.warn("Fail to asyncExec Job", e);
+                        if (e instanceof RetryableException) {
+                            remove(executor.getHost());
+                        }
+
+                        execute(request);
                     }
-
-                    execute(request);
-                }
-            })
+                })
         );
     }
 
     @Override
     public void kill(KillTaskRequest request) {
-        executorService.execute(()-> {
+        executorService.execute(() -> {
             try {
                 Executor executor = getExecutor(request.getHost());
-                if(executor != null) {
+                if (executor != null) {
                     executor.getApi().kill(request);
                 }
-            } catch (Exception e ) {
+            } catch (Exception e) {
                 logger.warn("Fail to kill the job [{}] ", request, e);
             }
         });
@@ -99,6 +99,7 @@ public class HandlerApi implements IExecutorApi, IHandler {
         try {
             executorService.shutdownNow();
             handler.close();
-        } catch (Exception ignore) {}
+        } catch (Exception ignore) {
+        }
     }
 }

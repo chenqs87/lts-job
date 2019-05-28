@@ -79,9 +79,9 @@ public class UserService {
     }
 
     public Integer getResourcePermit(PermitRequest request) {
-        if("User".equalsIgnoreCase(request.getUserOrGroup())) {
+        if ("User".equalsIgnoreCase(request.getUserOrGroup())) {
             return repmPolicyDao.findUserPermit(request.getName(), request.getResourceType(), request.getResource());
-        } else if("Group".equalsIgnoreCase(request.getUserOrGroup())) {
+        } else if ("Group".equalsIgnoreCase(request.getUserOrGroup())) {
             return repmPolicyDao.findGroupPermit(request.getName(), request.getResourceType(), request.getResource());
         } else {
             return 0;
@@ -89,7 +89,7 @@ public class UserService {
     }
 
     public void updatePermit(PermitRequest request) {
-        if("User".equalsIgnoreCase(request.getUserOrGroup())) {
+        if ("User".equalsIgnoreCase(request.getUserOrGroup())) {
             RepmPolicy rp = new RepmPolicy();
             rp.setCreateTime(new Date());
             rp.setPermit(request.getPermit());
@@ -97,13 +97,13 @@ public class UserService {
             rp.setPolicyName(repmPolicyDao.wrapUsername(request.getName()));
             rp.setResource(request.getResource());
 
-            if(repmPolicyDao.findUserPermit(request.getName(), request.getResourceType(), request.getResource()) != null) {
+            if (repmPolicyDao.findUserPermit(request.getName(), request.getResourceType(), request.getResource()) != null) {
                 repmPolicyDao.update(rp);
             } else {
                 repmPolicyDao.insert(rp);
             }
 
-        } else if("Group".equalsIgnoreCase(request.getUserOrGroup())) {
+        } else if ("Group".equalsIgnoreCase(request.getUserOrGroup())) {
             RepmPolicy rp = new RepmPolicy();
             rp.setCreateTime(new Date());
             rp.setPermit(request.getPermit());
@@ -111,7 +111,7 @@ public class UserService {
             rp.setPolicyName(repmPolicyDao.wrapGroup(request.getName()));
             rp.setResource(request.getResource());
 
-            if(repmPolicyDao.findGroupPermit(request.getName(), request.getResourceType(), request.getResource()) != null) {
+            if (repmPolicyDao.findGroupPermit(request.getName(), request.getResourceType(), request.getResource()) != null) {
                 repmPolicyDao.update(rp);
             } else {
                 repmPolicyDao.insert(rp);

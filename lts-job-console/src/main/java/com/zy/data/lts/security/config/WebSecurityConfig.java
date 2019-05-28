@@ -15,9 +15,9 @@
  */
 package com.zy.data.lts.security.config;
 
-import com.zy.data.lts.security.LtsUserDetailsServiceImpl;
 import com.zy.data.lts.security.JwtAuthenticationEntryPoint;
 import com.zy.data.lts.security.LtsPermissionEvaluator;
+import com.zy.data.lts.security.LtsUserDetailsServiceImpl;
 import com.zy.data.lts.security.filter.JwtAuthenticationTokenFilter;
 import com.zy.data.lts.security.utils.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,10 +82,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     public void configure(WebSecurity web) {
-        ((DefaultWebSecurityExpressionHandler)web.getExpressionHandler())
+        ((DefaultWebSecurityExpressionHandler) web.getExpressionHandler())
                 .setPermissionEvaluator(ltsPermissionEvaluator);
 
-        String ignoreURLs = env.getProperty(IGNORE_URLS,"/**");
+        String ignoreURLs = env.getProperty(IGNORE_URLS, "/**");
         for (String ignoreURL : ignoreURLs.trim().split(SECURITY_IGNORE_URLS_SPILT_CHAR)) {
             web.ignoring().antMatchers(ignoreURL.trim());
         }
@@ -95,13 +95,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .authorizeRequests()
-            .anyRequest().authenticated().and()
-            .exceptionHandling()
-            .authenticationEntryPoint(unauthorizedHandler).and()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
-            // 使用jwt，禁用csrf
-            .csrf().disable();
+                .authorizeRequests()
+                .anyRequest().authenticated().and()
+                .exceptionHandling()
+                .authenticationEntryPoint(unauthorizedHandler).and()
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+                // 使用jwt，禁用csrf
+                .csrf().disable();
         http.addFilterBefore(new JwtAuthenticationTokenFilter(tokenProvider), UsernamePasswordAuthenticationFilter.class);
 
         // disable cache

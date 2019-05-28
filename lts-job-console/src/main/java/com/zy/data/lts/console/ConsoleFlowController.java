@@ -199,9 +199,9 @@ public class ConsoleFlowController {
                           HttpServletResponse response) throws IOException {
 
         URL url = new URL("http://" + host + "/executor/query/logs?flowTaskId=" + flowTaskId +
-                "&taskId="+ taskId + "&shardStatus=" + shardStatus + "&logName=" + logName);
+                "&taskId=" + taskId + "&shardStatus=" + shardStatus + "&logName=" + logName);
 
-        try(InputStream inputStream = url.openStream()) {
+        try (InputStream inputStream = url.openStream()) {
             int count = IOUtils.copy(inputStream, response.getOutputStream());
             response.setHeader("FileSize", String.valueOf(count));
         }
