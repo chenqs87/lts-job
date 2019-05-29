@@ -1,12 +1,27 @@
 package com.zy.data.lts.schedule.service;
 
 import com.github.pagehelper.PageHelper;
+import com.zy.data.lts.core.LtsPermitEnum;
+import com.zy.data.lts.core.LtsPermitType;
 import com.zy.data.lts.core.TriggerMode;
-import com.zy.data.lts.core.dao.*;
-import com.zy.data.lts.core.entity.*;
+import com.zy.data.lts.core.dao.AlertConfigDao;
+import com.zy.data.lts.core.dao.FlowDao;
+import com.zy.data.lts.core.dao.FlowTaskDao;
+import com.zy.data.lts.core.dao.JobDao;
+import com.zy.data.lts.core.dao.RepmPolicyDao;
+import com.zy.data.lts.core.dao.TaskDao;
+import com.zy.data.lts.core.dao.UserDao;
+import com.zy.data.lts.core.entity.AlertConfig;
+import com.zy.data.lts.core.entity.Flow;
+import com.zy.data.lts.core.entity.FlowTask;
+import com.zy.data.lts.core.entity.Job;
+import com.zy.data.lts.core.entity.RepmPolicy;
+import com.zy.data.lts.core.entity.Task;
+import com.zy.data.lts.core.entity.User;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +42,9 @@ public class JobService {
 
     @Autowired
     JobScheduler jobScheduler;
+
+    @Autowired
+    UserDao userDao;
 
     @Autowired
     FlowDao flowDao;
@@ -61,6 +79,16 @@ public class JobService {
         flow.setPolicyName(repmPolicyDao.wrapUsername(flow.getCreateUser()));
         flow.setResource(flow.getId());
         repmPolicyDao.insert(flow);
+
+        //将对应的工作流查看权限添加至用户的对应组
+        RepmPolicy group = new RepmPolicy();
+        group.setCreateTime(new Date());
+        group.setPermit(LtsPermitEnum.FlowView.code);
+        group.setType(LtsPermitType.Flow.name());
+        group.setResource(flow.getId());
+        group.setPolicyName(repmPolicyDao.wrapGroup(userDao.findByName(flow.getCreateUser()).getGroupName()));
+        repmPolicyDao.insert(group);
+
 
         flow.setFlowId(flow.getId());
         alertConfigDao.insert(flow);
@@ -105,6 +133,15 @@ public class JobService {
     public Job createJob(Job job) {
         job.setCreateTime(new Date());
         jobDao.insert(job);
+
+        // 用户对应的用户组添加对应任务权限
+        RepmPolicy group = new RepmPolicy();
+        group.setResource(job.getId());
+        group.setCreateTime(new Date());
+        group.setPolicyName(repmPolicyDao.wrapGroup(userDao.findByName(job.getCreateUser()).getGroupName()));
+        group.setType(LtsPermitType.Job.name());
+        group.setPermit(LtsPermitEnum.JobView.code);
+        repmPolicyDao.insert(group);
 
         job.setPolicyName(repmPolicyDao.wrapUsername(job.getCreateUser()));
         job.setResource(job.getId());
@@ -204,7 +241,9 @@ public class JobService {
 
     public List<Job> findJobsByGroup(JobQueryRequest request) {
         PageHelper.startPage(request.getPageNum(), request.getPageSize());
-        return jobDao.selectByUser(request);
+        User user = userDao.findByName(request.getUsername());
+        request.setUserGroup(user.getGroupName());
+        return jobDao.selectByGroup(request);
     }
 
     public List<Flow> findAllFlows(Integer pageNum, Integer pageSize) {
@@ -219,9 +258,10 @@ public class JobService {
     }
 
     public List<Flow> findFlowsByGroup(Integer pageNum, Integer pageSize,
-                                       String groupName, int permit) {
+                                       String userName, int permit) {
         PageHelper.startPage(pageNum, pageSize);
-        return flowDao.selectByGroup(groupName, permit);
+        User user = userDao.findByName(userName);
+        return flowDao.selectByGroup(user.getGroupName(), permit);
     }
 
     public List<FlowTask> findAllFlowTask(Integer pageNum, Integer pageSize) {
