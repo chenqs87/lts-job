@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.concurrent.*;
+
 /**
  * TODO:::异步执行
  * @author chenqingsong
@@ -16,33 +18,33 @@ public class AsyncHandler implements IHandler {
 
     private Logger logger = LoggerFactory.getLogger(AsyncHandler.class);
 
+    private final ExecutorService executorService ;
     private final IHandler handler;
 
     public AsyncHandler(IHandler handler) {
         this.handler = handler;
+        this.executorService = Executors.newFixedThreadPool(2);
     }
 
-    @Async
     @Override
     public void execute(ExecuteRequest request) {
-        handler.execute(request);
+        executorService.execute(() -> handler.execute(request));
     }
 
-    @Async
     @Override
     public void kill(KillTaskRequest request) {
-        handler.kill(request);
+        executorService.execute(() -> handler.kill(request));
     }
 
-    @Async
     @Override
     public void beat(Executor executor) {
-        handler.beat(executor);
+        executorService.execute(() -> handler.beat(executor));
     }
 
     @Override
     public void close() {
         try {
+            executorService.shutdown();
             handler.close();
         } catch (Exception ignore) { }
     }
