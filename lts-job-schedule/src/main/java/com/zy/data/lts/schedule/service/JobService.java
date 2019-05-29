@@ -193,7 +193,9 @@ public class JobService {
      */
     @Transactional
     public void reTriggerFlow(int flowTaskId, String params) {
-        jobTrigger.reTriggerFlow(flowTaskId, params);
+        FlowTask flowTask = jobTrigger.buildFlowTaskForFailed(flowTaskId, params);
+        jobTrigger.handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
+
     }
 
     public List<Job> findAllJobs(JobQueryRequest request) {

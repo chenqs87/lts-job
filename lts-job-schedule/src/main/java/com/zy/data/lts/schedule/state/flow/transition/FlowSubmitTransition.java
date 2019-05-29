@@ -22,6 +22,10 @@ public class FlowSubmitTransition implements SingleArcTransition<MemFlowTask, Fl
     public void transition(MemFlowTask memFlowTask, FlowEvent event) {
         memFlowTask.lock();
         try {
+            FlowTask flowTask = memFlowTask.getFlowTask();
+            flowTask.setStatus(FlowTaskStatus.Pending.code());
+            flowTaskDao.update(flowTask);
+
             memFlowTask.getTasks().forEach(t -> {
                 t.handle(new TaskEvent(TaskEventType.Submit));
                 if (t.getCurrentStatus() == TaskStatus.Pending) {
@@ -29,9 +33,7 @@ public class FlowSubmitTransition implements SingleArcTransition<MemFlowTask, Fl
                 }
             });
 
-            FlowTask flowTask = memFlowTask.getFlowTask();
-            flowTask.setStatus(FlowTaskStatus.Pending.code());
-            flowTaskDao.update(flowTask);
+
         } finally {
             memFlowTask.unlock();
         }

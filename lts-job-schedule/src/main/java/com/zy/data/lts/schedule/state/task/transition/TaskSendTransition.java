@@ -23,11 +23,10 @@ public class TaskSendTransition implements SingleArcTransition<MemTask, TaskEven
 
     @Override
     public void transition(MemTask job, TaskEvent event) {
-
-        jobTrigger.sendTask(job);
         Task task = job.getTask();
         task.setTaskStatus(TaskStatus.Submitted.code());
         taskDao.update(task);
 
+        jobTrigger.sendTask(job);
     }
 }
