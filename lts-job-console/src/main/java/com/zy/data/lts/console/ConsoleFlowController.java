@@ -8,10 +8,9 @@ import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.core.model.PagerRequest;
 import com.zy.data.lts.schedule.handler.HandlerService;
 import com.zy.data.lts.schedule.service.JobService;
-import com.zy.data.lts.security.LtsPermitEnum;
-import com.zy.data.lts.security.LtsPermitType;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import com.zy.data.lts.core.LtsPermitEnum;
+import com.zy.data.lts.core.LtsPermitType;
+
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,12 +18,23 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+
+import javax.servlet.http.HttpServletResponse;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 
 /**
  * @author chenqingsong
@@ -123,22 +133,37 @@ public class ConsoleFlowController {
         return ResponseEntity.ok().build();
     }
 
-    @ApiOperation(value = "查询所有任务", notes = "查询所有任务")
-    @GetMapping("/getAllJobs")
-    public ResponseEntity getAllJobs(JobQueryRequest request) {
+    @ApiOperation(value = "根据用户name查询所有任务", notes = "查询所有任务")
+    @GetMapping("/getAllJobsByUser")
+    public ResponseEntity getAllJobsByUser(JobQueryRequest request) {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.JobView.code);
         return ResponseEntity.ok(new PageInfo<>(jobService.findJobsByUser(request)));
     }
 
-    @ApiOperation(value = "查询所有工作流", notes = "查询所有工作流")
-    @GetMapping("/getAllFlows")
-    public ResponseEntity getAllFlows(PagerRequest request) {
+    @ApiOperation(value = "根据用户group查询所有任务", notes = "查询所有任务")
+    @GetMapping("/getAllJobsByGroup")
+    public ResponseEntity getAllJobsByGroup(JobQueryRequest request) {
+        request.setUsername(getCurrentUserName());
+        request.setPermit(LtsPermitEnum.JobView.code);
+        return ResponseEntity.ok(new PageInfo<>(jobService.findJobsByGroup(request)));
+    }
+
+    @ApiOperation(value = "根据用户name查询所有工作流", notes = "查询所有工作流")
+    @GetMapping("/getAllFlowsByUser")
+    public ResponseEntity getAllFlowsByUser(PagerRequest request) {
 
         return ResponseEntity.ok(new PageInfo<>(jobService.findFlowsByUser(request.getPageNum(),
                 request.getPageSize(), getCurrentUserName(), LtsPermitEnum.FlowView.code)));
     }
 
+    @ApiOperation(value = "根据用户group查询所有工作流", notes = "查询所有工作流")
+    @GetMapping("/getAllFlowsByGroup")
+    public ResponseEntity getAllFlowsByGroup(PagerRequest request) {
+
+        return ResponseEntity.ok(new PageInfo<>(jobService.findFlowsByGroup(request.getPageNum(),
+                request.getPageSize(), getCurrentUserName(), LtsPermitEnum.FlowView.code)));
+    }
     @ApiOperation(value = "查询工作流", notes = "查询工作流")
     @GetMapping("/getFlow")
     @PreAuthorize("hasPermission(#flowId, 'FlowView')")
@@ -172,7 +197,9 @@ public class ConsoleFlowController {
 
     @ApiOperation(value = "kill任务", notes = "kill任务")
     @PostMapping("/killFlowTask")
-    public ResponseEntity killFlowTask(@RequestParam("flowTaskId") Integer flowTaskId) {
+    @PreAuthorize("hasPermission(#flowId, 'FlowDelete')")
+    public ResponseEntity killFlowTask(@RequestParam("flowId") Integer flowId,
+                                            @RequestParam("flowTaskId") Integer flowTaskId) {
         jobService.killFlowTask(flowTaskId);
         return ResponseEntity.ok().build();
     }
@@ -181,12 +208,6 @@ public class ConsoleFlowController {
     @GetMapping("/getHandlers")
     public ResponseEntity getHandlers() {
         return ResponseEntity.ok(executorApi.getActiveExecutors());
-    }
-
-    private String getCurrentUserName() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User user = (User) authentication.getPrincipal();
-        return user.getUsername();
     }
 
     @ApiOperation(value = "任务日志查询", notes = "任务日志查询")
@@ -211,5 +232,12 @@ public class ConsoleFlowController {
     @GetMapping("/getAlertConfig")
     public ResponseEntity getAlertConfig(@RequestParam("flowId") Integer flowId) {
         return ResponseEntity.ok(jobService.getAlertConfig(flowId));
+    }
+
+
+    private String getCurrentUserName() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User user = (User) authentication.getPrincipal();
+        return user.getUsername();
     }
 }

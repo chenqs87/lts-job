@@ -21,7 +21,9 @@ public class Task {
      */
     private int taskId;
 
-    // 关联的jobId
+    /**
+     * 关联的jobId
+     */
     private int jobId;
 
     /**

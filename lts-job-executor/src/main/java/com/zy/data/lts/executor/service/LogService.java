@@ -66,7 +66,8 @@ public class LogService {
         File file = path.toFile();
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));
-
+        response.getOutputStream().print("--------------------------------------------------\n");
+        response.getOutputStream().print(fileName+"output is :\n");
         try (FileInputStream fis = new FileInputStream(file);
              FileChannel channel = fis.getChannel()) {
             WritableByteChannel output = Channels.newChannel(response.getOutputStream());
@@ -92,6 +93,8 @@ public class LogService {
     private Path buildOutputPath(Path root, String fileName) {
         return Paths.get(root.toString(), fileName);
     }
+
+
 
 
 }

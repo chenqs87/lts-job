@@ -235,6 +235,13 @@ public class JobTrigger {
         }
     }
 
+    /**
+     * 创建执行的工作流
+     * @param flow 对用流
+     * @param triggerMode 触发种类
+     * @param params 工作参数
+     * @return
+     */
     private FlowTask createFlowTask(Flow flow, TriggerMode triggerMode, String params) {
         FlowTask flowTask = new FlowTask();
         flowTask.setFlowId(flow.getId());
