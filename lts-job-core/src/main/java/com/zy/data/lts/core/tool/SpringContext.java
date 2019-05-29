@@ -19,7 +19,7 @@ public class SpringContext implements ApplicationContextAware {
         applicationContext = (ConfigurableApplicationContext) context;
     }
 
-    public ConfigurableApplicationContext getApplicationContext() {
+    public static ConfigurableApplicationContext getApplicationContext() {
         return applicationContext;
     }
 
@@ -31,8 +31,9 @@ public class SpringContext implements ApplicationContextAware {
         return applicationContext.getBean(name, clazz);
     }
 
-    public void registerBean(String beanName, Object object) {
+    public static void registerBean(String beanName, Object object) {
         applicationContext.getBeanFactory().registerSingleton(beanName, object);
     }
+
 
 }

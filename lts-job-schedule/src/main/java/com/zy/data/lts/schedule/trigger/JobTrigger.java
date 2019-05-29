@@ -16,7 +16,7 @@ import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.schedule.handler.ExecutorsApi;
+import com.zy.data.lts.schedule.handler.HandlerService;
 import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
@@ -33,7 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,6 +55,7 @@ import java.util.stream.Collectors;
  * @date 2019/3/28 12:31
  */
 @Component
+@DependsOn("springContext")
 public class JobTrigger {
     private static final Logger logger = LoggerFactory.getLogger(JobTrigger.class);
 
@@ -75,7 +79,7 @@ public class JobTrigger {
     private JobDao jobDao;
 
     @Autowired
-    private ExecutorsApi executorApi;
+    private HandlerService executorApi;
 
     public static void triggerCronFlow(Integer flowId) {
         JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);

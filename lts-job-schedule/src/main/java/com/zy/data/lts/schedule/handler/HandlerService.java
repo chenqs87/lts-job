@@ -5,7 +5,6 @@ import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
-import com.zy.data.lts.core.tool.SpringContext;
 import feign.Feign;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
@@ -24,26 +23,30 @@ import java.util.concurrent.ConcurrentHashMap;
  * @date 2019/5/13 10:23
  */
 @Component
-public class ExecutorsApi implements IExecutorApi {
+public class HandlerService implements IExecutorApi {
+
+
+    @Autowired
+    private GsonEncoder gsonEncoder;
+
+    @Autowired
+    private GsonDecoder gsonDecoder;
+
 
     //<handlerName, HandlerAPI>
-    private final Map<String, HandlerApi> handlerApiMap = new ConcurrentHashMap<>();
+    private final Map<String, AsyncHandler> handlerApiMap = new ConcurrentHashMap<>();
 
     //<host:port, Executor>
     private final Map<String, Executor> executorMap = new ConcurrentHashMap<>();
 
-    @Autowired
-    SpringContext springContext;
-
 
     public void beat(BeatInfoRequest beat) {
         if (beat.getPort() > 0) {
-            String host = beat.getHost() + ":" + beat.getPort();
-            updateExecutors(beat, host);
+            updateExecutors(beat);
         }
     }
 
-    private void updateExecutors(BeatInfoRequest beat, String host) {
+    private void updateExecutors(BeatInfoRequest beat) {
         String hostAndPort = beat.getHost() + ":" + beat.getPort();
         // 更新executor 心跳时间
         executorMap.computeIfPresent(hostAndPort, (k, v) -> {
@@ -52,28 +55,24 @@ public class ExecutorsApi implements IExecutorApi {
         });
 
         // 新增executors
-        Executor executor = executorMap.computeIfAbsent(hostAndPort, f -> createExecutor(beat, host));
+        Executor executor = executorMap.computeIfAbsent(hostAndPort, f -> createExecutor(beat));
 
-        HandlerApi handlerApi = handlerApiMap.computeIfAbsent(beat.getHandler(), f -> {
-            synchronized (ExecutorsApi.this) {
-                ExecutorsApi.this.notifyAll();
-                return new HandlerApi(new RoundRobinHandler(beat.getHandler()), springContext.getApplicationContext());
-            }
-        });
+        AsyncHandler asyncHandler = handlerApiMap.computeIfAbsent(beat.getHandler(), f ->
+            new AsyncHandler(new RoundRobinHandler(beat.getHandler())));
 
-        handlerApi.beat(executor);
+        asyncHandler.beat(executor);
 
 
     }
 
-    private Executor createExecutor(BeatInfoRequest beat, String host) {
+    private Executor createExecutor(BeatInfoRequest beat) {
         Executor executor = new Executor();
-
-        IExecutorApi executorApi = Feign.builder()
-                .encoder(new GsonEncoder())
-                .decoder(new GsonDecoder())
-                .target(IExecutorApi.class, "http://" + beat.getHost() + ":" + beat.getPort());
-        executor.setApi(executorApi);
+        String host = beat.getHost() + ":" + beat.getPort();
+        IExecutorApi api = Feign.builder()
+                .encoder(gsonEncoder)
+                .decoder(gsonDecoder)
+                .target(IExecutorApi.class, "http://" + host);
+        executor.setApi(api);
         executor.setHost(host);
         executor.setHandler(beat.getHandler());
         return executor;
@@ -81,13 +80,13 @@ public class ExecutorsApi implements IExecutorApi {
 
     @Override
     public void execute(ExecuteRequest request) {
-        HandlerApi handlerApi = handlerApiMap.get(request.getHandler());
+        AsyncHandler asyncHandler = handlerApiMap.get(request.getHandler());
 
-        if (handlerApi == null) {
-            throw new IllegalArgumentException("Handler [" + request.getHandler() + "] is not exist!");
+        if (asyncHandler == null) {
+            throw new IllegalArgumentException("AsyncHandler [" + request.getHandler() + "] is not exist!");
         }
 
-        handlerApi.execute(request);
+        asyncHandler.execute(request);
     }
 
     @Override
@@ -98,10 +97,10 @@ public class ExecutorsApi implements IExecutorApi {
             return;
         }
 
-        HandlerApi handlerApi = handlerApiMap.get(executor.getHandler());
+        AsyncHandler asyncHandler = handlerApiMap.get(executor.getHandler());
 
-        if (handlerApi != null) {
-            handlerApi.kill(request);
+        if (asyncHandler != null) {
+            asyncHandler.kill(request);
         }
     }
 
@@ -121,6 +120,17 @@ public class ExecutorsApi implements IExecutorApi {
 
     @PreDestroy
     public void destroy() {
-        handlerApiMap.values().forEach(HandlerApi::close);
+        handlerApiMap.values().forEach(AsyncHandler::close);
+    }
+
+    public void registerBean(BeatInfoRequest beat) {
+        if(beat.getPort() == 0) {
+            return;
+        }
+
+        Executor executor = createExecutor(beat);
+
+        String host = beat.getHost() + ":" + beat.getPort();
+       // SpringContext.getApplicationContext().getBeanFactory().
     }
 }

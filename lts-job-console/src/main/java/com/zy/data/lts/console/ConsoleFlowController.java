@@ -6,7 +6,7 @@ import com.zy.data.lts.core.entity.AlertConfig;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.core.model.PagerRequest;
-import com.zy.data.lts.schedule.handler.ExecutorsApi;
+import com.zy.data.lts.schedule.handler.HandlerService;
 import com.zy.data.lts.schedule.service.JobService;
 import com.zy.data.lts.security.LtsPermitEnum;
 import com.zy.data.lts.security.LtsPermitType;
@@ -39,7 +39,7 @@ public class ConsoleFlowController {
     JobService jobService;
 
     @Autowired
-    ExecutorsApi executorApi;
+    HandlerService executorApi;
 
     @ApiOperation(value = "启动定时任务", notes = "启动定时任务")
     @PostMapping("/cronFlow")

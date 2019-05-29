@@ -1,6 +1,11 @@
 package com.zy.data.lts.schedule.handler;
 
+import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
+import com.zy.data.lts.core.model.KillTaskRequest;
+import com.zy.data.lts.core.model.UpdateTaskHostEvent;
+import com.zy.data.lts.core.tool.SpringContext;
+import feign.RetryableException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,10 +98,6 @@ public class RoundRobinHandler implements IHandler {
         }
     }
 
-    public Executor getExecutor(String host) {
-        return executorMap.get(host);
-    }
-
     public void remove(String host) {
         executorMap.remove(host);
         reInstall();
@@ -152,10 +153,6 @@ public class RoundRobinHandler implements IHandler {
 
     }
 
-    public void asyncExec(Consumer<Executor> consumer) {
-        doExec(consumer);
-    }
-
     private void doExec(Consumer<Executor> consumer) {
         Executor executor = nextExecutor();
         // 如果executor 为空，说明当前进程准备关闭了，不再处理请求
@@ -170,6 +167,41 @@ public class RoundRobinHandler implements IHandler {
         synchronized (this) {
             this.notifyAll();
         }
+    }
+
+    @Override
+    public void execute(ExecuteRequest request) {
+        doExec(executor -> {
+
+
+            try {
+                SpringContext.getApplicationContext().publishEvent(
+                        new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));
+
+                executor.execute(request);
+            } catch (Exception e) {
+                //失败重发
+                logger.warn("Fail to asyncExec Job", e);
+                if (e instanceof RetryableException) {
+                    remove(executor.getHost());
+                }
+
+                execute(request);
+            }
+        });
+
+    }
+
+    @Override
+    public void kill(KillTaskRequest request) {
+
+        doExec(executor -> {
+            try {
+                executor.kill(request);
+            } catch (Exception e) {
+                logger.warn("Fail to kill the job [{}] ", request, e);
+            }
+        });
     }
 
     private static class VirtualExecutor {

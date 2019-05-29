@@ -1,7 +1,7 @@
 package com.zy.data.lts.console;
 
 import com.zy.data.lts.core.model.BeatInfoRequest;
-import com.zy.data.lts.schedule.handler.ExecutorsApi;
+import com.zy.data.lts.schedule.handler.HandlerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 public class HandlerStatusController {
 
     @Autowired
-    private ExecutorsApi executorApi;
+    private HandlerService executorApi;
 
     @ApiOperation(value = "Handler心跳", notes = "Handler心跳")
     @PostMapping("/beat")

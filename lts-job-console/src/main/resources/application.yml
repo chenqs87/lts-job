@@ -15,7 +15,6 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-
 #pagehelper分页插件
 pagehelper:
   helperDialect: mysql
