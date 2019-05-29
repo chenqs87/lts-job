@@ -57,14 +57,16 @@ public class LogService {
     }
 
 
-    public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, HttpServletResponse response) throws IOException {
+    public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, HttpServletResponse response,
+            String fileName) throws IOException {
         int offset = 0;
         Path root = executorConfig.getExecDir(flowTaskId, taskId, shard);
-        Path path = newFileOutput(root, "syslog.log");
+        Path path = newFileOutput(root, fileName);
         File file = path.toFile();
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));
-
+        response.getOutputStream().print("--------------------------------------------------\n");
+        response.getOutputStream().print(fileName+"output is :\n");
         try (FileInputStream fis = new FileInputStream(file);
              FileChannel channel = fis.getChannel()) {
             WritableByteChannel output = Channels.newChannel(response.getOutputStream());

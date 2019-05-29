@@ -8,9 +8,10 @@ spring:
     store-type: none
   datasource:
     name: lts-executor
-    url: jdbc:mysql://localhost:3306/lts-job
+    url: jdbc:mysql://localhost:3306/lts-job?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false
     username: root
-    password: root
+#    password: root
+    password: 123456
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -30,4 +31,4 @@ lts:
         name: test
         host: localhost:8081
 
-lts.job.executor.dir: /tmp/lts-executor/logs
+lts.job.executor.dir: E:/zhangyue/Its-job/tmp/lts-executor/logs
