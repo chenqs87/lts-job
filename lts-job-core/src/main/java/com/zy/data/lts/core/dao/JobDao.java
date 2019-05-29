@@ -1,6 +1,5 @@
 package com.zy.data.lts.core.dao;
 
-import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.Job;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;

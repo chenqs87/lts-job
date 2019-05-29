@@ -1,6 +1,5 @@
 package com.zy.data.lts.core.tool;
 
-import com.sun.org.apache.regexp.internal.RE;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -20,8 +19,8 @@ public class SpringContext implements ApplicationContextAware {
         applicationContext = (ConfigurableApplicationContext) context;
     }
 
-    public ConfigurableApplicationContext getApplicationContext() {
-        return  applicationContext;
+    public static ConfigurableApplicationContext getApplicationContext() {
+        return applicationContext;
     }
 
     public static <T> T getBean(Class<T> clazz) {
@@ -32,8 +31,9 @@ public class SpringContext implements ApplicationContextAware {
         return applicationContext.getBean(name, clazz);
     }
 
-    public void registerBean(String beanName, Object object) {
+    public static void registerBean(String beanName, Object object) {
         applicationContext.getBeanFactory().registerSingleton(beanName, object);
     }
+
 
 }

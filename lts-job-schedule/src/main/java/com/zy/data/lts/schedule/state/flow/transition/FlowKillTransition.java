@@ -38,7 +38,8 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
                     case Ready:
                     case Pending:
                     case Submitted:
-                    case Running: t.handle(new TaskEvent(TaskEventType.Kill));
+                    case Running:
+                        t.handle(new TaskEvent(TaskEventType.Kill));
                 }
             });
             memFlowTask.clearTasks();

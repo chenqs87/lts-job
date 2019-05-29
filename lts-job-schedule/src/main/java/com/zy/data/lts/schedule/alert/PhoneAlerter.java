@@ -65,7 +65,7 @@ public class PhoneAlerter implements IAlerter {
 
     @Override
     public void failed(FlowTask error) {
-        if(api == null) {
+        if (api == null) {
             return;
         }
         try {
@@ -87,7 +87,7 @@ public class PhoneAlerter implements IAlerter {
     public interface IPhoneAlerterApi {
         @RequestLine("GET /notify/sms/send_warn_sms?mobile={phone}&content={content}&biz_type=bi_warn")
         @Headers("Content-Type: application/json")
-        PhoneSendResponse send(@Param("phone")String phone, @Param("content") String msg);
+        PhoneSendResponse send(@Param("phone") String phone, @Param("content") String msg);
     }
 
     public class PhoneSendResponse {

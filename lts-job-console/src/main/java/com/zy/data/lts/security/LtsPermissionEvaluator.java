@@ -21,8 +21,8 @@ public class LtsPermissionEvaluator implements PermissionEvaluator {
 
     @Override
     public boolean hasPermission(Authentication authentication, Object targetDomainObject, Object permission) {
-        if((targetDomainObject instanceof Integer) && (permission instanceof String)) {
-            Integer id = (Integer)  targetDomainObject;
+        if ((targetDomainObject instanceof Integer) && (permission instanceof String)) {
+            Integer id = (Integer) targetDomainObject;
             LtsPermitEnum ltsPermit = LtsPermitEnum.valueOf((String) permission);
             User username = (User) authentication.getPrincipal();
             Integer permitCode = repmPolicyDao.findUserPermit(username.getUsername(), ltsPermit.type.name(), id);

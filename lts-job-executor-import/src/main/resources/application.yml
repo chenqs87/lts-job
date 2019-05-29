@@ -33,7 +33,7 @@ lts:
     thread:
       pools:
         executors:
-            ## Executor回调Master接口线程池
+          ## Executor回调Master接口线程池
           - thread-name-prefix: MasterCallback
             corePoolSize:  5
             maxPoolSize: 10

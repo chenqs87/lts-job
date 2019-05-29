@@ -16,7 +16,7 @@ import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.schedule.handler.ExecutorsApi;
+import com.zy.data.lts.schedule.handler.HandlerService;
 import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
@@ -33,9 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.gson.GsonAutoConfiguration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,8 +47,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
  * @date 2019/3/28 12:31
  */
 @Component
+@DependsOn("springContext")
 public class JobTrigger {
     private static final Logger logger = LoggerFactory.getLogger(JobTrigger.class);
 
@@ -78,7 +79,7 @@ public class JobTrigger {
     private JobDao jobDao;
 
     @Autowired
-    private ExecutorsApi executorApi;
+    private HandlerService executorApi;
 
     public static void triggerCronFlow(Integer flowId) {
         JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
@@ -116,8 +117,9 @@ public class JobTrigger {
 
     /**
      * 任务失败后，手动触发任务重新执行
+     *
      * @param flowTaskId 工作流任务ID
-     * @param params 工作流任务参数
+     * @param params     工作流任务参数
      */
     @Transactional
     public void reTriggerFlow(int flowTaskId, String params) {
@@ -128,7 +130,7 @@ public class JobTrigger {
 
         Set<Integer> successJobIds = new HashSet<>();
         tasks.forEach(t -> {
-            if(TaskStatus.parse(t.getTaskStatus()) == TaskStatus.Finished) {
+            if (TaskStatus.parse(t.getTaskStatus()) == TaskStatus.Finished) {
                 successJobIds.add(t.getJobId());
             }
         });
@@ -142,7 +144,7 @@ public class JobTrigger {
         runningFlowTasks.putIfAbsent(newFlowTask.getId(), memFlowTask);
 
         newTasks.forEach(mt -> {
-            if(successJobIds.contains(mt.getTask().getJobId())) {
+            if (successJobIds.contains(mt.getTask().getJobId())) {
                 mt.setSkip(true);
             }
         });
@@ -209,15 +211,15 @@ public class JobTrigger {
         if (task != null) {
             Task t = task.getTask();
 
-                List<Integer> shards = IntegerTool.parseOneBit(t.getShardStatus());
-                for (Integer shard : shards) {
-                    if(!task.isSkip()) {
-                        executorApi.execute(new ExecuteRequest(t.getFlowTaskId(), t.getTaskId(), shard, t.getHandler()));
-                    } else {
-                        handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Execute, t.getTaskId(), shard));
-                        handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Finish, t.getTaskId(), shard));
-                    }
+            List<Integer> shards = IntegerTool.parseOneBit(t.getShardStatus());
+            for (Integer shard : shards) {
+                if (!task.isSkip()) {
+                    executorApi.execute(new ExecuteRequest(t.getFlowTaskId(), t.getTaskId(), shard, t.getHandler()));
+                } else {
+                    handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Execute, t.getTaskId(), shard));
+                    handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Finish, t.getTaskId(), shard));
                 }
+            }
         }
     }
 
@@ -237,6 +239,7 @@ public class JobTrigger {
      * 根据 flow 生成task 任务信息
      * 为了便于存储解析和管理，所有task的 taskId 从0开始计算
      * 最大为31,所以一个工作流的最大任务数是32，如果任务数超过32个，建议拆成两个父子工作流来调度
+     *
      * @param config   a:b\na:c\nb:d\nc:d
      * @param flowTask flow task
      * @param flowId   flow id  从0开始

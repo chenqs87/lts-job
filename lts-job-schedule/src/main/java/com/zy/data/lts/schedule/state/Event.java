@@ -20,7 +20,6 @@ package com.zy.data.lts.schedule.state;
 
 /**
  * Interface defining events api.
- *
  */
 public interface Event<TYPE extends Enum<TYPE>> {
 

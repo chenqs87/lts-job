@@ -1,6 +1,5 @@
 package com.zy.data.lts.schedule.timer;
 
-import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

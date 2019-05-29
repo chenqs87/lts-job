@@ -10,7 +10,7 @@ import java.util.Map;
  * @author chenqingsong
  * @date 2019/4/11 11:21
  */
-public class Executor {
+public class Executor implements IExecutorApi{
     private static final long TIME_OUT = 30 * 60 * 1000;
     private final Map<String, Task> runningTasks = new HashMap<>();
     private IExecutorApi api;
@@ -76,4 +76,13 @@ public class Executor {
         this.handler = handler;
     }
 
+    @Override
+    public void execute(ExecuteRequest request) {
+        api.execute(request);
+    }
+
+    @Override
+    public void kill(KillTaskRequest request) {
+        api.kill(request);
+    }
 }

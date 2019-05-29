@@ -54,6 +54,6 @@ public class KillTaskRequest {
     }
 
     public String toString() {
-        return "{host: "+host+", flowTaskId: "+flowTaskId+", taskId: "+taskId+", shard:" +shard +" }";
+        return "{host: " + host + ", flowTaskId: " + flowTaskId + ", taskId: " + taskId + ", shard:" + shard + " }";
     }
 }
