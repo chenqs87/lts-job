@@ -5,6 +5,8 @@ import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.*;
 import com.zy.data.lts.core.model.JobQueryRequest;
+import com.zy.data.lts.schedule.state.flow.FlowEvent;
+import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.apache.commons.lang3.StringUtils;
@@ -179,7 +181,9 @@ public class JobService {
      */
     @Transactional
     public void triggerFlow(int flowId, TriggerMode triggerMode, String params) {
-        jobTrigger.triggerFlow(flowId, triggerMode, params);
+
+        FlowTask flowTask = jobTrigger.getFlowTask(flowId, triggerMode, params);
+        jobTrigger.handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
     }
 
     /**

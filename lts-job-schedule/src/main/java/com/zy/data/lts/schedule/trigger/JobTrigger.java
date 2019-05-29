@@ -34,9 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +48,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
+
 /**
  * @author chenqingsong
  * @date 2019/3/28 12:31
@@ -58,8 +58,6 @@ import java.util.stream.Collectors;
 @DependsOn("springContext")
 public class JobTrigger {
     private static final Logger logger = LoggerFactory.getLogger(JobTrigger.class);
-
-    //private static final Gson gson = new Gson();
 
     @Autowired
     private Gson gson;
@@ -95,13 +93,22 @@ public class JobTrigger {
     public void destroy() {
     }
 
-    @Transactional
     public void triggerFlow(int flowId, TriggerMode triggerMode) {
-        triggerFlow(flowId, triggerMode, null);
+        JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
+        FlowTask flowTask = jobTrigger.getFlowTask(flowId, triggerMode, null);
+        jobTrigger.handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
     }
 
-    @Transactional
-    public void triggerFlow(int flowId, TriggerMode triggerMode, String params) {
+    /**
+     * 该方法提交完毕，必须提交事务，否则在后续任务发送成功后，
+     * 可能由于当前事务未提交造成查不到task任务信息
+     * @param flowId
+     * @param triggerMode
+     * @param params
+     * @return
+     */
+    @Transactional(propagation = REQUIRES_NEW)
+    public FlowTask getFlowTask(int flowId, TriggerMode triggerMode, String params) {
         Flow flow = flowDao.findById(flowId);
         String config = flow.getFlowConfig();
 
@@ -111,8 +118,7 @@ public class JobTrigger {
 
         MemFlowTask memFlowTask = new MemFlowTask(flowTask, tasks);
         runningFlowTasks.putIfAbsent(flowTask.getId(), memFlowTask);
-
-        handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
+        return flowTask;
     }
 
     /**
@@ -178,7 +184,7 @@ public class JobTrigger {
         });
     }
 
-    @Transactional
+    @Transactional(propagation = REQUIRES_NEW)
     @Async(ThreadPoolsConfig.SUBMIT_FLOW_TASK_THREAD_POOL)
     public void handleFlowTask(FlowEvent flowEvent) {
         MemFlowTask flowTask = getMemFlowTask(flowEvent.getFlowTaskId());
