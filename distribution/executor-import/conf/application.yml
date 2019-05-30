@@ -2,7 +2,6 @@ server:
   port: 8081
   servlet:
     context-path: /
-
 spring:
   session:
     store-type: none
@@ -25,9 +24,32 @@ lts:
   server:
     role: executor
     executor:
-      adminUrls: http://localhost:8080
+      execute-root: /tmp/lts-executor/logs
+      adminUrl: http://localhost:8080
       handler:
         name: test
         host: localhost:8081
-
-lts.job.executor.dir: /tmp/lts-executor/logs
+      execute-env:
+        #文件内容，最新java压缩包在HDFS中的位置
+        NewVersionImportConfig: /home/chenqs/import-data/new/config
+        OldVersionImportConfig: /home/chenqs/import-data/new/config
+  job:
+    thread:
+      pools:
+        executors:
+          ## Executor回调Master接口线程池
+          - thread-name-prefix: MasterCallback
+            corePoolSize:  5
+            maxPoolSize: 10
+            keepAliveSeconds: 60
+            queueCapacity: 1000
+            wait-for-tasks-to-complete-on-shutdown: true
+            await-termination-seconds: 60
+            ## executor任务执行线程池
+          - thread-name-prefix: ExecutorTaskPool
+            corePoolSize:  5
+            maxPoolSize: 10
+            keepAliveSeconds: 60
+            queueCapacity: 1000
+            wait-for-tasks-to-complete-on-shutdown: true
+            await-termination-seconds: 60

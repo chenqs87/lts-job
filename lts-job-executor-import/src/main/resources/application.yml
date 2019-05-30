@@ -24,12 +24,16 @@ lts:
   server:
     role: executor
     executor:
+      execute-root: /tmp/lts-executor/logs
       adminUrl: http://localhost:8080
       handler:
         name: test
         host: localhost:8081
+      execute-env:
+        #文件内容，最新java压缩包在HDFS中的位置
+        NewVersionImportConfig: /home/chenqs/import-data/new/config
+        OldVersionImportConfig: /home/chenqs/import-data/new/config
   job:
-    executor.dir: /tmp/lts-executor/logs
     thread:
       pools:
         executors:
