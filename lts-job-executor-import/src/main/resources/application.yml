@@ -33,6 +33,8 @@ lts:
         #文件内容，最新java压缩包在HDFS中的位置
         NewVersionImportConfig: /home/chenqs/import-data/new/config
         OldVersionImportConfig: /home/chenqs/import-data/new/config
+        #检查导入数据内容的脚本位置
+        CheckInputContentScript: /home/chenqs/import-data/CheckFileContent.sh
   job:
     thread:
       pools:

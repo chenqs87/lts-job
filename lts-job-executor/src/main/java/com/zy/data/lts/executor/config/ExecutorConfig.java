@@ -1,5 +1,7 @@
 package com.zy.data.lts.executor.config;
 
+import com.google.common.collect.Maps;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -30,7 +32,10 @@ public class ExecutorConfig {
         if(StringUtils.isBlank(executeRoot)) {
             executeRoot = DEFAULT_EXECUTE_ROOT;
         }
-        System.out.println(executeEnv);
+
+        if(MapUtils.isEmpty(executeEnv)) {
+            executeEnv = Maps.newHashMap();
+        }
     }
 
     public void setExecuteRoot(String executeRootDir) {
