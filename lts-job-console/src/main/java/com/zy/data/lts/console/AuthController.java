@@ -18,6 +18,7 @@ package com.zy.data.lts.console;
 
 import com.zy.data.lts.security.config.WebSecurityConfig;
 import com.zy.data.lts.security.utils.JwtTokenUtils;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +28,15 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Iterator;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Iterator;
 
 /**
  * 登录验证
@@ -64,13 +70,13 @@ public class AuthController {
             String role = "";
             Iterator<? extends GrantedAuthority> iter = authentication.getAuthorities().iterator();
 
-            if (iter.hasNext()) {
+            if(iter.hasNext()) {
                 role = iter.next().getAuthority();
             }
 
-            return ResponseEntity.ok(new LoginSuccess(token, role));
+            return ResponseEntity.ok(new LoginSuccess(token, role,user.getUsername()));
         } catch (BadCredentialsException authentication) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+           return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
     }
 
@@ -98,13 +104,14 @@ public class AuthController {
     public static class LoginSuccess {
         private String token;
         private String role;
+        private String userName;
 
-        public LoginSuccess() {
-        }
+        public LoginSuccess (){}
 
-        public LoginSuccess(String token, String role) {
+        public LoginSuccess(String token, String role, String userName) {
             this.token = token;
             this.role = role;
+            this.userName = userName;
         }
 
         public String getToken() {
@@ -121,6 +128,14 @@ public class AuthController {
 
         public void setRole(String role) {
             this.role = role;
+        }
+
+        public String getUserName() {
+            return userName;
+        }
+
+        public void setUserName(String userName) {
+            this.userName = userName;
         }
     }
 }
