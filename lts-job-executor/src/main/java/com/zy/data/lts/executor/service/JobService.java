@@ -42,7 +42,7 @@ public class JobService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
     @Autowired
-    AdminApi adminApi;
+    AdminApi adminService;
 
     @Autowired
     FlowTaskDao flowTaskDao;
@@ -76,7 +76,7 @@ public class JobService implements ApplicationContextAware {
         } catch (Exception e) {
             logger.error("Fail to execute task. task info : {}", req, e);
             JobResultRequest jrr = new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard());
-            adminApi.fail(jrr);
+            adminService.fail(jrr);
         }
     }
 
@@ -86,7 +86,7 @@ public class JobService implements ApplicationContextAware {
             doExec(req);
         } catch (Exception e) {
             logger.error("Fail to execute task [{}]", req, e);
-            adminApi.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
+            adminService.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
         }
     }
 
