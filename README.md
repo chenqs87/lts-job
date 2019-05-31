@@ -15,7 +15,7 @@ mvn clean package -DskipTests -U
 ````
 spring.resources.static-locations 配置指定静态文件地址，需要在该配置最后添加前端js项目根目录配置
 例如：前端js项目部署目录为 /data/www/lts-job/web，则
-spring.resources.static-locations: file:/data/www/lts-job/web,file:/data/www/lts-job/web/static
+spring.resources.static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:/data/www/lts-job/web,file:/data/www/lts-job/web/static
 
 ````
  

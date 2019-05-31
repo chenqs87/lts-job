@@ -1,12 +1,12 @@
-package com.zy.data.lts.security;
+package com.zy.data.lts.core;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import static com.zy.data.lts.security.LtsPermitType.Flow;
-import static com.zy.data.lts.security.LtsPermitType.Job;
+import static com.zy.data.lts.core.LtsPermitType.Flow;
+import static com.zy.data.lts.core.LtsPermitType.Job;
 
 /**
  * @author chenqingsong

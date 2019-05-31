@@ -1,10 +1,13 @@
 package com.zy.data.lts.executor.service;
 
+import com.google.common.collect.Maps;
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.model.JobResultRequest;
+import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
 import com.zy.data.lts.executor.model.KillJobEvent;
 import com.zy.data.lts.executor.type.IJobTypeHandler;
+import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -17,6 +20,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,6 +33,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CommandService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
+    private static final String SYS_LOG_FILE = "syslog";
+    private static final String SYS_ERR_FILE = "syserr";
+
     private static final Object EMPTY_OBJECT = new Object();
     private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Object> killedTasks = new ConcurrentHashMap<>();
@@ -37,6 +45,9 @@ public class CommandService implements ApplicationContextAware {
 
     @Autowired
     LogService logService;
+
+    @Autowired
+    ExecutorConfig executorConfig;
 
     private ApplicationContext applicationContext;
 
@@ -88,15 +99,16 @@ public class CommandService implements ApplicationContextAware {
     private int execCommand(JobExecuteEvent event, String[] command) throws IOException {
         int exitValue = -1;
         adminApi.start(new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard()));
-        Process process = Runtime.getRuntime().exec(command);
+        Process process = Runtime.getRuntime().exec(command, getEnv());
 
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         runningTasks.put(runningKey, process);
 
         try (InputStream is = process.getInputStream();
              InputStream error = process.getErrorStream()) {
-            logService.info(event, is);
-            logService.error(event, error);
+            logService.write(event, is, SYS_LOG_FILE);
+            logService.write(event, error, SYS_ERR_FILE);
+             
             process.waitFor();
             exitValue = process.exitValue();
 
@@ -106,6 +118,17 @@ public class CommandService implements ApplicationContextAware {
         }
 
         return exitValue;
+    }
+
+    private String[] getEnv() {
+        Map<String, String> env = Maps.newHashMap(System.getenv());
+        env.putAll(executorConfig.getExecuteEnv());
+        List<String> ret = new LinkedList<>();
+        if(MapUtils.isNotEmpty(env)) {
+            env.forEach((k,v) -> ret.add(k + "=" + v));
+        }
+
+        return ret.toArray(new String[0]);
     }
 
     @PreDestroy

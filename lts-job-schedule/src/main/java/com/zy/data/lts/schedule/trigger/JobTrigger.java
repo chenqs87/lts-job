@@ -122,13 +122,13 @@ public class JobTrigger {
     }
 
     /**
-     * 任务失败后，手动触发任务重新执行
+     * 根据失败的工作流，构建新的工作流，在原有工作流中已经完成的任务，直接跳过
      *
      * @param flowTaskId 工作流任务ID
      * @param params     工作流任务参数
      */
-    @Transactional
-    public void reTriggerFlow(int flowTaskId, String params) {
+    @Transactional(propagation = REQUIRES_NEW)
+    public FlowTask buildFlowTaskForFailed(int flowTaskId, String params) {
         FlowTask flowTask = flowTaskDao.findById(flowTaskId);
         Flow flow = flowDao.findById(flowTask.getFlowId());
 
@@ -150,17 +150,15 @@ public class JobTrigger {
         runningFlowTasks.putIfAbsent(newFlowTask.getId(), memFlowTask);
 
         newTasks.forEach(mt -> {
-            if (successJobIds.contains(mt.getTask().getJobId())) {
+            Task t = mt.getTask();
+            if (successJobIds.contains(t.getJobId())) {
                 mt.setSkip(true);
             }
         });
-
-        handleFlowTask(new FlowEvent(newFlowTask.getId(), FlowEventType.Submit));
+        return newFlowTask;
     }
 
-    /**
-     * 只有主节点才会触发
-     */
+
     public void loadUnFinishedFlowTasks() {
         List<FlowTask> flowTasks = flowTaskDao.findUnFinishedFlowTasks();
         if (CollectionUtils.isEmpty(flowTasks)) {
@@ -168,19 +166,25 @@ public class JobTrigger {
         }
 
         flowTasks.forEach(ft -> {
-            FlowTaskStatus status = FlowTaskStatus.parse(ft.getStatus());
-            switch (status) {
-                case New:
-                    handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Submit));
-                    break;
-                case Pending:
-                    handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Execute));
-                    break;
-                case Running:
-                    handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Finish));
-                    break;
-                default:
+            try {
+                FlowTaskStatus status = FlowTaskStatus.parse(ft.getStatus());
+                switch (status) {
+                    case New:
+                        handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Submit));
+                        break;
+                    case Pending:
+                        handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Execute));
+                        break;
+                    case Running:
+                        handleFlowTask(new FlowEvent(ft.getId(), FlowEventType.Finish));
+                        break;
+                    default:
+                }
+            }catch (Exception e) {
+                // TODO 程序启动的时候，如果有作业，不能正常加载触发，需要记录并解决改问题。
+                logger.error("Failed to load FlowTask [{}]", ft.getId(), e);
             }
+
         });
     }
 
@@ -213,6 +217,8 @@ public class JobTrigger {
      *
      * @param task 任务发送队列
      */
+    @Transactional(propagation = REQUIRES_NEW)
+    @Async(ThreadPoolsConfig.SUBMIT_FLOW_TASK_THREAD_POOL)
     public void sendTask(MemTask task) {
         if (task != null) {
             Task t = task.getTask();
@@ -229,6 +235,13 @@ public class JobTrigger {
         }
     }
 
+    /**
+     * 创建执行的工作流
+     * @param flow 对用流
+     * @param triggerMode 触发种类
+     * @param params 工作参数
+     * @return
+     */
     private FlowTask createFlowTask(Flow flow, TriggerMode triggerMode, String params) {
         FlowTask flowTask = new FlowTask();
         flowTask.setFlowId(flow.getId());

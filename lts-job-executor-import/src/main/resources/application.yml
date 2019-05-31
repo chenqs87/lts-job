@@ -7,7 +7,7 @@ spring:
     store-type: none
   datasource:
     name: lts-executor
-    url: jdbc:mysql://localhost:3306/lts-job
+    url: jdbc:mysql://localhost:3306/lts-job?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false
     username: root
     password: root
     type: com.alibaba.druid.pool.DruidDataSource
@@ -24,16 +24,20 @@ lts:
   server:
     role: executor
     executor:
+      execute-root: /tmp/lts-executor/logs
       adminUrl: http://localhost:8080
       handler:
         name: test
         host: localhost:8081
+      execute-env:
+        NewVersionImportConfig: hdfs://ns1/user/pub/import-data/new/config
+        OldVersionImportConfig: hdfs://ns1/user/pub/import-data/old/config
+        CheckInputContentScript: /data/www/lts-job/import-data/CheckFileContent.sh
+        HaoopConfigDir: /data/www/lts-job/lts-executor/config/hadoop-config
   job:
-    executor.dir: /tmp/lts-executor/logs
     thread:
       pools:
         executors:
-          ## Executor回调Master接口线程池
           - thread-name-prefix: MasterCallback
             corePoolSize:  5
             maxPoolSize: 10
@@ -41,7 +45,6 @@ lts:
             queueCapacity: 1000
             wait-for-tasks-to-complete-on-shutdown: true
             await-termination-seconds: 60
-            ## executor任务执行线程池
           - thread-name-prefix: ExecutorTaskPool
             corePoolSize:  5
             maxPoolSize: 10
