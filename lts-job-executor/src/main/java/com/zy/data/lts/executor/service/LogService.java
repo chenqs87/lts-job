@@ -22,42 +22,30 @@ import java.nio.file.Paths;
 @Service
 public class LogService {
 
-    private static final String SYS_LOG_FILE = "syslog";
-    private static final String SYS_ERR_FILE = "syserr";
-
     @Autowired
     private ExecutorConfig executorConfig;
 
-    public void info(JobExecuteEvent event, InputStream is) throws IOException {
+    public void write(JobExecuteEvent event, InputStream is, String logName) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path logFile = newFileOutput(root, SYS_LOG_FILE);
+        Path logFile = newFileOutput(root, logName);
 
         if (logFile != null) {
             Files.deleteIfExists(logFile);
+            copy(is, logFile);
+        }
+    }
 
-            try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-                 OutputStream fos = Files.newOutputStream(logFile)) {
-                String str;
-                while ((str = bis.readLine()) != null) {
-                    fos.write(str.getBytes());
-                    fos.write('\n');
-                    fos.flush();
-                }
+    private void copy(InputStream is, Path logFile) throws IOException {
+        try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+             OutputStream fos = Files.newOutputStream(logFile)) {
+            String str;
+            while ((str = bis.readLine()) != null) {
+                fos.write(str.getBytes());
+                fos.write('\n');
+                fos.flush();
             }
-            // Files.copy(is, logFile);
-
         }
     }
-
-    public void error(JobExecuteEvent event, InputStream is) throws IOException {
-        Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path logFile = newFileOutput(root, SYS_ERR_FILE);
-        if (logFile != null) {
-            Files.deleteIfExists(logFile);
-            Files.copy(is, logFile);
-        }
-    }
-
 
     public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, String logName, HttpServletResponse response) throws IOException {
         int offset = 0;

@@ -74,7 +74,7 @@ public class JobService implements ApplicationContextAware {
 
             applicationContext.publishEvent(event);
         } catch (Exception e) {
-            logger.error("Fail to execute task. task info : {}", req, e);
+            logger.error("Fail to execute task. task write : {}", req, e);
             JobResultRequest jrr = new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard());
             adminService.fail(jrr);
         }
