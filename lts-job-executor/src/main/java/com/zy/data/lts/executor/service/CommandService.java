@@ -107,7 +107,8 @@ public class CommandService implements ApplicationContextAware {
         try (InputStream is = process.getInputStream();
              InputStream error = process.getErrorStream()) {
             logService.write(event, is, SYS_LOG_FILE);
-             
+            logService.write(event, error, SYS_ERR_FILE);
+
             process.waitFor();
             exitValue = process.exitValue();
 

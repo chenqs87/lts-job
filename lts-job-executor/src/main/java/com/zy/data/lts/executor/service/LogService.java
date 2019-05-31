@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 @Service
 public class LogService {
 
+
     @Autowired
     private ExecutorConfig executorConfig;
 
@@ -31,21 +32,21 @@ public class LogService {
 
         if (logFile != null) {
             Files.deleteIfExists(logFile);
-            copy(is, logFile);
+
+            try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
+                 OutputStream fos = Files.newOutputStream(logFile)) {
+                String str;
+                while ((str = bis.readLine()) != null) {
+                    fos.write(str.getBytes());
+                    fos.write('\n');
+                    fos.flush();
+                }
+            }
+            // Files.copy(is, logFile);
+
         }
     }
 
-    private void copy(InputStream is, Path logFile) throws IOException {
-        try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-             OutputStream fos = Files.newOutputStream(logFile)) {
-            String str;
-            while ((str = bis.readLine()) != null) {
-                fos.write(str.getBytes());
-                fos.write('\n');
-                fos.flush();
-            }
-        }
-    }
 
     public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, String logName, HttpServletResponse response) throws IOException {
         int offset = 0;
@@ -81,8 +82,6 @@ public class LogService {
     private Path buildOutputPath(Path root, String fileName) {
         return Paths.get(root.toString(), fileName);
     }
-
-
 
 
 }
