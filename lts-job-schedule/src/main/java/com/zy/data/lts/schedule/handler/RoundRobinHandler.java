@@ -37,7 +37,7 @@ public class RoundRobinHandler implements IHandler {
     private final AtomicInteger index = new AtomicInteger(0);
 
     private final String handlerName;
-    private final AtomicReferenceArray<VirtualExecutor> virtualExecutors;
+    private final AtomicReferenceArray<String> virtualExecutors;
     private final int roundIndex;
 
     public RoundRobinHandler(String handlerName, int roundIndex) {
@@ -45,9 +45,6 @@ public class RoundRobinHandler implements IHandler {
         this.roundIndex = roundIndex;
         virtualExecutors = new AtomicReferenceArray<>(roundIndex);
 
-        for (int i = 0; i < roundIndex; i++) {
-            virtualExecutors.compareAndSet(i, null, new VirtualExecutor());
-        }
     }
 
     public RoundRobinHandler(String handlerName) {
@@ -56,9 +53,6 @@ public class RoundRobinHandler implements IHandler {
 
     private synchronized void reInstall() {
         if (executorMap.isEmpty()) {
-            for (int i = 0; i < roundIndex; i++) {
-                virtualExecutors.get(i).current = null;
-            }
             return;
         }
 
@@ -67,14 +61,10 @@ public class RoundRobinHandler implements IHandler {
                 .filter(Executor::isActive)
                 .toArray(Executor[]::new);
 
-        if (ArrayUtils.isEmpty(executors)) {
-            for (int i = 0; i < roundIndex; i++) {
-                virtualExecutors.get(i).current = null;
-            }
-        } else {
+        if (ArrayUtils.isNotEmpty(executors)) {
             for (Executor executor : executors) {
                 for (int j = 0; j < virtualExecutors.length(); j = j + executors.length) {
-                    virtualExecutors.get(j).current = executor.getHost();
+                    virtualExecutors.set(j, executor.getHost());
                 }
             }
         }
@@ -125,7 +115,7 @@ public class RoundRobinHandler implements IHandler {
             int current = nextIndex();
 
             int executorIndex = current % roundIndex;
-            String key = virtualExecutors.get(executorIndex).current;
+            String key = virtualExecutors.get(executorIndex);
             if (key != null) {
                 Executor executor = executorMap.get(key);
 
@@ -202,9 +192,5 @@ public class RoundRobinHandler implements IHandler {
                 logger.warn("Fail to kill the job [{}] ", request, e);
             }
         });
-    }
-
-    private static class VirtualExecutor {
-        volatile String current;
     }
 }
