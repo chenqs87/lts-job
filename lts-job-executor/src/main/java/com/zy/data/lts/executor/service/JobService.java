@@ -42,7 +42,7 @@ public class JobService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
     @Autowired
-    AdminApi adminApi;
+    AdminApi adminService;
 
     @Autowired
     FlowTaskDao flowTaskDao;
@@ -60,20 +60,24 @@ public class JobService implements ApplicationContextAware {
     ExecutorConfig executorConfig;
     private ApplicationContext applicationContext;
 
-    public void doExec(ExecuteRequest req) throws IOException {
+    private void doExec(ExecuteRequest req) {
+        try {
+            Task task = taskDao.findById(req.getFlowTaskId(), req.getTaskId());
+            Job job = jobDao.findById(task.getJobId());
 
+            FlowTask flowTask = flowTaskDao.findById(task.getFlowTaskId());
+            Path output = createOutputDir(req, job);
 
-        Task task = taskDao.findById(req.getFlowTaskId(), req.getTaskId());
-        Job job = jobDao.findById(task.getJobId());
+            String params = flowTask.getParams();
 
-        FlowTask flowTask = flowTaskDao.findById(task.getFlowTaskId());
-        Path output = createOutputDir(req, job);
+            JobExecuteEvent event = new JobExecuteEvent(task, output, params, job.getJobType());
 
-        String params = flowTask.getParams();
-
-        JobExecuteEvent event = new JobExecuteEvent(task, output, params, job.getJobType());
-
-        applicationContext.publishEvent(event);
+            applicationContext.publishEvent(event);
+        } catch (Exception e) {
+            logger.error("Fail to execute task. task write : {}", req, e);
+            JobResultRequest jrr = new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard());
+            adminService.fail(jrr);
+        }
     }
 
     @Async(EXECUTOR_THREAD_POOL)
@@ -82,7 +86,7 @@ public class JobService implements ApplicationContextAware {
             doExec(req);
         } catch (Exception e) {
             logger.error("Fail to execute task [{}]", req, e);
-            adminApi.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
+            adminService.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
         }
     }
 

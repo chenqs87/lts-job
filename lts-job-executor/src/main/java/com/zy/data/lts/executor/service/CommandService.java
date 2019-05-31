@@ -1,5 +1,6 @@
 package com.zy.data.lts.executor.service;
 
+import com.google.common.collect.Maps;
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
@@ -31,6 +32,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class CommandService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(CommandService.class);
+
+    private static final String SYS_LOG_FILE = "syslog";
+    private static final String SYS_ERR_FILE = "syserr";
 
     private static final Object EMPTY_OBJECT = new Object();
     private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
@@ -102,8 +106,8 @@ public class CommandService implements ApplicationContextAware {
 
         try (InputStream is = process.getInputStream();
              InputStream error = process.getErrorStream()) {
-            logService.info(event, is);
-            logService.error(event, error);
+            logService.write(event, is, SYS_LOG_FILE);
+             
             process.waitFor();
             exitValue = process.exitValue();
 
@@ -116,12 +120,11 @@ public class CommandService implements ApplicationContextAware {
     }
 
     private String[] getEnv() {
-        Map<String, String> env = executorConfig.getExecuteEnv();
+        Map<String, String> env = Maps.newHashMap(System.getenv());
+        env.putAll(executorConfig.getExecuteEnv());
         List<String> ret = new LinkedList<>();
         if(MapUtils.isNotEmpty(env)) {
-            env.forEach((k,v) -> {
-                ret.add(k + "=" + v);
-            });
+            env.forEach((k,v) -> ret.add(k + "=" + v));
         }
 
         return ret.toArray(new String[0]);
