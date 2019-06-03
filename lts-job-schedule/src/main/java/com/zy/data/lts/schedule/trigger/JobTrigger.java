@@ -77,7 +77,7 @@ public class JobTrigger {
     private JobDao jobDao;
 
     @Autowired
-    private HandlerService executorApi;
+    private HandlerService handlerService;
 
     public static void triggerCronFlow(Integer flowId) {
         JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
@@ -226,7 +226,9 @@ public class JobTrigger {
             List<Integer> shards = IntegerTool.parseOneBit(t.getShardStatus());
             for (Integer shard : shards) {
                 if (!task.isSkip()) {
-                    executorApi.execute(new ExecuteRequest(t.getFlowTaskId(), t.getTaskId(), shard, t.getHandler()));
+                    handlerService.execute(new ExecuteRequest(t.getFlowTaskId(), t.getTaskId(), shard, t.getHandler()));
+                    // 发送成功,则认为任务开始执行
+                    handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Execute, t.getTaskId(), shard));
                 } else {
                     handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Execute, t.getTaskId(), shard));
                     handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Finish, t.getTaskId(), shard));
@@ -363,7 +365,7 @@ public class JobTrigger {
     }
 
     public void killTask(KillTaskRequest request) {
-        executorApi.kill(request);
+        handlerService.kill(request);
     }
 
     @EventListener

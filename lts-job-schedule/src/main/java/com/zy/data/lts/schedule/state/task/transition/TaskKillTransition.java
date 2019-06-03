@@ -34,8 +34,6 @@ public class TaskKillTransition implements SingleArcTransition<MemTask, TaskEven
         taskDao.update(task);
 
         try {
-
-
             jobTrigger.killTask(new KillTaskRequest(task.getHost(),
                     task.getFlowTaskId(),
                     task.getTaskId(),
