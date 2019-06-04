@@ -15,9 +15,11 @@
  */
 package com.zy.data.lts.security.utils;
 
+import com.zy.data.lts.core.dao.UserDao;
 import io.jsonwebtoken.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -26,6 +28,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * Jwt token tool
  *
- * @author wfnuser
+ * @author chenqingsong
  */
 @Component
 public class JwtTokenUtils {
@@ -43,13 +46,13 @@ public class JwtTokenUtils {
 
     private static final String AUTHORITIES_KEY = "auth";
 
-    /**
-     * secret key
-     */
+    @Autowired
+    private UserDao userDao;
+
     private String secretKey;
 
     /**
-     * Token validity time(ms)
+     * Token 过期时间
      */
     private long tokenValidityInMilliseconds;
 
@@ -73,10 +76,6 @@ public class JwtTokenUtils {
 
         List<String> authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 
-        /**
-         * create token
-         */
-
         return Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim(AUTHORITIES_KEY, authorities)
@@ -93,23 +92,22 @@ public class JwtTokenUtils {
      */
     public Authentication getAuthentication(String token) {
         try {
-            /**
-             *  parse the payload of token
-             */
+
             Claims claims = Jwts.parser()
                     .setSigningKey(secretKey)
                     .parseClaimsJws(token)
                     .getBody();
 
-            List<String> authorities = (List<String>) claims.get(AUTHORITIES_KEY);
+            //List<String> authorities = (List<String>) claims.get(AUTHORITIES_KEY);
+            String username = claims.getSubject();
+            com.zy.data.lts.core.entity.User user = userDao.findByName(username);
 
-            User principal = new User(claims.getSubject(), "", AuthorityUtils.createAuthorityList(authorities.toArray(new String[0])));
-            return new UsernamePasswordAuthenticationToken(principal, "", AuthorityUtils.createAuthorityList(authorities.toArray(new String[0])));
+            User principal = new User(username, "", AuthorityUtils.createAuthorityList(user.getRole()));
+            return new UsernamePasswordAuthenticationToken(principal, "", AuthorityUtils.createAuthorityList(user.getRole()));
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
-
     }
 
     /**

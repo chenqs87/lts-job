@@ -3,6 +3,7 @@ package com.zy.data.lts.schedule.service;
 import com.github.pagehelper.PageHelper;
 import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.LtsPermitType;
+import com.zy.data.lts.core.RoleEnum;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.dao.AlertConfigDao;
 import com.zy.data.lts.core.dao.FlowDao;
@@ -18,17 +19,22 @@ import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.RepmPolicy;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.entity.User;
+import com.zy.data.lts.core.model.FlowQueryRequest;
 import com.zy.data.lts.core.model.JobQueryRequest;
+import com.zy.data.lts.core.model.PagerRequest;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -237,7 +243,14 @@ public class JobService {
 
     public List<Job> findAllJobs(JobQueryRequest request) {
         PageHelper.startPage(request.getPageNum(), request.getPageSize());
-        return jobDao.select(request);
+        List<Job> ret = jobDao.select(request);
+
+        int permit = LtsPermitEnum.getAllJobPermit();
+        if(CollectionUtils.isNotEmpty(ret)) {
+            ret.forEach(j -> j.setPermit(permit));
+        }
+
+        return ret;
     }
 
     public List<Job> findJobsByUser(JobQueryRequest request) {
@@ -252,22 +265,28 @@ public class JobService {
         return jobDao.selectByGroup(request);
     }
 
-    public List<Flow> findAllFlows(Integer pageNum, Integer pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
-        return flowDao.select();
+    public List<Flow> findAllFlows(PagerRequest request) {
+
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
+        List<Flow> ret = flowDao.select();
+
+        int permit = LtsPermitEnum.getAllFlowPermit();
+        if(CollectionUtils.isNotEmpty(ret)) {
+            ret.forEach(j -> j.setPermit(permit));
+        }
+
+        return ret;
     }
 
-    public List<Flow> findFlowsByUser(Integer pageNum, Integer pageSize,
-                                      String userName, int permit) {
-        PageHelper.startPage(pageNum, pageSize);
-        return flowDao.selectByUser(userName, permit);
+    public List<Flow> findFlowsByUser(FlowQueryRequest request) {
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
+        return flowDao.selectByUser(request.getUsername(), request.getPermit());
     }
 
-    public List<Flow> findFlowsByGroup(Integer pageNum, Integer pageSize,
-                                       String userName, int permit) {
-        PageHelper.startPage(pageNum, pageSize);
-        User user = userDao.findByName(userName);
-        return flowDao.selectByGroup(user.getGroupName(), permit);
+    public List<Flow> findFlowsByGroup(FlowQueryRequest request) {
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
+        User user = userDao.findByName(request.getUsername());
+        return flowDao.selectByGroup(user.getGroupName(), request.getPermit());
     }
 
     public List<FlowTask> findAllFlowTask(Integer pageNum, Integer pageSize) {

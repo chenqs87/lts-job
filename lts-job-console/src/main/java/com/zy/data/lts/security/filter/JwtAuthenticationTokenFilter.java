@@ -15,6 +15,9 @@
  */
 package com.zy.data.lts.security.filter;
 
+import com.zy.data.lts.console.AuthController;
+import com.zy.data.lts.core.dao.UserDao;
+import com.zy.data.lts.core.entity.User;
 import com.zy.data.lts.security.config.WebSecurityConfig;
 import com.zy.data.lts.security.utils.JwtTokenUtils;
 import org.springframework.security.core.Authentication;
