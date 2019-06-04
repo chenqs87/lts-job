@@ -21,4 +21,8 @@ public interface IHandler extends IExecutorApi,Closeable {
 
     default void close() {
     }
+
+    default String name() {
+        return this.toString();
+    }
 }

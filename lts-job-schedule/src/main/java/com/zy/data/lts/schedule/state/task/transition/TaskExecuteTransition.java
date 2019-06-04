@@ -20,6 +20,5 @@ public class TaskExecuteTransition implements SingleArcTransition<MemTask, TaskE
         Task task = job.getTask();
         task.setTaskStatus(TaskStatus.Running.code());
         taskDao.update(task);
-
     }
 }

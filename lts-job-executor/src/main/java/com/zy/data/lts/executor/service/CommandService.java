@@ -41,7 +41,7 @@ public class CommandService implements ApplicationContextAware {
     private final ConcurrentHashMap<String, Object> killedTasks = new ConcurrentHashMap<>();
 
     @Autowired
-    AdminApi adminApi;
+    AdminApi adminService;
 
     @Autowired
     LogService logService;
@@ -85,20 +85,20 @@ public class CommandService implements ApplicationContextAware {
     private void callback(int ret, JobExecuteEvent event) {
         JobResultRequest request = new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         if (ret == 0) {
-            adminApi.success(request);
+            adminService.success(request);
         } else {
             String key = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
             if (killedTasks.get(key) == EMPTY_OBJECT) {
                 killedTasks.remove(key);
             } else {
-                adminApi.fail(request);
+                adminService.fail(request);
             }
         }
     }
 
     private int execCommand(JobExecuteEvent event, String[] command) throws IOException {
         int exitValue = -1;
-        //adminApi.start(new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard()));
+        //adminService.start(new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard()));
         Process process = Runtime.getRuntime().exec(command, getEnv());
 
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
@@ -131,8 +131,14 @@ public class CommandService implements ApplicationContextAware {
         return ret.toArray(new String[0]);
     }
 
+
+    /**
+     * executor 强制关闭时，尚未完成的作业不会发生转移，直接出发kill job操作
+     * TODO :: executor 强制关闭时，允许作业向Master发起重新发布的请求。
+     */
     @PreDestroy
     public void destroy() {
+
         runningTasks.forEach((key, process) -> {
             try {
                 // kill task 之后，作业失败，exitValue != 0, 避免由于主动kill task，造成向Master发起Fail操作
@@ -142,7 +148,7 @@ public class CommandService implements ApplicationContextAware {
                 logger.warn("Fail to kill task [{}]", key);
             } finally {
                 String[] ids = key.split("_");
-                adminApi.kill(new JobResultRequest(Integer.parseInt(ids[0]),
+                adminService.kill(new JobResultRequest(Integer.parseInt(ids[0]),
                         Integer.parseInt(ids[1]), Integer.parseInt(ids[2])));
             }
         });

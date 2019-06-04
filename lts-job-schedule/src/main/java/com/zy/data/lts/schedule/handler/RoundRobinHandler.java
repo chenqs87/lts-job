@@ -47,6 +47,10 @@ public class RoundRobinHandler implements IHandler {
 
     }
 
+    public String name() {
+        return handlerName;
+    }
+
     public RoundRobinHandler(String handlerName) {
         this(handlerName, MAX_INDEX);
     }
@@ -162,8 +166,6 @@ public class RoundRobinHandler implements IHandler {
     @Override
     public void execute(ExecuteRequest request) {
         doExec(executor -> {
-
-
             try {
                 SpringContext.getApplicationContext().publishEvent(
                         new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));

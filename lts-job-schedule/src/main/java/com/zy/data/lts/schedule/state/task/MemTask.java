@@ -11,6 +11,7 @@ import java.util.EnumSet;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * 同MemFlowTask类似，需要同时使用线程池和公平锁来保证状态变更操作的顺序。
  * @author chenqingsong
  * @date 2019/4/2 12:22
  */
@@ -20,9 +21,14 @@ public class MemTask extends ReentrantLock implements EventHandler<TaskEvent> {
     private final StateMachine<TaskStatus, TaskEventType, TaskEvent> stateMachine;
 
     private Task task;
+
+    /**
+     * 是否跳过当先任务，不执行，这个操作出现在工作流任务失败
+     */
     private boolean isSkip;
 
     public MemTask(Task task) {
+        super(true);
 
         if (task == null) {
             throw new IllegalArgumentException("task is null!!");

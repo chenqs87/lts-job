@@ -20,7 +20,7 @@ import javax.servlet.http.HttpServletRequest;
 public class HandlerStatusController {
 
     @Autowired
-    private HandlerService executorApi;
+    private HandlerService handlerService;
 
     @ApiOperation(value = "Handler心跳", notes = "Handler心跳")
     @PostMapping("/beat")
@@ -28,7 +28,7 @@ public class HandlerStatusController {
     public ResponseEntity beat(HttpServletRequest request, @RequestBody BeatInfoRequest beatInfo) {
         String host = request.getRemoteAddr();
         beatInfo.setHost(host);
-        executorApi.beat(beatInfo);
+        handlerService.beat(beatInfo);
 
         return ResponseEntity.ok().build();
     }

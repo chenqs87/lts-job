@@ -5,10 +5,16 @@ import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
+import com.zy.data.lts.schedule.state.flow.FlowEvent;
+import com.zy.data.lts.schedule.state.flow.FlowEventType;
+import com.zy.data.lts.schedule.trigger.JobTrigger;
 import feign.Feign;
 import feign.gson.GsonDecoder;
 import feign.gson.GsonEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
@@ -25,12 +31,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class HandlerService implements IExecutorApi {
 
+    private static final Logger logger = LoggerFactory.getLogger(HandlerService.class);
+
 
     @Autowired
     private GsonEncoder gsonEncoder;
 
     @Autowired
     private GsonDecoder gsonDecoder;
+
+    @Autowired
+    @Lazy
+    private JobTrigger jobTrigger;
 
 
     //<handlerName, HandlerAPI>
@@ -83,7 +95,10 @@ public class HandlerService implements IExecutorApi {
         AsyncHandler asyncHandler = handlerApiMap.get(request.getHandler());
 
         if (asyncHandler == null) {
-            throw new IllegalArgumentException("AsyncHandler [" + request.getHandler() + "] is not exist!");
+            jobTrigger.killFlowTask(request.getFlowTaskId());
+            logger.error("AsyncHandler [" + request.getHandler() + "] is not exist! Please retry later!");
+           // throw new IllegalArgumentException("AsyncHandler [" + request.getHandler() + "] is not exist!");
+            return;
         }
 
         asyncHandler.execute(request);
