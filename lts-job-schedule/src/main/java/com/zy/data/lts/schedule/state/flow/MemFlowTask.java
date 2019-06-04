@@ -13,6 +13,11 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
+ * 内存作业对象，主要负责内存中工作流的状态变更，状态变更必须遵循状态变更的顺序，该顺序由线程池队列和公平锁来保证。
+ * 正常情况下，先执行的状态变更操作先入线程队列，先执行，但是高并发极端情况下，先后进入线程队列的作业在执行状态变更时，
+ * 会同时执行lock加锁操作，如果采用非公平锁，有可能后入线程池队列的状态变更操作优先获得锁，优先执行，这样会直接引起状态机状态异常，
+ * 所以在这里 MemFlowTask 继承 ReentrantLock， 并采用公平锁，保证优先申请获取锁操作的行为，优先获取到锁，优先执行。
+ *
  * @author chenqingsong
  * @date 2019/4/2 15:33
  */
@@ -27,6 +32,7 @@ public class MemFlowTask extends ReentrantLock implements EventHandler<FlowEvent
     private FlowTask flowTask;
 
     public MemFlowTask(FlowTask flowTask, List<MemTask> tasks) {
+        super(true);
         this.flowTask = flowTask;
 
         tasks.forEach(task -> {

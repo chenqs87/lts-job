@@ -195,23 +195,6 @@ public class JobTrigger {
         flowTask.handle(flowEvent);
     }
 
-    public void killFlowTask(int flowTaskId) {
-        handleFlowTask(new FlowEvent(flowTaskId, FlowEventType.Kill));
-    }
-
-    private MemFlowTask getMemFlowTask(int flowTaskId) {
-        return runningFlowTasks.computeIfAbsent(flowTaskId, f -> {
-            FlowTask ft = flowTaskDao.findById(flowTaskId);
-            List<Task> tasks = taskDao.findByFlowTaskId(flowTaskId);
-            List<MemTask> memTasks = tasks.stream().map(MemTask::new).collect(Collectors.toList());
-            return new MemFlowTask(ft, memTasks);
-        });
-    }
-
-    public void finishFlowTask(int flowTaskId) {
-        runningFlowTasks.remove(flowTaskId);
-    }
-
     /**
      * 发送作业到executor
      *
@@ -235,6 +218,24 @@ public class JobTrigger {
                 }
             }
         }
+    }
+
+
+    public void killFlowTask(int flowTaskId) {
+        handleFlowTask(new FlowEvent(flowTaskId, FlowEventType.Kill));
+    }
+
+    private MemFlowTask getMemFlowTask(int flowTaskId) {
+        return runningFlowTasks.computeIfAbsent(flowTaskId, f -> {
+            FlowTask ft = flowTaskDao.findById(flowTaskId);
+            List<Task> tasks = taskDao.findByFlowTaskId(flowTaskId);
+            List<MemTask> memTasks = tasks.stream().map(MemTask::new).collect(Collectors.toList());
+            return new MemFlowTask(ft, memTasks);
+        });
+    }
+
+    public void finishFlowTask(int flowTaskId) {
+        runningFlowTasks.remove(flowTaskId);
     }
 
     /**

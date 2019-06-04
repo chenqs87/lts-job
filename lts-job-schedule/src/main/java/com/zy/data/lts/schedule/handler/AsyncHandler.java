@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * TODO:::异步执行
@@ -23,7 +24,9 @@ public class AsyncHandler implements IHandler {
 
     public AsyncHandler(IHandler handler) {
         this.handler = handler;
-        this.executorService = Executors.newFixedThreadPool(2);
+        this.executorService = new ThreadPoolExecutor(2,
+                2, 0L, TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<>(), new HandlerThreadFactory(handler.name()));
     }
 
     @Override
@@ -38,7 +41,7 @@ public class AsyncHandler implements IHandler {
 
     @Override
     public void beat(Executor executor) {
-        executorService.execute(() -> handler.beat(executor));
+         handler.beat(executor);
     }
 
     @Override
@@ -47,5 +50,32 @@ public class AsyncHandler implements IHandler {
             executorService.shutdown();
             handler.close();
         } catch (Exception ignore) { }
+    }
+
+    static class HandlerThreadFactory implements ThreadFactory {
+        private static final AtomicInteger poolNumber = new AtomicInteger(1);
+        private final ThreadGroup group;
+        private final AtomicInteger threadNumber = new AtomicInteger(1);
+        private final String namePrefix;
+
+        HandlerThreadFactory(String handlerName) {
+            SecurityManager s = System.getSecurityManager();
+            group = (s != null) ? s.getThreadGroup() :
+                    Thread.currentThread().getThreadGroup();
+            namePrefix = "Handler[" +handlerName + "]-" +
+                    poolNumber.getAndIncrement() +
+                    "-thread-";
+        }
+
+        public Thread newThread(Runnable r) {
+            Thread t = new Thread(group, r,
+                    namePrefix + threadNumber.getAndIncrement(),
+                    0);
+            if (t.isDaemon())
+                t.setDaemon(false);
+            if (t.getPriority() != Thread.NORM_PRIORITY)
+                t.setPriority(Thread.NORM_PRIORITY);
+            return t;
+        }
     }
 }
