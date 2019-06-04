@@ -15,6 +15,7 @@
  */
 package com.zy.data.lts.security.config;
 
+import com.zy.data.lts.core.dao.UserDao;
 import com.zy.data.lts.security.JwtAuthenticationEntryPoint;
 import com.zy.data.lts.security.LtsPermissionEvaluator;
 import com.zy.data.lts.security.LtsUserDetailsServiceImpl;
@@ -67,7 +68,10 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private Environment env;
 
     @Autowired
-    LtsPermissionEvaluator ltsPermissionEvaluator;
+    private LtsPermissionEvaluator ltsPermissionEvaluator;
+
+    @Autowired
+    private UserDao userDao;
 
     @Bean(name = BeanIds.AUTHENTICATION_MANAGER)
     @Override
