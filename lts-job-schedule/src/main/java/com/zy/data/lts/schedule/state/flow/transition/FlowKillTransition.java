@@ -45,7 +45,7 @@ public class FlowKillTransition implements SingleArcTransition<MemFlowTask, Flow
             memFlowTask.clearTasks();
 
             FlowTask ft = memFlowTask.getFlowTask();
-            ft.setStatus(FlowTaskStatus.Killed.code());
+            ft.setStatus(FlowTaskStatus.Killed.getCode());
             flowTaskDao.update(ft);
             jobTrigger.finishFlowTask(ft.getId());
             alerter.failed(memFlowTask.getFlowTask());

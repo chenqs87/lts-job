@@ -46,7 +46,7 @@ public enum FlowTaskStatus {
         }
     }
 
-    public int code() {
+    public int getCode() {
         return code;
     }
 }

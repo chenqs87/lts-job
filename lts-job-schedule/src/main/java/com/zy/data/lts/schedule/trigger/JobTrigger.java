@@ -248,7 +248,7 @@ public class JobTrigger {
     private FlowTask createFlowTask(Flow flow, TriggerMode triggerMode, String params) {
         FlowTask flowTask = new FlowTask();
         flowTask.setFlowId(flow.getId());
-        flowTask.setStatus(FlowTaskStatus.New.code());
+        flowTask.setStatus(FlowTaskStatus.New.getCode());
         flowTask.setBeginTime(new Date());
         flowTask.setParams(StringUtils.isBlank(params) ? flow.getParams() : params);
         flowTask.setTriggerMode(triggerMode.getCode());

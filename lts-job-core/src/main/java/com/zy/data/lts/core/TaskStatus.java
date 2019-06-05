@@ -40,7 +40,7 @@ public enum TaskStatus {
             case 7:
                 return Killed;
             default:
-                throw new IllegalArgumentException("Fail to parse code to TaskStatus!");
+                throw new IllegalArgumentException("Fail to parse getCode to TaskStatus!");
         }
     }
 

@@ -214,7 +214,7 @@ final public class StateMachineFactory
             throws InvalidStateTransitionException {
         // We can assume that stateMachineTable is non-null because we call
         //  maybeMakeStateMachineTable() when we build an InnerStateMachine ,
-        //  and this code only gets called from inside a working InnerStateMachine .
+        //  and this getCode only gets called from inside a working InnerStateMachine .
         Map<EVENTTYPE, Transition<OPERAND, STATE, EVENTTYPE, EVENT>> transitionMap
                 = stateMachineTable.get(oldState);
         if (transitionMap != null) {
@@ -261,8 +261,8 @@ final public class StateMachineFactory
 
     /*
      * @return a {@link StateMachine} that starts in
-     *         {@code initialState} and whose {@link Transition} s are
-     *         applied to {@code operand} .
+     *         {@getCode initialState} and whose {@link Transition} s are
+     *         applied to {@getCode operand} .
      *
      *         This is part of the API.
      *
@@ -280,7 +280,7 @@ final public class StateMachineFactory
     /*
      * @return a {@link StateMachine} that starts in the default initial
      *          state and whose {@link Transition} s are applied to
-     *          {@code operand} .
+     *          {@getCode operand} .
      *
      *         This is part of the API.
      *

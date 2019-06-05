@@ -70,7 +70,7 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
                 Task task = memTask.getTask();
                 if (task.getPostTask() == 0 && memFlowTask.isFinished()) {
                     FlowTask ft = memFlowTask.getFlowTask();
-                    ft.setStatus(FlowTaskStatus.Finished.code());
+                    ft.setStatus(FlowTaskStatus.Finished.getCode());
                     ft.setEndTime(new Date());
                     flowTaskDao.update(ft);
                     jobTrigger.finishFlowTask(ft.getId());

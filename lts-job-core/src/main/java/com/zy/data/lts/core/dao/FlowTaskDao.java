@@ -47,4 +47,8 @@ public interface FlowTaskDao {
     @ResultMap("flowTask")
     @Select("select * from flow_task where flow_id=#{flowId} order by begin_time desc")
     List<FlowTask> findByFlowId(@Param("flowId") int flowId);
+
+    @ResultMap("flowTask")
+    @Select("select * from flow_task where status=#{statusId} order by begin_time desc")
+    List<FlowTask> findByStatusId(@Param("statusId") int statusId);
 }

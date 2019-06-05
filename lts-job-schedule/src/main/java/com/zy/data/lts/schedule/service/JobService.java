@@ -299,6 +299,15 @@ public class JobService {
         return flowTaskDao.findByFlowId(flowId);
     }
 
+    public List<FlowTask> findByStatusId(int statusId, Integer pageNum, Integer pageSize) {
+        PageHelper.startPage(pageNum, pageSize);
+        if (statusId == -1) {
+            return flowTaskDao.select();
+        } else {
+            return flowTaskDao.findByStatusId(statusId);
+        }
+    }
+
     public List<Task> findTaskByFlowTaskId(int flowTaskId, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         return taskDao.findByFlowTaskId(flowTaskId);

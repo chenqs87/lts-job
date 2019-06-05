@@ -1,17 +1,17 @@
 package com.zy.data.lts.console;
 
 import com.github.pagehelper.PageInfo;
+import com.zy.data.lts.core.FlowTaskStatus;
+import com.zy.data.lts.core.LtsPermitEnum;
+import com.zy.data.lts.core.LtsPermitType;
 import com.zy.data.lts.core.RoleEnum;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.entity.AlertConfig;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.model.FlowQueryRequest;
 import com.zy.data.lts.core.model.JobQueryRequest;
-import com.zy.data.lts.core.model.PagerRequest;
 import com.zy.data.lts.schedule.handler.HandlerService;
 import com.zy.data.lts.schedule.service.JobService;
-import com.zy.data.lts.core.LtsPermitEnum;
-import com.zy.data.lts.core.LtsPermitType;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,6 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -72,6 +71,15 @@ public class ConsoleFlowController {
     @ApiOperation(value = "新建工作流", notes = "新建工作流")
     @PutMapping("/flow")
     public ResponseEntity createFlow(@RequestBody AlertConfig flow) {
+        flow.setCreateUser(getCurrentUserName());
+        flow.setPermit(LtsPermitEnum.getAllFlowPermit());
+        flow.setType(LtsPermitType.Flow.name());
+        return ResponseEntity.ok(jobService.createFlow(flow));
+    }
+
+    @ApiOperation(value = "新建数据导入工作流", notes = "新建数据导入工作流")
+    @PutMapping("/importDataFlow")
+    public ResponseEntity createImportDataFlow(@RequestBody AlertConfig flow) {
         flow.setCreateUser(getCurrentUserName());
         flow.setPermit(LtsPermitEnum.getAllFlowPermit());
         flow.setType(LtsPermitType.Flow.name());
@@ -191,9 +199,18 @@ public class ConsoleFlowController {
     @GetMapping("/getFlowTasksByFlowId")
     @PreAuthorize("hasPermission(#flowId, 'FlowView')")
     public ResponseEntity getFlowTasksByFlowId(@RequestParam("flowId") Integer flowId,
-                                               @RequestParam("pageNum") Integer pageNum,
-                                               @RequestParam("pageSize") Integer pageSize) {
+            @RequestParam("pageNum") Integer pageNum,
+            @RequestParam("pageSize") Integer pageSize) {
         return ResponseEntity.ok(new PageInfo<>(jobService.findByFlowId(flowId, pageNum, pageSize)));
+    }
+    @ApiOperation(value = "查询指定状态工作流", notes = "查询指定状态工作流任务")
+    @GetMapping("/getFlowTasksByStatus")
+    public ResponseEntity getFlowTasksByStatus(@RequestParam("status") Integer status,
+            @RequestParam("pageNum") Integer pageNum,
+            @RequestParam("pageSize") Integer pageSize) {
+
+        return ResponseEntity.ok(new PageInfo<>(jobService.findByStatusId(status,
+                pageNum, pageSize)));
     }
 
     @ApiOperation(value = "查询所有任务", notes = "查询所有任务")
@@ -242,6 +259,15 @@ public class ConsoleFlowController {
     public ResponseEntity getAlertConfig(@RequestParam("flowId") Integer flowId) {
         return ResponseEntity.ok(jobService.getAlertConfig(flowId));
     }
+
+
+
+    @ApiOperation(value = "获取FlowTaskStatus", notes = "获取FlowTaskStatus")
+    @GetMapping("/getFlowTaskStatus")
+    public ResponseEntity getFlowTaskStatus() {
+        return ResponseEntity.ok(FlowTaskStatus.values());
+    }
+
 
 
     private String getCurrentUserName() {

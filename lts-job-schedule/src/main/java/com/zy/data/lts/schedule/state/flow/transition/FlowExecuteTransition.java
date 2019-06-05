@@ -37,7 +37,7 @@ public class FlowExecuteTransition implements SingleArcTransition<MemFlowTask, F
                 memFlowTask.getMemTask(taskId).handle(new TaskEvent(TaskEventType.Execute));
 
                 FlowTask ft = memFlowTask.getFlowTask();
-                int status = FlowTaskStatus.Running.code();
+                int status = FlowTaskStatus.Running.getCode();
                 if (ft.getStatus() == status) {
                     return;
                 }
