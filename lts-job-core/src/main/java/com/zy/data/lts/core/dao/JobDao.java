@@ -32,13 +32,14 @@ public interface JobDao {
 
     @ResultMap("job")
     @Select("<script>" +
-            "select * from job where 1=1" +
+            "select * from job where " +
             "<if test='name != null'>" +
-            " and name like CONCAT('%',#{name},'%') " +
+            " name like CONCAT('%',#{name},'%') and " +
             " </if>" +
             "<if test='group != null'>" +
-            " and `group` like CONCAT('%',#{group},'%') " +
-            " </if>" +
+            " `group` like CONCAT('%',#{group},'%') and " +
+            " </if>"
+            + "1=1" +
             "</script>")
     List<Job> select(Object params);
 

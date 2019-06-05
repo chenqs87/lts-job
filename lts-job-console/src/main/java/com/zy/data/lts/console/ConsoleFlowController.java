@@ -128,8 +128,9 @@ public class ConsoleFlowController {
     @ApiOperation(value = "执行工作流", notes = "执行工作流")
     @PostMapping("/triggerFlow")
     @PreAuthorize("hasPermission(#flowId, 'FlowExec')")
-    public ResponseEntity triggerFlow(@RequestParam("flowId") Integer flowId,
-                                      @RequestParam("params") String params) {
+    public ResponseEntity triggerFlow(
+            @RequestParam("flowId") Integer flowId,
+            @RequestParam("params") String params) {
         jobService.triggerFlow(flowId, TriggerMode.Click, params);
         return ResponseEntity.ok().build();
     }
@@ -138,9 +139,10 @@ public class ConsoleFlowController {
     @ApiOperation(value = "重新执行工作流", notes = "重新执行工作流")
     @PostMapping("/reTriggerFlow")
     @PreAuthorize("hasPermission(#flowId, 'FlowExec')")
-    public ResponseEntity reTriggerFlow(@RequestParam("flowId") Integer flowId,
-                                        @RequestParam("flowTaskId") Integer flowTaskId,
-                                        @RequestParam("params") String params) {
+    public ResponseEntity reTriggerFlow(
+            @RequestParam("flowId") Integer flowId,
+            @RequestParam("flowTaskId") Integer flowTaskId,
+            @RequestParam("params") String params) {
         jobService.reTriggerFlow(flowTaskId, params);
         return ResponseEntity.ok().build();
     }
@@ -161,7 +163,7 @@ public class ConsoleFlowController {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.JobView.code);
         return ResponseEntity.ok(new PageInfo<>(isAdmin() ?
-                jobService.findAllJobs(request) :jobService.findJobsByGroup(request)));
+                jobService.findAllJobs(request) : jobService.findJobsByGroup(request)));
     }
 
     @ApiOperation(value = "根据用户name查询所有工作流", notes = "查询所有工作流")
@@ -178,9 +180,10 @@ public class ConsoleFlowController {
     public ResponseEntity getAllFlowsByGroup(FlowQueryRequest request) {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.FlowView.code);
-        return ResponseEntity.ok(new PageInfo<>( isAdmin() ?
+        return ResponseEntity.ok(new PageInfo<>(isAdmin() ?
                 jobService.findAllFlows(request) : jobService.findFlowsByGroup(request)));
     }
+
     @ApiOperation(value = "查询工作流", notes = "查询工作流")
     @GetMapping("/getFlow")
     @PreAuthorize("hasPermission(#flowId, 'FlowView')")
@@ -189,43 +192,30 @@ public class ConsoleFlowController {
     }
 
     @ApiOperation(value = "查询所有工作流任务", notes = "查询所有工作流任务")
-    @GetMapping("/getAllFlowTasks")
-    public ResponseEntity getAllFlowTasks(@RequestParam("pageNum") Integer pageNum,
-                                          @RequestParam("pageSize") Integer pageSize) {
-        return ResponseEntity.ok(new PageInfo<>(jobService.findAllFlowTask(pageNum, pageSize)));
-    }
-
-    @ApiOperation(value = "查询指定工作流任务", notes = "查询指定工作流任务")
-    @GetMapping("/getFlowTasksByFlowId")
-    @PreAuthorize("hasPermission(#flowId, 'FlowView')")
-    public ResponseEntity getFlowTasksByFlowId(@RequestParam("flowId") Integer flowId,
+    @GetMapping("/getFlowTasks")
+    public ResponseEntity getFlowTasks(
+            @RequestParam("flowId") Integer flowId,
+            @RequestParam("status") Integer status,
             @RequestParam("pageNum") Integer pageNum,
             @RequestParam("pageSize") Integer pageSize) {
-        return ResponseEntity.ok(new PageInfo<>(jobService.findByFlowId(flowId, pageNum, pageSize)));
-    }
-    @ApiOperation(value = "查询指定状态工作流", notes = "查询指定状态工作流任务")
-    @GetMapping("/getFlowTasksByStatus")
-    public ResponseEntity getFlowTasksByStatus(@RequestParam("status") Integer status,
-            @RequestParam("pageNum") Integer pageNum,
-            @RequestParam("pageSize") Integer pageSize) {
-
-        return ResponseEntity.ok(new PageInfo<>(jobService.findByStatusId(status,
-                pageNum, pageSize)));
+        return ResponseEntity.ok(new PageInfo<>(jobService.findFlowTask(flowId, status, pageNum, pageSize)));
     }
 
     @ApiOperation(value = "查询所有任务", notes = "查询所有任务")
     @GetMapping("/getTasks")
-    public ResponseEntity getTasks(@RequestParam("flowTaskId") Integer flowTaskId,
-                                   @RequestParam("pageNum") Integer pageNum,
-                                   @RequestParam("pageSize") Integer pageSize) {
+    public ResponseEntity getTasks(
+            @RequestParam("flowTaskId") Integer flowTaskId,
+            @RequestParam("pageNum") Integer pageNum,
+            @RequestParam("pageSize") Integer pageSize) {
         return ResponseEntity.ok(new PageInfo<>(jobService.findTaskByFlowTaskId(flowTaskId, pageNum, pageSize)));
     }
 
     @ApiOperation(value = "kill任务", notes = "kill任务")
     @PostMapping("/killFlowTask")
     @PreAuthorize("hasPermission(#flowId, 'FlowDelete')")
-    public ResponseEntity killFlowTask(@RequestParam("flowId") Integer flowId,
-                                       @RequestParam("flowTaskId") Integer flowTaskId) {
+    public ResponseEntity killFlowTask(
+            @RequestParam("flowId") Integer flowId,
+            @RequestParam("flowTaskId") Integer flowTaskId) {
         jobService.killFlowTask(flowTaskId);
         return ResponseEntity.ok().build();
     }
@@ -238,12 +228,13 @@ public class ConsoleFlowController {
 
     @ApiOperation(value = "任务日志查询", notes = "任务日志查询")
     @GetMapping("/query/logs")
-    public void queryLogs(@RequestParam("flowTaskId") Integer flowTaskId,
-                          @RequestParam("taskId") Integer taskId,
-                          @RequestParam("shardStatus") Integer shardStatus,
-                          @RequestParam("logName") String logName,
-                          @RequestParam("host") String host,
-                          HttpServletResponse response) throws IOException {
+    public void queryLogs(
+            @RequestParam("flowTaskId") Integer flowTaskId,
+            @RequestParam("taskId") Integer taskId,
+            @RequestParam("shardStatus") Integer shardStatus,
+            @RequestParam("logName") String logName,
+            @RequestParam("host") String host,
+            HttpServletResponse response) throws IOException {
 
         URL url = new URL("http://" + host + "/executor/query/logs?flowTaskId=" + flowTaskId +
                 "&taskId=" + taskId + "&shardStatus=" + shardStatus + "&logName=" + logName);
@@ -261,13 +252,11 @@ public class ConsoleFlowController {
     }
 
 
-
     @ApiOperation(value = "获取FlowTaskStatus", notes = "获取FlowTaskStatus")
     @GetMapping("/getFlowTaskStatus")
     public ResponseEntity getFlowTaskStatus() {
         return ResponseEntity.ok(FlowTaskStatus.values());
     }
-
 
 
     private String getCurrentUserName() {

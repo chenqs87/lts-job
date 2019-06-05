@@ -3,7 +3,6 @@ package com.zy.data.lts.schedule.service;
 import com.github.pagehelper.PageHelper;
 import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.LtsPermitType;
-import com.zy.data.lts.core.RoleEnum;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.dao.AlertConfigDao;
 import com.zy.data.lts.core.dao.FlowDao;
@@ -28,13 +27,11 @@ import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -246,7 +243,7 @@ public class JobService {
         List<Job> ret = jobDao.select(request);
 
         int permit = LtsPermitEnum.getAllJobPermit();
-        if(CollectionUtils.isNotEmpty(ret)) {
+        if (CollectionUtils.isNotEmpty(ret)) {
             ret.forEach(j -> j.setPermit(permit));
         }
 
@@ -271,7 +268,7 @@ public class JobService {
         List<Flow> ret = flowDao.select();
 
         int permit = LtsPermitEnum.getAllFlowPermit();
-        if(CollectionUtils.isNotEmpty(ret)) {
+        if (CollectionUtils.isNotEmpty(ret)) {
             ret.forEach(j -> j.setPermit(permit));
         }
 
@@ -289,23 +286,9 @@ public class JobService {
         return flowDao.selectByGroup(user.getGroupName(), request.getPermit());
     }
 
-    public List<FlowTask> findAllFlowTask(Integer pageNum, Integer pageSize) {
+    public List<FlowTask> findFlowTask(int flowId, int statusId, Integer pageNum, Integer pageSize)  {
         PageHelper.startPage(pageNum, pageSize);
-        return flowTaskDao.select();
-    }
-
-    public List<FlowTask> findByFlowId(int flowId, Integer pageNum, Integer pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
-        return flowTaskDao.findByFlowId(flowId);
-    }
-
-    public List<FlowTask> findByStatusId(int statusId, Integer pageNum, Integer pageSize) {
-        PageHelper.startPage(pageNum, pageSize);
-        if (statusId == -1) {
-            return flowTaskDao.select();
-        } else {
-            return flowTaskDao.findByStatusId(statusId);
-        }
+        return flowTaskDao.select(flowId, statusId);
     }
 
     public List<Task> findTaskByFlowTaskId(int flowTaskId, Integer pageNum, Integer pageSize) {

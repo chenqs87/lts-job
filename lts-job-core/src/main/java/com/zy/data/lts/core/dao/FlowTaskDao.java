@@ -41,14 +41,17 @@ public interface FlowTaskDao {
     List<FlowTask> findUnFinishedFlowTasks();
 
     @ResultMap("flowTask")
-    @Select("select * from flow_task order by begin_time desc")
-    List<FlowTask> select();
+    @Select("<script>" +
+            "select * from flow_task where" +
+            "<if test='flowId != -1'>" +
+            " flow_id =#{flowId} and" +
+            " </if>" +
+            "<if test='statusId != -1'>" +
+            " status =#{statusId} and" +
+            " </if>" +
+            " 1=1" +
+             " order by begin_time desc"+
+            "</script>")
+    List<FlowTask> select(@Param("flowId") int flowId,@Param("statusId") int statusId);
 
-    @ResultMap("flowTask")
-    @Select("select * from flow_task where flow_id=#{flowId} order by begin_time desc")
-    List<FlowTask> findByFlowId(@Param("flowId") int flowId);
-
-    @ResultMap("flowTask")
-    @Select("select * from flow_task where status=#{statusId} order by begin_time desc")
-    List<FlowTask> findByStatusId(@Param("statusId") int statusId);
 }
