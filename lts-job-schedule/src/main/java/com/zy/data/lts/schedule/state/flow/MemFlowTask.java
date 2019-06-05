@@ -1,5 +1,6 @@
 package com.zy.data.lts.schedule.state.flow;
 
+import com.zy.data.lts.core.FlowTaskStatus;
 import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.schedule.state.EventHandler;
@@ -7,7 +8,7 @@ import com.zy.data.lts.schedule.state.StateMachine;
 import com.zy.data.lts.schedule.state.StateMachineFactory;
 import com.zy.data.lts.schedule.state.flow.transition.*;
 import com.zy.data.lts.schedule.state.task.MemTask;
-import com.zy.data.lts.schedule.state.task.TaskStatus;
+import com.zy.data.lts.core.TaskStatus;
 
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;

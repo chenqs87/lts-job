@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #set -x
 params=$1
-oldConfig="${OldVersionImportConfig}"
-newConfig="${NewVersionImportConfig}"
+oldConfig="/user/pub/old_jar_zip/path"
+newConfig="/user/pub/old_jar_zip/path"
 hadoop_config="${HaoopConfigDir}"
 
 echo "[ImportData][INFO] params:${params}"
@@ -16,34 +16,25 @@ if [ -z "${inputFile}" ] || [ "x${inputFile}" = "x" ]; then
     exit -1
 fi
 
-import_config=""
+java_zip_path=""
 if [ "x${type}" = "x" ]; then
     echo "[ImportData][INFO] Param [type] is needed!"
     exit -1
 elif [ "x${type}" = "xold" ]; then
-    import_config="${oldConfig}"
+    java_zip_path="${oldConfig}"
     echo "[ImportData][INFO] Will use config : ${oldConfig}"
 else
-    import_config="${newConfig}"
+    java_zip_path="${newConfig}"
     echo "[ImportData][INFO] Will use config : ${newConfig}"
 fi
 
-
 exec_dir=$(cd `dirname $0`; pwd)
 
-config_file=$(echo "`hadoop --config ${hadoop_config} fs -cat ${import_config} | head -1`")
+echo "[ImportData][INFO] begin to get file [${java_zip_path}] from hdfs !"
 
-if [ "x${config_file}" = "x" ]; then
-    echo "[ImportData][INFO] ImportConfig file [${import_config}] is empty!"
-    exit -1
-fi
-
-echo "[ImportData][INFO] begin to get file [${config_file}] from hdfs !"
-
-hadoop --config ${hadoop_config} fs -get ${config_file} ${exec_dir}
+hadoop --config ${hadoop_config} fs -get ${java_zip_path} ${exec_dir}
 
 cd ${exec_dir}; unzip ./*.zip
-
 
 
 echo "[ImportData][INFO] success to get file !"
@@ -52,12 +43,29 @@ echo "=============================== begin import data ========================
 
 format_param=$(echo "${params}" | awk 'BEGIN{ORS=" "}{print $0}'| sed s/[[:space:]]//g)
 
+jar_file=""
+main_class=""
 
-jar_file="./azkaban-job.jar"
-main_class="com.zy.data.tool.lts.LtsJobImportMain"
+if [ "x${type}" = "xold" ]; then
+    jar_file="./rec-datatools.jar"
+    main_class="com.zy.rec.data.lts.LtsJobImportMain"
+else
+    jar_file="./azkaban-job.jar"
+    main_class="com.zy.data.tool.lts.LtsJobImportMain"
+fi
+
 hadoop_config="./hadoop-config"
-hadoop --config ${hadoop_config} jar ${jar_file} ${main_class} ${format_param}
 
-#sh ${exec_dir}/import-data.sh 0 "${format_param}"
+if [ ! -f "${jar_file}" ];then
+    echo "[ImportData][INFO] File [azkaban-job.jar] is not exist!"
+    exit -1
+fi
+
+if [ ! -d "${hadoop_config}" ];then
+    echo "[ImportData][INFO] Dir [hadoop-config] is not exist!"
+    exit -1
+fi
+
+hadoop --config ${hadoop_config} jar ${jar_file} ${main_class} ${format_param}
 
 echo "=============================== end import data ================================"
