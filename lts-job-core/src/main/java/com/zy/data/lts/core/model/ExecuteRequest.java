@@ -52,4 +52,13 @@ public class ExecuteRequest {
     public void setShard(int shard) {
         this.shard = shard;
     }
+
+    public String toString() {
+        return "{" +
+                "handler:\""+handler+"\"," +
+                "flowTaskId:\"" + flowTaskId +"\"," +
+                "taskId:\"" + taskId +"\"," +
+                "shard:\"" + shard +"\"," +
+                "}";
+    }
 }

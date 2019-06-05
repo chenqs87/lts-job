@@ -30,8 +30,6 @@ lts:
         name: test
         host: localhost:8081
       execute-env:
-        NewVersionImportConfig: hdfs://ns1/user/pub/import-data/new/config
-        OldVersionImportConfig: hdfs://ns1/user/pub/import-data/old/config
         CheckInputContentScript: /data/www/lts-job/import-data/CheckFileContent.sh
         HaoopConfigDir: /data/www/lts-job/lts-executor/config/hadoop-config
   job:

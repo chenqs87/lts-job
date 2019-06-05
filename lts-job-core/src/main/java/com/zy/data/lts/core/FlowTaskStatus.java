@@ -1,4 +1,4 @@
-package com.zy.data.lts.schedule.state.flow;
+package com.zy.data.lts.core;
 
 /**
  * @author chenqingsong
@@ -34,6 +34,15 @@ public enum FlowTaskStatus {
                 return Failed;
             default:
                 throw new IllegalArgumentException("FlowTaskStatus Code is wrong!!!");
+        }
+    }
+
+    public boolean isFinish() {
+        switch (this) {
+            case Killed:
+            case Finished:
+            case Failed: return true;
+            default: return false;
         }
     }
 

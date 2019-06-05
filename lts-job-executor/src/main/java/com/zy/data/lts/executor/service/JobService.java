@@ -1,5 +1,7 @@
 package com.zy.data.lts.executor.service;
 
+import com.zy.data.lts.core.FlowTaskStatus;
+import com.zy.data.lts.core.TaskStatus;
 import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
@@ -67,6 +69,15 @@ public class JobService implements ApplicationContextAware {
 
             FlowTask flowTask = flowTaskDao.findById(task.getFlowTaskId());
             Path output = createOutputDir(req, job);
+
+            TaskStatus taskStatus = TaskStatus.parse(task.getTaskStatus());
+            FlowTaskStatus flowTaskStatus = FlowTaskStatus.parse(flowTask.getStatus());
+
+            // 判断作业或工作流是否是完结状态（例如任务发起后，用户直接kill掉任务）
+            if(taskStatus.isFinish() || flowTaskStatus.isFinish()) {
+                logger.warn("Task [{}] is skipped, it's job or flow is finished!", req);
+                return;
+            }
 
             String params = flowTask.getParams();
 
