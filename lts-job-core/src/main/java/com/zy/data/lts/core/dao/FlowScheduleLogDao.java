@@ -17,7 +17,7 @@ public interface FlowScheduleLogDao {
             @Result(property = "createTime", column = "create_time")
 
     })
-    @Insert("select * from `flow_schedule_log` where flow_task_id = #{flowTaskId}")
+    @Select("select * from `flow_schedule_log` where flow_task_id = #{flowTaskId}")
     List<FlowScheduleLog> select(@Param("flowTaskId") int flowTaskId);
 
     @Insert("insert into flow_schedule_log (flow_task_id, content, create_time) " +

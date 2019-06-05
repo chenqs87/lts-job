@@ -4,20 +4,8 @@ import com.github.pagehelper.PageHelper;
 import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.LtsPermitType;
 import com.zy.data.lts.core.TriggerMode;
-import com.zy.data.lts.core.dao.AlertConfigDao;
-import com.zy.data.lts.core.dao.FlowDao;
-import com.zy.data.lts.core.dao.FlowTaskDao;
-import com.zy.data.lts.core.dao.JobDao;
-import com.zy.data.lts.core.dao.RepmPolicyDao;
-import com.zy.data.lts.core.dao.TaskDao;
-import com.zy.data.lts.core.dao.UserDao;
-import com.zy.data.lts.core.entity.AlertConfig;
-import com.zy.data.lts.core.entity.Flow;
-import com.zy.data.lts.core.entity.FlowTask;
-import com.zy.data.lts.core.entity.Job;
-import com.zy.data.lts.core.entity.RepmPolicy;
-import com.zy.data.lts.core.entity.Task;
-import com.zy.data.lts.core.entity.User;
+import com.zy.data.lts.core.dao.*;
+import com.zy.data.lts.core.entity.*;
 import com.zy.data.lts.core.model.FlowQueryRequest;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.core.model.PagerRequest;
@@ -68,6 +56,9 @@ public class JobService {
 
     @Autowired
     AlertConfigDao alertConfigDao;
+
+    @Autowired
+    FlowScheduleLogDao flowScheduleLogDao;
 
     /**
      * 创建工作流
@@ -306,5 +297,9 @@ public class JobService {
 
     public AlertConfig getAlertConfig(Integer flowId) {
         return alertConfigDao.findByFlowId(flowId);
+    }
+
+    public List<FlowScheduleLog> getFlowScheduleLog(int flowTaskId) {
+        return flowScheduleLogDao.select(flowTaskId);
     }
 }
