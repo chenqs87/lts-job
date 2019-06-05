@@ -5,6 +5,7 @@ import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.schedule.trigger.JobTrigger;
 import feign.RetryableException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
@@ -167,17 +168,21 @@ public class RoundRobinHandler implements IHandler {
     public void execute(ExecuteRequest request) {
         doExec(executor -> {
             try {
+                JobTrigger.writeLog(request.getFlowTaskId(), "Send task ["+request.getTaskId()+"] to [" + executor.getHost() + "]!");
                 SpringContext.getApplicationContext().publishEvent(
                         new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));
 
                 executor.execute(request);
+
             } catch (Exception e) {
+
                 //失败重发
                 logger.warn("Fail to asyncExec Job", e);
                 if (e instanceof RetryableException) {
                     remove(executor.getHost());
                 }
 
+                JobTrigger.writeLog(request.getFlowTaskId(), "Fail to send task to Executor [" + executor.getHost() + "] and ready to retry again!!!");
                 execute(request);
             }
         });
@@ -186,13 +191,19 @@ public class RoundRobinHandler implements IHandler {
 
     @Override
     public void kill(KillTaskRequest request) {
+        Executor executor = executorMap.get(request.getHost());
 
-        doExec(executor -> {
-            try {
-                executor.kill(request);
-            } catch (Exception e) {
-                logger.warn("Fail to kill the job [{}] ", request, e);
-            }
-        });
+        if(executor == null) {
+            JobTrigger.writeLog(request.getFlowTaskId(), "Fail to kill task! Executor ["+request.getHost()+"] is not exist!");
+            return;
+        }
+
+        try {
+            executor.kill(request);
+            JobTrigger.writeLog(request.getFlowTaskId(), "Success to send kill task request to Executor [" + request.getHost() + "]");
+        } catch (Exception e) {
+            JobTrigger.writeLog(request.getFlowTaskId(), "Fail to kill task! msg: " + e.getMessage());
+            logger.warn("Fail to kill the job [{}] ", request, e);
+        }
     }
 }

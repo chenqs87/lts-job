@@ -2,6 +2,8 @@ package com.zy.data.lts.executor.service;
 
 import com.google.common.collect.Maps;
 import com.zy.data.lts.core.api.AdminApi;
+import com.zy.data.lts.core.dao.FlowScheduleLogDao;
+import com.zy.data.lts.core.entity.FlowScheduleLog;
 import com.zy.data.lts.core.model.JobResultRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
@@ -49,6 +51,9 @@ public class CommandService implements ApplicationContextAware {
     @Autowired
     ExecutorConfig executorConfig;
 
+    @Autowired
+    FlowScheduleLogDao flowScheduleLogDao;
+
     private ApplicationContext applicationContext;
 
     @EventListener
@@ -57,7 +62,10 @@ public class CommandService implements ApplicationContextAware {
         IJobTypeHandler jobTypeHandler = jobTypeHandlers.get(event.getJobType());
 
         if (jobTypeHandler == null) {
-            throw new IllegalArgumentException("JobType [" + event.getJobType() + "] is not exist!!!");
+            String msg = "JobType [" + event.getJobType() + "] is not exist!!!";
+            flowScheduleLogDao.insert(new FlowScheduleLog(event.getFlowTaskId(),
+                    "Task [" + event.getTaskId() + "]! " + msg));
+            throw new IllegalArgumentException(msg);
         }
 
         String[] command = jobTypeHandler.createCommand(event);
@@ -79,18 +87,24 @@ public class CommandService implements ApplicationContextAware {
             }
         } catch (Exception e) {
             logger.warn("Fail to kill task [{}]!", processKey, e);
+            flowScheduleLogDao.insert(new FlowScheduleLog(event.getFlowTaskId(),
+                    "Fail to kill task [" + event.getTaskId() + "]"));
         }
     }
 
     private void callback(int ret, JobExecuteEvent event) {
         JobResultRequest request = new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         if (ret == 0) {
+            flowScheduleLogDao.insert(new FlowScheduleLog(event.getFlowTaskId(),
+                    "Success to execute task [" + event.getTaskId() + "]"));
             adminService.success(request);
         } else {
             String key = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
             if (killedTasks.get(key) == EMPTY_OBJECT) {
                 killedTasks.remove(key);
             } else {
+                flowScheduleLogDao.insert(new FlowScheduleLog(event.getFlowTaskId(),
+                        "Fail to execute task [" + event.getTaskId() + "]! Command exec wrong!"));
                 adminService.fail(request);
             }
         }

@@ -3,12 +3,15 @@ package com.zy.data.lts.schedule.handler;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
+import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.jar.JarEntry;
 
 /**
  * TODO:::异步执行
@@ -31,6 +34,7 @@ public class AsyncHandler implements IHandler {
 
     @Override
     public void execute(ExecuteRequest request) {
+
         executorService.execute(() -> handler.execute(request));
     }
 

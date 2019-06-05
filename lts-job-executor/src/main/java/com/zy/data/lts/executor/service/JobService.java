@@ -3,10 +3,8 @@ package com.zy.data.lts.executor.service;
 import com.zy.data.lts.core.FlowTaskStatus;
 import com.zy.data.lts.core.TaskStatus;
 import com.zy.data.lts.core.api.AdminApi;
-import com.zy.data.lts.core.dao.FlowDao;
-import com.zy.data.lts.core.dao.FlowTaskDao;
-import com.zy.data.lts.core.dao.JobDao;
-import com.zy.data.lts.core.dao.TaskDao;
+import com.zy.data.lts.core.dao.*;
+import com.zy.data.lts.core.entity.FlowScheduleLog;
 import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.Task;
@@ -60,9 +58,14 @@ public class JobService implements ApplicationContextAware {
 
     @Autowired
     ExecutorConfig executorConfig;
+
+    @Autowired
+    FlowScheduleLogDao flowScheduleLogDao;
+
     private ApplicationContext applicationContext;
 
-    private void doExec(ExecuteRequest req) {
+    @Async(EXECUTOR_THREAD_POOL)
+    public void doExec(ExecuteRequest req) {
         try {
             Task task = taskDao.findById(req.getFlowTaskId(), req.getTaskId());
             Job job = jobDao.findById(task.getJobId());
@@ -75,6 +78,8 @@ public class JobService implements ApplicationContextAware {
 
             // 判断作业或工作流是否是完结状态（例如任务发起后，用户直接kill掉任务）
             if(taskStatus.isFinish() || flowTaskStatus.isFinish()) {
+                flowScheduleLogDao.insert(new FlowScheduleLog(req.getFlowTaskId(),
+                        "Task [" + req.getTaskId() + "] is skipped!"));
                 logger.warn("Task [{}] is skipped, it's job or flow is finished!", req);
                 return;
             }
@@ -85,22 +90,24 @@ public class JobService implements ApplicationContextAware {
 
             applicationContext.publishEvent(event);
         } catch (Exception e) {
-            logger.error("Fail to execute task. task write : {}", req, e);
+            String msg = "Fail to execute task!";
+            flowScheduleLogDao.insert(new FlowScheduleLog(req.getFlowTaskId(),
+                    msg + " Task id is [" + req.getTaskId() + "]"));
+
+            logger.error("{}. task info : {}", msg, req, e);
             JobResultRequest jrr = new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard());
             adminService.fail(jrr);
         }
     }
 
-    @Async(EXECUTOR_THREAD_POOL)
+
     public void exec(ExecuteRequest req) {
-        try {
-            doExec(req);
-        } catch (Exception e) {
-            logger.error("Fail to execute task [{}]", req, e);
-            adminService.fail(new JobResultRequest(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
-        }
+        flowScheduleLogDao.insert(new FlowScheduleLog(req.getFlowTaskId(),
+                "Executor fetch task [" + req.getTaskId() + "]"));
+        doExec(req);
     }
 
+    @Async(EXECUTOR_THREAD_POOL)
     public void killTask(KillTaskRequest req) {
         applicationContext.publishEvent(new KillJobEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
     }

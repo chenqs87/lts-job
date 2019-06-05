@@ -5,8 +5,6 @@ import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
-import com.zy.data.lts.schedule.state.flow.FlowEvent;
-import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import feign.Feign;
 import feign.gson.GsonDecoder;
@@ -95,9 +93,10 @@ public class HandlerService implements IExecutorApi {
         AsyncHandler asyncHandler = handlerApiMap.get(request.getHandler());
 
         if (asyncHandler == null) {
+            String msg = "AsyncHandler [" + request.getHandler() + "] is not exist！";
+            jobTrigger.doWriteLog(request.getFlowTaskId(), msg);
             jobTrigger.killFlowTask(request.getFlowTaskId());
-            logger.error("AsyncHandler [" + request.getHandler() + "] is not exist! Please retry later!");
-           // throw new IllegalArgumentException("AsyncHandler [" + request.getHandler() + "] is not exist!");
+            logger.error( "{} Please retry later!", msg);
             return;
         }
 
@@ -136,16 +135,5 @@ public class HandlerService implements IExecutorApi {
     @PreDestroy
     public void destroy() {
         handlerApiMap.values().forEach(AsyncHandler::close);
-    }
-
-    public void registerBean(BeatInfoRequest beat) {
-        if(beat.getPort() == 0) {
-            return;
-        }
-
-        Executor executor = createExecutor(beat);
-
-        String host = beat.getHost() + ":" + beat.getPort();
-       // SpringContext.getApplicationContext().getBeanFactory().
     }
 }

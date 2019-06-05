@@ -4,14 +4,8 @@ import com.google.gson.Gson;
 import com.zy.data.lts.core.JobShardType;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.config.ThreadPoolsConfig;
-import com.zy.data.lts.core.dao.FlowDao;
-import com.zy.data.lts.core.dao.FlowTaskDao;
-import com.zy.data.lts.core.dao.JobDao;
-import com.zy.data.lts.core.dao.TaskDao;
-import com.zy.data.lts.core.entity.Flow;
-import com.zy.data.lts.core.entity.FlowTask;
-import com.zy.data.lts.core.entity.Job;
-import com.zy.data.lts.core.entity.Task;
+import com.zy.data.lts.core.dao.*;
+import com.zy.data.lts.core.entity.*;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
@@ -79,6 +73,20 @@ public class JobTrigger {
     @Autowired
     private HandlerService handlerService;
 
+    @Autowired
+    private FlowScheduleLogDao flowScheduleLogDao;
+
+    private static volatile JobTrigger jobTriggerProxy;
+
+
+    public static JobTrigger getInstance() {
+        if(jobTriggerProxy == null) {
+            jobTriggerProxy = SpringContext.getBean(JobTrigger.class);
+        }
+
+        return jobTriggerProxy;
+    }
+
     public static void triggerCronFlow(Integer flowId) {
         JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
         jobTrigger.triggerFlow(flowId, TriggerMode.Cron);
@@ -97,6 +105,22 @@ public class JobTrigger {
         JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
         FlowTask flowTask = jobTrigger.getFlowTask(flowId, triggerMode, null);
         jobTrigger.handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
+    }
+
+    @Transactional(propagation = REQUIRES_NEW)
+    public void doWriteLog(int flowTaskId, String content) {
+        try {
+            flowScheduleLogDao.insert(new FlowScheduleLog(flowTaskId, content));
+        } catch (Exception e) {
+            logger.warn("Fail to write log to [flow_schedule_log]!");
+        }
+    }
+
+    public static void writeLog(int flowTaskId, String content) {
+        JobTrigger jobTrigger = getInstance();
+        if(jobTrigger != null) {
+            jobTrigger.doWriteLog(flowTaskId, content);
+        }
     }
 
     /**
@@ -213,13 +237,13 @@ public class JobTrigger {
                     // 发送成功,则认为任务开始执行
                     handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Execute, t.getTaskId(), shard));
                 } else {
+                    doWriteLog(t.getFlowTaskId(), "Task Skip! The task is completed in other flow task!");
                     handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Execute, t.getTaskId(), shard));
                     handleFlowTask(new FlowEvent(t.getFlowTaskId(), FlowEventType.Finish, t.getTaskId(), shard));
                 }
             }
         }
     }
-
 
     public void killFlowTask(int flowTaskId) {
         handleFlowTask(new FlowEvent(flowTaskId, FlowEventType.Kill));
