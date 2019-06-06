@@ -46,7 +46,7 @@ public interface JobDao {
     @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", before = false, resultType = int.class)
     @Insert("insert into job (name, handler,job_type,create_time,create_user, content,shard_type, config, `group`) " +
             "values(#{name},#{handler},#{jobType},#{createTime},#{createUser},#{content}, #{shardType}, #{config}, #{group})")
-    void insert(Job job);
+    void  insert(Job job);
 
     @Update("update job set name=#{name},handler=#{handler},job_type=#{jobType},content=#{content}," +
             "shard_type=#{shardType},config=#{config},`group`=#{group} where id=#{id}")

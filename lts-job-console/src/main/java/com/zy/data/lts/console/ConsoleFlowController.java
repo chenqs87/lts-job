@@ -7,6 +7,7 @@ import com.zy.data.lts.core.LtsPermitType;
 import com.zy.data.lts.core.RoleEnum;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.entity.AlertConfig;
+import com.zy.data.lts.core.entity.ImportDataFlow;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.model.FlowQueryRequest;
 import com.zy.data.lts.core.model.JobQueryRequest;
@@ -78,12 +79,10 @@ public class ConsoleFlowController {
     }
 
     @ApiOperation(value = "新建数据导入工作流", notes = "新建数据导入工作流")
-    @PutMapping("/importDataFlow")
-    public ResponseEntity createImportDataFlow(@RequestBody AlertConfig flow) {
-        flow.setCreateUser(getCurrentUserName());
-        flow.setPermit(LtsPermitEnum.getAllFlowPermit());
-        flow.setType(LtsPermitType.Flow.name());
-        return ResponseEntity.ok(jobService.createFlow(flow));
+    @PostMapping("/importDataFlow")
+    public ResponseEntity createImportDataFlow(
+            @RequestBody ImportDataFlow importDataFlow) {
+        return ResponseEntity.ok(jobService.createImportDataFlow(getCurrentUserName(),importDataFlow));
     }
 
     @ApiOperation(value = "删除工作流", notes = "删除工作流")

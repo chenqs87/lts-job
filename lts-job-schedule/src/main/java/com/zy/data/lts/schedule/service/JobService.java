@@ -14,6 +14,7 @@ import com.zy.data.lts.core.dao.UserDao;
 import com.zy.data.lts.core.entity.AlertConfig;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.FlowTask;
+import com.zy.data.lts.core.entity.ImportDataFlow;
 import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.entity.RepmPolicy;
 import com.zy.data.lts.core.entity.Task;
@@ -99,6 +100,87 @@ public class JobService {
         alertConfigDao.insert(flow);
         return flow;
     }
+
+
+    /**
+     *
+     * @param userName
+     * @param importDataFlow
+     * @return
+     */
+    @Transactional
+    public Flow createImportDataFlow(String userName, ImportDataFlow importDataFlow) {
+        //校验数据大小
+        Job checkSizeJob = new Job();
+        checkSizeJob.setName(importDataFlow.getCheckGroupName() + "_" + "checkSizeJob");
+        checkSizeJob.setHandler("ttttttt");
+        checkSizeJob.setJobType("python");
+        checkSizeJob.setCreateTime(new Date());
+        checkSizeJob.setCreateUser(userName);
+        checkSizeJob.setContent(importDataFlow.getCheckSize());
+        checkSizeJob.setShardType(0);
+        checkSizeJob.setConfig("");
+        checkSizeJob.setGroup(importDataFlow.getCheckGroupName());
+        jobDao.insert(checkSizeJob);
+        RepmPolicy checkSizeJobRep = new RepmPolicy();
+        checkSizeJobRep.setCreateTime(new Date());
+        checkSizeJobRep.setPolicyName(repmPolicyDao.wrapUsername(userName));
+        checkSizeJobRep.setResource(checkSizeJob.getId());
+        checkSizeJobRep.setPermit(LtsPermitEnum.getAllJobPermit());
+        checkSizeJobRep.setType(LtsPermitType.Job.name());
+        repmPolicyDao.insert(checkSizeJobRep);
+
+
+        //校验数据内容
+        Job checkContentJob = new Job();
+        checkContentJob.setName(importDataFlow.getCheckGroupName() + "_" + "checkContent");
+        checkContentJob.setHandler("ttttttt");
+        checkContentJob.setJobType("python");
+        checkContentJob.setCreateTime(new Date());
+        checkContentJob.setCreateUser(userName);
+        checkContentJob.setContent(importDataFlow.getCheckContent());
+        checkContentJob.setShardType(0);
+        checkContentJob.setConfig("");
+        checkContentJob.setGroup(importDataFlow.getCheckGroupName());
+        jobDao.insert(checkContentJob);
+
+        RepmPolicy checkContentJobRep = new RepmPolicy();
+        checkContentJobRep.setCreateTime(new Date());
+        checkContentJobRep.setPolicyName(repmPolicyDao.wrapUsername(userName));
+        checkContentJobRep.setResource(checkContentJob.getId());
+        checkContentJobRep.setPermit(LtsPermitEnum.getAllJobPermit());
+        checkContentJobRep.setType(LtsPermitType.Job.name());
+        repmPolicyDao.insert(checkContentJobRep);
+
+        Flow flow = new Flow();
+        flow.setCreateUser(userName);
+        flow.setName(importDataFlow.getCheckGroupName() + "_" + "checkFlow");
+        flow.setCron("0/5 * * * * ? *");
+        flow.setCreateTime(new Date());
+        flow.setFlowConfig(checkSizeJob.getId() + ":" + checkContentJob.getId());
+        flow.setParams(importDataFlow.getIpDataConfig());
+        flowDao.insert(flow);
+
+        RepmPolicy flowRep = new RepmPolicy();
+        flowRep.setCreateTime(new Date());
+        flowRep.setPolicyName(repmPolicyDao.wrapUsername(flow.getCreateUser()));
+        flowRep.setResource(flow.getId());
+        flowRep.setPermit(LtsPermitEnum.FlowView.code);
+        flowRep.setType(LtsPermitType.Flow.name());
+        repmPolicyDao.insert(flowRep);
+
+        //将对应的工作流查看权限添加至用户的对应组
+        RepmPolicy group = new RepmPolicy();
+        group.setCreateTime(new Date());
+        group.setPermit(LtsPermitEnum.FlowView.code);
+        group.setType(LtsPermitType.Flow.name());
+        group.setResource(flow.getId());
+        group.setPolicyName(repmPolicyDao.wrapGroup(userDao.findByName(flow.getCreateUser()).getGroupName()));
+        repmPolicyDao.insert(group);
+
+        return flow;
+    }
+
 
     @Transactional
     public void deleteFlow(int flowId) {
@@ -286,7 +368,7 @@ public class JobService {
         return flowDao.selectByGroup(user.getGroupName(), request.getPermit());
     }
 
-    public List<FlowTask> findFlowTask(int flowId, int statusId, Integer pageNum, Integer pageSize)  {
+    public List<FlowTask> findFlowTask(int flowId, int statusId, Integer pageNum, Integer pageSize) {
         PageHelper.startPage(pageNum, pageSize);
         return flowTaskDao.select(flowId, statusId);
     }
