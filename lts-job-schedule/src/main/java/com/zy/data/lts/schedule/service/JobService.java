@@ -145,7 +145,7 @@ public class JobService {
         Flow flow = new Flow();
         flow.setCreateUser(userName);
         flow.setName(importDataFlow.getCheckGroupName() + "_" + "checkFlow");
-        flow.setCron("0/5 * * * * ? *");
+        flow.setCron(importDataFlow.getCheckCron());
         flow.setCreateTime(new Date());
         flow.setFlowConfig(checkSizeJob.getId() + ":" + checkContentJob.getId());
         flow.setParams(importDataFlow.getIpDataConfig());
