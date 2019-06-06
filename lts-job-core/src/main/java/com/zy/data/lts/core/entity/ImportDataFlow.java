@@ -9,6 +9,7 @@ public class ImportDataFlow {
     private  String checkSize;
     private String checkContent;
     private String ipDataConfig;
+    private String checkCron;
 
 
     public String getCheckGroupName() {
@@ -41,5 +42,13 @@ public class ImportDataFlow {
 
     public void setIpDataConfig(String ipDataConfig) {
         this.ipDataConfig = ipDataConfig;
+    }
+
+    public String getCheckCron() {
+        return checkCron;
+    }
+
+    public void setCheckCron(String checkCron) {
+        this.checkCron = checkCron;
     }
 }
