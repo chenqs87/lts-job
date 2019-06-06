@@ -251,12 +251,18 @@ public class ConsoleFlowController {
     }
 
 
+
     @ApiOperation(value = "获取FlowTaskStatus", notes = "获取FlowTaskStatus")
     @GetMapping("/getFlowTaskStatus")
     public ResponseEntity getFlowTaskStatus() {
         return ResponseEntity.ok(FlowTaskStatus.values());
     }
 
+    @ApiOperation(value = "获取FlowTaskStatus", notes = "获取FlowTaskStatus")
+    @GetMapping("/getFlowScheduleLog")
+    public ResponseEntity getFlowScheduleLog(@RequestParam("flowTaskId") Integer flowTaskId) {
+        return ResponseEntity.ok(jobService.getFlowScheduleLog(flowTaskId));
+    }
 
     private String getCurrentUserName() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
