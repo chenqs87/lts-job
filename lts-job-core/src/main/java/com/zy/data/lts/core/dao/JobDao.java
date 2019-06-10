@@ -85,4 +85,9 @@ public interface JobDao {
             "</script>")
     List<Job> selectByGroup(Object params);
 
+
+    @ResultMap("job")
+    @Select("select * from job where name='ImpData' and create_user='admin' limit 1")
+    Job selectImportDataJob();
+
 }

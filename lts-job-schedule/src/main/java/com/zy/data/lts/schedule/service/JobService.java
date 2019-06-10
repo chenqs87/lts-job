@@ -1,6 +1,7 @@
 package com.zy.data.lts.schedule.service;
 
 import com.github.pagehelper.PageHelper;
+import com.google.gson.Gson;
 import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.LtsPermitType;
 import com.zy.data.lts.core.TriggerMode;
@@ -20,8 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author chenqingsong
@@ -59,6 +65,8 @@ public class JobService {
 
     @Autowired
     FlowScheduleLogDao flowScheduleLogDao;
+
+
 
     /**
      * 创建工作流
@@ -102,16 +110,17 @@ public class JobService {
     public Flow createImportDataFlow(String userName, ImportDataFlow importDataFlow) {
         //校验数据大小
         Job checkSizeJob = new Job();
-        checkSizeJob.setName(importDataFlow.getCheckGroupName() + "_" + "checkSizeJob");
-        checkSizeJob.setHandler("ttttttt");
-        checkSizeJob.setJobType("python");
+        checkSizeJob.setName(importDataFlow.getGroup() + "ChkSize");
+        checkSizeJob.setHandler(importDataFlow.getSizeHandler());
+        checkSizeJob.setJobType(ImportDataFlow.CHECK_FILE_CONTENT_JOB_TYPE);
         checkSizeJob.setCreateTime(new Date());
         checkSizeJob.setCreateUser(userName);
-        checkSizeJob.setContent(importDataFlow.getCheckSize());
+        checkSizeJob.setContent(importDataFlow.getSize());
         checkSizeJob.setShardType(0);
         checkSizeJob.setConfig("");
-        checkSizeJob.setGroup(importDataFlow.getCheckGroupName());
+        checkSizeJob.setGroup(importDataFlow.getGroup());
         jobDao.insert(checkSizeJob);
+
         RepmPolicy checkSizeJobRep = new RepmPolicy();
         checkSizeJobRep.setCreateTime(new Date());
         checkSizeJobRep.setPolicyName(repmPolicyDao.wrapUsername(userName));
@@ -123,15 +132,15 @@ public class JobService {
 
         //校验数据内容
         Job checkContentJob = new Job();
-        checkContentJob.setName(importDataFlow.getCheckGroupName() + "_" + "checkContent");
-        checkContentJob.setHandler("ttttttt");
+        checkContentJob.setName(importDataFlow.getGroup() + "ChkFile");
+        checkContentJob.setHandler(importDataFlow.getContentHandler());
         checkContentJob.setJobType("python");
         checkContentJob.setCreateTime(new Date());
         checkContentJob.setCreateUser(userName);
-        checkContentJob.setContent(importDataFlow.getCheckContent());
+        checkContentJob.setContent(importDataFlow.getContent());
         checkContentJob.setShardType(0);
         checkContentJob.setConfig("");
-        checkContentJob.setGroup(importDataFlow.getCheckGroupName());
+        checkContentJob.setGroup(importDataFlow.getGroup());
         jobDao.insert(checkContentJob);
 
         RepmPolicy checkContentJobRep = new RepmPolicy();
@@ -142,14 +151,22 @@ public class JobService {
         checkContentJobRep.setType(LtsPermitType.Job.name());
         repmPolicyDao.insert(checkContentJobRep);
 
+        Job importDataJob = jobDao.selectImportDataJob();
+        if(importDataJob == null) {
+            throw new IllegalArgumentException("The job [ImportCommonJob] is not exist !");
+        }
+
         Flow flow = new Flow();
         flow.setCreateUser(userName);
-        flow.setName(importDataFlow.getCheckGroupName() + "_" + "checkFlow");
-        flow.setCron(importDataFlow.getCheckCron());
+        flow.setName(importDataFlow.getGroup() + "ImportData");
+        flow.setCron(importDataFlow.getCron());
         flow.setCreateTime(new Date());
-        flow.setFlowConfig(checkSizeJob.getId() + ":" + checkContentJob.getId());
-        flow.setParams(importDataFlow.getIpDataConfig());
+        flow.setFlowConfig(checkSizeJob.getId() + ":" + checkContentJob.getId() + "\n"
+                + checkContentJob.getId() + ":" + importDataJob.getId());
+        flow.setParams(importDataFlow.getConfig());
+        flow.setFlowEditorInfo(createEditorInfo(checkSizeJob.getId(), checkContentJob.getId(), importDataJob.getId()));
         flowDao.insert(flow);
+        flowDao.update(flow);
 
         RepmPolicy flowRep = new RepmPolicy();
         flowRep.setCreateTime(new Date());
@@ -165,10 +182,42 @@ public class JobService {
         group.setPermit(LtsPermitEnum.FlowView.code);
         group.setType(LtsPermitType.Flow.name());
         group.setResource(flow.getId());
-        group.setPolicyName(repmPolicyDao.wrapGroup(userDao.findByName(flow.getCreateUser()).getGroupName()));
+        group.setPolicyName(
+                repmPolicyDao.wrapGroup(userDao.findByName(flow.getCreateUser()).getGroupName()));
         repmPolicyDao.insert(group);
 
         return flow;
+    }
+
+    /**
+     * todo 优化
+     * @param id1
+     * @param id2
+     * @param id3
+     * @return
+     */
+    private String createEditorInfo(int id1, int id2, int id3) {
+        try(InputStream is =
+                    JobService.class.getClassLoader().getResourceAsStream("ImportDataEditorModel.json");
+            Reader reader = new InputStreamReader(is)) {
+            Gson gson = new Gson();
+            Map map = gson.fromJson(reader, Map.class);
+            List nodes = (List) map.get("nodes");
+            nodes.forEach(node -> {
+                Map n = (Map)node;
+                String id= (String)n.get("id");
+
+                switch (id) {
+                    case "fce0c4e9": n.put("shape", String.valueOf(id1));break;
+                    case "2dc7de71": n.put("shape", String.valueOf(id2));break;
+                    case "dd1d3767": n.put("shape", String.valueOf(id3));break;
+                }
+            });
+            return gson.toJson(map);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Fail to create flow editor info!", e);
+        }
+
     }
 
 

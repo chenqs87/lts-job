@@ -5,50 +5,80 @@ package com.zy.data.lts.core.entity;
  * @date 2019-06-05 20:30
  */
 public class ImportDataFlow {
-    private String checkGroupName;
-    private  String checkSize;
-    private String checkContent;
-    private String ipDataConfig;
-    private String checkCron;
+    public static final String CHECK_FILE_CONTENT_JOB_TYPE = "ChkFile";
+    public static final String IMPORT_DATA_JOB_NAME = "ImpData";
+
+    private String group;
+    private String size;
+    private String sizeHandler;
+    private String content;
+    private String contentHandler;
+    private String config;
+    private String importDataHandler;
+    private String cron;
 
 
-    public String getCheckGroupName() {
-        return checkGroupName;
+    public String getGroup() {
+        return group;
     }
 
-    public void setCheckGroupName(String checkGroupName) {
-        this.checkGroupName = checkGroupName;
+    public void setGroup(String group) {
+        this.group = group;
     }
 
-    public String getCheckSize() {
-        return checkSize;
+    public String getSize() {
+        return size;
     }
 
-    public void setCheckSize(String checkSize) {
-        this.checkSize = checkSize;
+    public void setSize(String size) {
+        this.size = size;
     }
 
-    public String getCheckContent() {
-        return checkContent;
+    public String getContent() {
+        return content;
     }
 
-    public void setCheckContent(String checkContent) {
-        this.checkContent = checkContent;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public String getIpDataConfig() {
-        return ipDataConfig;
+    public String getConfig() {
+        return config;
     }
 
-    public void setIpDataConfig(String ipDataConfig) {
-        this.ipDataConfig = ipDataConfig;
+    public void setConfig(String config) {
+        this.config = config;
     }
 
-    public String getCheckCron() {
-        return checkCron;
+    public String getCron() {
+        return cron;
     }
 
-    public void setCheckCron(String checkCron) {
-        this.checkCron = checkCron;
+    public void setCron(String cron) {
+        this.cron = cron;
+    }
+
+    public String getSizeHandler() {
+        return sizeHandler;
+    }
+
+    public void setSizeHandler(String sizeHandler) {
+        this.sizeHandler = sizeHandler;
+    }
+
+    public String getContentHandler() {
+        return contentHandler;
+    }
+
+    public void setContentHandler(String contentHandler) {
+        this.contentHandler = contentHandler;
+    }
+
+    public String getImportDataHandler() {
+        return importDataHandler;
+    }
+
+    public void setImportDataHandler(String importDataHandler) {
+        this.importDataHandler = importDataHandler;
     }
 }
