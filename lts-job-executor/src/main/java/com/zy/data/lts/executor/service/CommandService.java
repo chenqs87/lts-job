@@ -112,7 +112,6 @@ public class CommandService implements ApplicationContextAware {
 
     private int execCommand(JobExecuteEvent event, String[] command) throws IOException {
         int exitValue = -1;
-        //adminService.start(new JobResultRequest(event.getFlowTaskId(), event.getTaskId(), event.getShard()));
         Process process = Runtime.getRuntime().exec(command, getEnv());
 
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());

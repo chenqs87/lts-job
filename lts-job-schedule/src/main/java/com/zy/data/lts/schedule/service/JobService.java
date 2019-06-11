@@ -66,8 +66,6 @@ public class JobService {
     @Autowired
     FlowScheduleLogDao flowScheduleLogDao;
 
-
-
     /**
      * 创建工作流
      *
@@ -348,7 +346,7 @@ public class JobService {
     }
 
     /**
-     * 执行工作流
+     * 工作流失败后，重新触发工作流
      *
      * @param flowTaskId
      */
@@ -377,9 +375,10 @@ public class JobService {
     }
 
     public List<Job> findJobsByGroup(JobQueryRequest request) {
-        PageHelper.startPage(request.getPageNum(), request.getPageSize());
         User user = userDao.findByName(request.getUsername());
         request.setUserGroup(user.getGroupName());
+
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
         return jobDao.selectByGroup(request);
     }
 
@@ -402,8 +401,8 @@ public class JobService {
     }
 
     public List<Flow> findFlowsByGroup(FlowQueryRequest request) {
-        PageHelper.startPage(request.getPageNum(), request.getPageSize());
         User user = userDao.findByName(request.getUsername());
+        PageHelper.startPage(request.getPageNum(), request.getPageSize());
         return flowDao.selectByGroup(user.getGroupName(), request.getPermit());
     }
 
