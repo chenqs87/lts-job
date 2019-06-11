@@ -74,7 +74,7 @@ public class PhoneAlerter implements IAlerter {
 
             String msg = "作业执行失败, ID:" + flow.getId() + ", Name:" + flow.getName();
             logger.warn(msg);
-            String phoneList = StringUtils.isNotBlank(config.getPhoneList()) ?
+            String phoneList = config != null && StringUtils.isNotBlank(config.getPhoneList()) ?
                     defaultList + config.getPhoneList() : defaultList;
             service.submit(() -> {
                 api.send(phoneList, msg);
