@@ -112,7 +112,7 @@ public class JobService {
         Job checkSizeJob = new Job();
         checkSizeJob.setName(importDataFlow.getGroup() + "ChkSize");
         checkSizeJob.setHandler(importDataFlow.getSizeHandler());
-        checkSizeJob.setJobType(ImportDataFlow.CHECK_FILE_CONTENT_JOB_TYPE);
+        checkSizeJob.setJobType("shell");
         checkSizeJob.setCreateTime(new Date());
         checkSizeJob.setCreateUser(userName);
         checkSizeJob.setContent(importDataFlow.getSize());
@@ -134,7 +134,7 @@ public class JobService {
         Job checkContentJob = new Job();
         checkContentJob.setName(importDataFlow.getGroup() + "ChkFile");
         checkContentJob.setHandler(importDataFlow.getContentHandler());
-        checkContentJob.setJobType("python");
+        checkContentJob.setJobType("ChkFile");
         checkContentJob.setCreateTime(new Date());
         checkContentJob.setCreateUser(userName);
         checkContentJob.setContent(importDataFlow.getContent());

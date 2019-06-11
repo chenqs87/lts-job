@@ -68,4 +68,6 @@ fi
 
 hadoop --config ${hadoop_config} jar ${jar_file} ${main_class} ${format_param}
 
+exit $?
+
 echo "=============================== end import data ================================"

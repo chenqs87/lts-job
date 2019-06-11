@@ -23,16 +23,32 @@ if [ "x${inputFile}" = "x" ]; then
     exit -1
 fi
 
-stat=$(hadoop --config ${hadoop_config} fs -stat ${inputFile})
+hadoop --config ${hadoop_config} fs -e ${inputFile}
 
-if [ "x${stat}" = "x" ]; then
-    echo "[ImportData][INFO] ImportConfig file [${inputFile}] is empty!"
+if [ $? -ne 0 ]; then
+    echo "[ImportData][INFO] ImportConfig file [${inputFile}] is not exist!"
     exit -1
 fi
 
+#判断是否是文件
+hadoop --config ${hadoop_config} fs -f ${inputFile}
+
+input="${inputFile}"
+
+if [ $? -ne 0 ]; then
+    hadoop --config ${hadoop_config} fs -d ${inputFile}
+    if [ $? -eq 0 ]; then
+        input="${inputFile}/*"
+    else
+        echo "[ImportData][INFO] ImportConfig file [${inputFile}] is not a file or a directory!"
+        exit -1
+    fi
+
+fi
 
 echo "------------------------- check input file ----------------------------"
 
-hadoop --config ${hadoop_config} fs -text ${inputFile} | head -1000 | python ${execFile}
+hadoop --config ${hadoop_config} fs -text ${input} | head -1000 | python ${execFile}
 
-echo "------------------------- success ----------------------------"
+exit $?
+

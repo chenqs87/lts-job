@@ -21,7 +21,7 @@ import java.nio.file.StandardCopyOption;
  * @author chenqingsong
  * @date 2019/5/23 17:36
  */
-@JobType("checkFileContent")
+@JobType("ChkFile")
 public class CheckFileScriptJobTypeHandler implements IJobTypeHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(CheckFileScriptJobTypeHandler.class);
