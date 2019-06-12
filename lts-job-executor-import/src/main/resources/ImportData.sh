@@ -1,8 +1,18 @@
 #!/usr/bin/env bash
 #set -x
 params=$1
-oldConfig="/user/pub/old_jar_zip/path"
-newConfig="/user/pub/old_jar_zip/path"
+
+#导入数据老的程序包，对应项目rec-datatools,生产环境
+oldConfig="/user/pub/cqs/import-data/new/azkaban-job.zip"
+#老程序包灰度环境
+oldGreyConfig="/user/pub/cqs/import-data/new/azkaban-job.zip"
+
+#导入数据新程序包，对应项目data-x-zy,生产环境
+newConfig="/user/pub/cqs/import-data/new/azkaban-job.zip"
+
+#导入数据新程序包灰度环境
+newGreyConfig="/user/pub/cqs/import-data/new/azkaban-job.zip"
+
 hadoop_config="${HaoopConfigDir}"
 
 echo "[ImportData][INFO] params:${params}"
@@ -10,6 +20,8 @@ echo "[ImportData][INFO] params:${params}"
 inputFile="`echo ${params} | grep -Po 'input[":]+\K[^"]+'`"
 
 type="`echo ${params} | grep -Po 'type[":]+\K[^"]+'`"
+
+execEnv="`echo ${params} | grep -Po 'env[":]+\K[^"]+'`"
 
 if [ -z "${inputFile}" ] || [ "x${inputFile}" = "x" ]; then
     echo "[ImportData][INFO] Param [input] is needed!"
@@ -21,12 +33,21 @@ if [ "x${type}" = "x" ]; then
     echo "[ImportData][INFO] Param [type] is needed!"
     exit -1
 elif [ "x${type}" = "xold" ]; then
-    java_zip_path="${oldConfig}"
-    echo "[ImportData][INFO] Will use config : ${oldConfig}"
+    if [ "x${execEnv}" = "xprod" ]; then
+        java_zip_path="${oldConfig}"
+    else
+        java_zip_path="${oldGreyConfig}"
+    fi
+
 else
-    java_zip_path="${newConfig}"
-    echo "[ImportData][INFO] Will use config : ${newConfig}"
+    if [ "x${execEnv}" = "xprod" ]; then
+        java_zip_path="${newConfig}"
+    else
+        java_zip_path="${newGreyConfig}"
+    fi
 fi
+
+echo "[ImportData][INFO] Will use config : ${java_zip_path}"
 
 exec_dir=$(cd `dirname $0`; pwd)
 
@@ -34,10 +55,19 @@ echo "[ImportData][INFO] begin to get file [${java_zip_path}] from hdfs !"
 
 hadoop --config ${hadoop_config} fs -get ${java_zip_path} ${exec_dir}
 
+if [ $? -ne 0 ]; then
+    echo "[ImportData][INFO] Fail to get file !"
+    exit -1
+fi
+
 cd ${exec_dir}; unzip ./*.zip
 
+if [ $? -ne 0 ]; then
+    echo "[ImportData][INFO] Fail to unzip the zip !"
+    exit -1
+fi
 
-echo "[ImportData][INFO] success to get file !"
+echo "[ImportData][INFO] Success to get file !"
 
 echo "=============================== begin import data ==============================="
 
@@ -53,8 +83,6 @@ else
     jar_file="./azkaban-job.jar"
     main_class="com.zy.data.tool.lts.LtsJobImportMain"
 fi
-
-hadoop_config="./hadoop-config"
 
 if [ ! -f "${jar_file}" ];then
     echo "[ImportData][INFO] File [azkaban-job.jar] is not exist!"
