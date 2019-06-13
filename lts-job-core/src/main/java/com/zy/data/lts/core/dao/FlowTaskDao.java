@@ -50,7 +50,7 @@ public interface FlowTaskDao {
             " status =#{statusId} and" +
             " </if>" +
             " 1=1" +
-             " order by begin_time desc"+
+             " order by id desc"+
             "</script>")
     List<FlowTask> select(@Param("flowId") int flowId,@Param("statusId") int statusId);
 

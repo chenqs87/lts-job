@@ -39,7 +39,7 @@ public interface JobDao {
             "<if test='group != null'>" +
             " `group` like CONCAT('%',#{group},'%') and " +
             " </if>"
-            + "1=1" +
+            + "1=1 order by id desc" +
             "</script>")
     List<Job> select(Object params);
 
@@ -66,7 +66,7 @@ public interface JobDao {
             "<if test='group != null'>" +
             " and j.group like CONCAT('%',#{group},'%') " +
             " </if>" +
-
+            " order by j.id desc" +
             "</script>")
     List<Job> selectByUser(Object params);
 
@@ -81,7 +81,7 @@ public interface JobDao {
             "<if test='group != null'>" +
             " and j.group like CONCAT('%',#{group},'%') " +
             " </if>" +
-
+            " order by j.id desc" +
             "</script>")
     List<Job> selectByGroup(Object params);
 
