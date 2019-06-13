@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 9091
   servlet:
     context-path: /
 spring:
@@ -7,10 +7,10 @@ spring:
     store-type: none
   datasource:
     name: lts-executor
-    url: jdbc:mysql://localhost:3306/lts-job?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false
-    username: root
-#    password: root
-    password: 123456
+    url: jdbc:mysql://10.100.40.189:3326/lts_job?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false
+    username: lts_job
+    #    password: root
+    password: nZfbMTvcZkzALqTF
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
 
@@ -25,15 +25,14 @@ lts:
   server:
     role: executor
     executor:
-      execute-root: /tmp/lts-executor/logs
-      adminUrl: http://localhost:8080
+      execute-root: /data/www/lts-job/lts-executor-import/execute
+      adminUrl: http://10.100.102.23:9090
       handler:
-        name: test
-        host: localhost:8081
+        name: ImportData
+        host: 10.100.102.23:9091
       execute-env:
-        #文件内容，最新java压缩包在HDFS中的位置
-        NewVersionImportConfig: /home/chenqs/import-data/new/config
-        OldVersionImportConfig: /home/chenqs/import-data/new/config
+        CheckInputContentScript: /data/www/lts-job/lts-executor-import/conf/CheckFileContent.sh
+        HaoopConfigDir: /data/www/lts-job/lts-executor-import/conf/hadoop-config
   job:
     thread:
       pools:

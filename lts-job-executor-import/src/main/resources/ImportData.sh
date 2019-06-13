@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #set -x
-params=$1
+params=$(echo "$1" | awk 'BEGIN{ORS=" "}{print $0}'| sed s/[[:space:]]//g)
 
 #导入数据老的程序包，对应项目rec-datatools,生产环境
 oldConfig="/user/pub/cqs/import-data/new/azkaban-job.zip"
