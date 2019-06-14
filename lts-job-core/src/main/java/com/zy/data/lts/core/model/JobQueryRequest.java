@@ -1,5 +1,7 @@
 package com.zy.data.lts.core.model;
 
+import com.zy.data.lts.core.RoleEnum;
+
 /**
  * @author chenqingsong
  * @date 2019/5/7 09:42
@@ -10,6 +12,7 @@ public class JobQueryRequest extends PagerRequest {
     private String group;
     private String userGroup;
     private String username;
+    private RoleEnum role;
     private int permit;
 
     public String getName() {
@@ -50,5 +53,13 @@ public class JobQueryRequest extends PagerRequest {
 
     public void setPermit(int permit) {
         this.permit = permit;
+    }
+
+    public RoleEnum getRole() {
+        return role;
+    }
+
+    public void setRole(RoleEnum role) {
+        this.role = role;
     }
 }

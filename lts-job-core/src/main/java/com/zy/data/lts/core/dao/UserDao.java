@@ -34,7 +34,7 @@ public interface UserDao {
     @Select("select user_name,role,iphone,email,group_name,create_time from users")
     List<User> findAll();
 
-    @Update("update users set password=#{password},role=#{role},iphone=#{iphone},email=#{email},group_name=#{groupName} " +
+    @Update("update users set role=#{role},iphone=#{iphone},email=#{email},group_name=#{groupName} " +
             "where user_name=#{username}")
     void update(User user);
 

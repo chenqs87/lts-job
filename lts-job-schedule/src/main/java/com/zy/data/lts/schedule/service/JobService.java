@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.google.gson.Gson;
 import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.LtsPermitType;
+import com.zy.data.lts.core.RoleEnum;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.*;
@@ -361,7 +362,9 @@ public class JobService {
         PageHelper.startPage(request.getPageNum(), request.getPageSize());
         List<Job> ret = jobDao.select(request);
 
-        int permit = LtsPermitEnum.getAllJobPermit();
+        int permit = request.getRole() == RoleEnum.ROLE_ADMIN ? LtsPermitEnum.getAllJobPermit() :
+                LtsPermitEnum.JobView.code;
+
         if (CollectionUtils.isNotEmpty(ret)) {
             ret.forEach(j -> j.setPermit(permit));
         }
@@ -382,12 +385,13 @@ public class JobService {
         return jobDao.selectByGroup(request);
     }
 
-    public List<Flow> findAllFlows(PagerRequest request) {
+    public List<Flow> findAllFlows(FlowQueryRequest request) {
 
         PageHelper.startPage(request.getPageNum(), request.getPageSize());
         List<Flow> ret = flowDao.select();
 
-        int permit = LtsPermitEnum.getAllFlowPermit();
+        int permit = request.getRole() == RoleEnum.ROLE_ADMIN ? LtsPermitEnum.getAllFlowPermit() :
+                LtsPermitEnum.FlowView.code;
         if (CollectionUtils.isNotEmpty(ret)) {
             ret.forEach(j -> j.setPermit(permit));
         }

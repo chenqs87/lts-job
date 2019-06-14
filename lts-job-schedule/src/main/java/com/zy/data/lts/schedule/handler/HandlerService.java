@@ -61,6 +61,7 @@ public class HandlerService implements IExecutorApi {
         // 更新executor 心跳时间
         executorMap.computeIfPresent(hostAndPort, (k, v) -> {
             v.setLastUpdateTime(System.currentTimeMillis());
+            v.setHandler(beat.getHandler());
             return v;
         });
 

@@ -1,6 +1,7 @@
 package com.zy.data.lts.console;
 
 import com.github.pagehelper.PageInfo;
+import com.sun.org.apache.regexp.internal.RE;
 import com.zy.data.lts.core.FlowTaskStatus;
 import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.LtsPermitType;
@@ -151,8 +152,10 @@ public class ConsoleFlowController {
     public ResponseEntity getAllJobsByUser(JobQueryRequest request) {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.JobView.code);
+        RoleEnum role = getRole();
+        request.setRole(role);
 
-        return ResponseEntity.ok(new PageInfo<>(isAdmin() ?
+        return ResponseEntity.ok(new PageInfo<>(role != RoleEnum.ROLE_USER ?
                 jobService.findAllJobs(request) : jobService.findJobsByUser(request)));
     }
 
@@ -161,7 +164,9 @@ public class ConsoleFlowController {
     public ResponseEntity getAllJobsByGroup(JobQueryRequest request) {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.JobView.code);
-        return ResponseEntity.ok(new PageInfo<>(isAdmin() ?
+        RoleEnum role = getRole();
+        request.setRole(role);
+        return ResponseEntity.ok(new PageInfo<>(role != RoleEnum.ROLE_USER ?
                 jobService.findAllJobs(request) : jobService.findJobsByGroup(request)));
     }
 
@@ -170,7 +175,9 @@ public class ConsoleFlowController {
     public ResponseEntity getAllFlowsByUser(FlowQueryRequest request) {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.FlowView.code);
-        return ResponseEntity.ok(new PageInfo<>(isAdmin() ?
+        RoleEnum role = getRole();
+        request.setRole(role);
+        return ResponseEntity.ok(new PageInfo<>(role != RoleEnum.ROLE_USER ?
                 jobService.findAllFlows(request) : jobService.findFlowsByUser(request)));
     }
 
@@ -179,7 +186,11 @@ public class ConsoleFlowController {
     public ResponseEntity getAllFlowsByGroup(FlowQueryRequest request) {
         request.setUsername(getCurrentUserName());
         request.setPermit(LtsPermitEnum.FlowView.code);
-        return ResponseEntity.ok(new PageInfo<>(isAdmin() ?
+
+        RoleEnum role = getRole();
+        request.setRole(role);
+
+        return ResponseEntity.ok(new PageInfo<>(role != RoleEnum.ROLE_USER ?
                 jobService.findAllFlows(request) : jobService.findFlowsByGroup(request)));
     }
 
@@ -270,10 +281,18 @@ public class ConsoleFlowController {
         return user.getUsername();
     }
 
-    private boolean isAdmin() {
+    private RoleEnum getRole() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User user = (User) authentication.getPrincipal();
-        SimpleGrantedAuthority authority = new SimpleGrantedAuthority(RoleEnum.ROLE_ADMIN.name());
-        return user.getAuthorities().contains(authority);
+
+        if(user.getAuthorities().contains(new SimpleGrantedAuthority(RoleEnum.ROLE_ADMIN.name()))) {
+            return RoleEnum.ROLE_ADMIN;
+        } else if(user.getAuthorities().contains(new SimpleGrantedAuthority(RoleEnum.ROLE_MONITOR.name()))) {
+            return RoleEnum.ROLE_MONITOR;
+        } else {
+            return RoleEnum.ROLE_USER;
+        }
     }
+
+
 }
