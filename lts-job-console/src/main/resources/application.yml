@@ -42,3 +42,10 @@ lts:
             queueCapacity: 1000
             wait-for-tasks-to-complete-on-shutdown: true
             await-termination-seconds: 60
+
+zookeeper:
+  server: localhost:2181
+  sessionTimeoutMs: 6000
+  connectionTimeoutMs: 6000
+  maxRetries: 3
+  baseSleepTimeMs: 1000

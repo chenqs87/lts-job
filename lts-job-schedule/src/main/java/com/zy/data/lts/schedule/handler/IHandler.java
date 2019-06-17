@@ -10,7 +10,7 @@ import java.util.function.Consumer;
  * @author chenqingsong
  * @date 2019/5/10 18:21
  */
-public interface IHandler extends IExecutorApi,Closeable {
+public interface IHandler extends IExecutorApi, Closeable {
 
     /**
      * Executor 心跳监测及注册

@@ -10,6 +10,7 @@
         <module>lts-job-executor</module>
         <module>lts-job-executor-import</module>
         <module>distribution</module>
+        <module>lts-job-ha</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -60,6 +61,11 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>com.zy.data.lts</groupId>
+                <artifactId>lts-job-ha</artifactId>
+                <version>${project.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>

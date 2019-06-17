@@ -29,5 +29,10 @@
             <artifactId>lts-job-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.zy.data.lts</groupId>
+            <artifactId>lts-job-ha</artifactId>
+        </dependency>
+
     </dependencies>
 </project>
