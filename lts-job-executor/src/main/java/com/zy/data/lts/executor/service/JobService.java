@@ -65,8 +65,10 @@ public class JobService implements ApplicationContextAware {
     private ApplicationContext applicationContext;
 
     @Async(EXECUTOR_THREAD_POOL)
-    public void doExec(ExecuteRequest req) {
+    public void exec(ExecuteRequest req) {
         try {
+            flowScheduleLogDao.insert(new FlowScheduleLog(req.getFlowTaskId(),
+                    "Executor begin to execute task [" + req.getTaskId() + "]"));
             Task task = taskDao.findById(req.getFlowTaskId(), req.getTaskId());
             Job job = jobDao.findById(task.getJobId());
 
@@ -100,12 +102,6 @@ public class JobService implements ApplicationContextAware {
         }
     }
 
-
-    public void exec(ExecuteRequest req) {
-        flowScheduleLogDao.insert(new FlowScheduleLog(req.getFlowTaskId(),
-                "Executor fetch task [" + req.getTaskId() + "]"));
-        doExec(req);
-    }
 
     @Async(EXECUTOR_THREAD_POOL)
     public void killTask(KillTaskRequest req) {

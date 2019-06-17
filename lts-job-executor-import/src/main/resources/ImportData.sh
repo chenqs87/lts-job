@@ -15,8 +15,8 @@ echo "[ImportData][INFO] params:${params}"
 inputFile="`echo ${params} | grep -Po 'input[":]+\K[^"]+'`"
 
 type="`echo ${params} | grep -Po 'type[":]+\K[^"]+'`"
-version="`echo ${params} | grep -Po 'version[":]+\K[^"]+'`"
 
+version="`echo ${params} | grep -Po 'version[":]+\K[^"]+'`"
 
 execEnv="`echo ${params} | grep -Po 'env[":]+\K[^"]+'`"
 
@@ -26,8 +26,8 @@ if [ -z "${inputFile}" ] || [ "x${inputFile}" = "x" ]; then
 fi
 
 java_zip_path=""
-if [ "x${type}" = "x" ]; then
-    echo "[ImportData][INFO] Param [type] is needed!"
+if [ "x${version}" = "x" ]; then
+    echo "[ImportData][INFO] Param [version] is needed!"
     exit -1
 elif [ "x${version}" = "xold" ]; then
     if [ "x${execEnv}" = "xprod" ]; then
@@ -73,7 +73,7 @@ format_param=$(echo "${params}" | awk 'BEGIN{ORS=" "}{print $0}'| sed s/[[:space
 jar_file=""
 main_class=""
 
-if [ "x${type}" = "xold" ]; then
+if [ "x${version}" = "xold" ]; then
     jar_file="./rec-datatools.jar"
     main_class="com.zy.rec.data.lts.LtsJobImportMain"
 else
@@ -91,7 +91,7 @@ if [ ! -d "${hadoop_config}" ];then
     exit -1
 fi
 
-#hadoop --config ${hadoop_config} jar ${jar_file} ${main_class} ${format_param}
+hadoop --config ${hadoop_config} jar ${jar_file} ${main_class} ${format_param}
 
 exit $?
 
