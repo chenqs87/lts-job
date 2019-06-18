@@ -46,8 +46,6 @@ public class ExecutorController {
     @PostMapping("/exec")
     @ResponseBody
     public ResponseEntity executeTask(@RequestBody ExecuteRequest req) throws IOException {
-
-        logger.error("exec =======   [{}] ", req);
         jobService.exec(req);
         return ResponseEntity.ok().build();
     }

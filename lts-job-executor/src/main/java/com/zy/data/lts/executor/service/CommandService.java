@@ -9,6 +9,7 @@ import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
 import com.zy.data.lts.executor.model.KillJobEvent;
 import com.zy.data.lts.executor.type.IJobTypeHandler;
+import com.zy.data.lts.executor.utils.LocalFileLogger;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,11 +120,11 @@ public class CommandService implements ApplicationContextAware {
 
         try (InputStream is = process.getInputStream();
              InputStream error = process.getErrorStream()) {
-            logService.write(event, is, SYS_LOG_FILE);
-            logService.write(event, error, SYS_ERR_FILE);
+            LocalFileLogger lfl = logService.createLogger(event,is, error, SYS_LOG_FILE);
 
-            process.waitFor();
-            exitValue = process.exitValue();
+            exitValue = process.waitFor();
+
+            lfl.awaitCompletion(5000);
 
         } catch (InterruptedException ignore) {
         } finally {

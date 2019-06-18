@@ -2,6 +2,9 @@ package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
+import com.zy.data.lts.executor.utils.LocalFileLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,7 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * @author chenqingsong
@@ -21,7 +25,7 @@ import java.nio.file.Paths;
 
 @Service
 public class LogService {
-
+    private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 
     @Autowired
     private ExecutorConfig executorConfig;
@@ -46,6 +50,15 @@ public class LogService {
 
         }
     }
+
+    public LocalFileLogger createLogger(JobExecuteEvent event, InputStream is, InputStream error ,String logName) throws IOException {
+        Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
+        Path logFile = newFileOutput(root, logName);
+        Files.deleteIfExists(logFile);
+        return new LocalFileLogger(logFile, Arrays.asList(is, error));
+    }
+
+
 
 
     public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, String logName, HttpServletResponse response) throws IOException {
