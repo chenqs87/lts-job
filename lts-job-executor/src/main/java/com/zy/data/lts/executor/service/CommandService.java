@@ -37,7 +37,6 @@ public class CommandService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
     private static final String SYS_LOG_FILE = "syslog";
-    private static final String SYS_ERR_FILE = "syserr";
 
     private static final Object EMPTY_OBJECT = new Object();
     private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();

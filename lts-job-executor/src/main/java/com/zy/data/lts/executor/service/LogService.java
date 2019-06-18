@@ -30,27 +30,6 @@ public class LogService {
     @Autowired
     private ExecutorConfig executorConfig;
 
-    public void write(JobExecuteEvent event, InputStream is, String logName) throws IOException {
-        Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
-        Path logFile = newFileOutput(root, logName);
-
-        if (logFile != null) {
-            Files.deleteIfExists(logFile);
-
-            try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-                 OutputStream fos = Files.newOutputStream(logFile)) {
-                String str;
-                while ((str = bis.readLine()) != null) {
-                    fos.write(str.getBytes());
-                    fos.write('\n');
-                    fos.flush();
-                }
-            }
-            // Files.copy(is, logFile);
-
-        }
-    }
-
     public LocalFileLogger createLogger(JobExecuteEvent event, InputStream is, InputStream error ,String logName) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         Path logFile = newFileOutput(root, logName);
@@ -68,8 +47,6 @@ public class LogService {
         File file = path.toFile();
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));
-        response.getOutputStream().print("--------------------------------------------------\n");
-        response.getOutputStream().print(logName+" output is :\n");
         try (FileInputStream fis = new FileInputStream(file);
              FileChannel channel = fis.getChannel()) {
             WritableByteChannel output = Channels.newChannel(response.getOutputStream());
@@ -78,8 +55,8 @@ public class LogService {
     }
 
     private Path newFileOutput(Path rootPah, String fileName) {
+        Path logFile = buildOutputPath(rootPah, fileName);
         try {
-            Path logFile = buildOutputPath(rootPah, fileName);
 
             if (!Files.exists(logFile)) {
                 Files.createFile(logFile);
@@ -87,8 +64,7 @@ public class LogService {
 
             return logFile;
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new IllegalStateException("Fail to create output path ["+ logFile +"]");
         }
     }
 
