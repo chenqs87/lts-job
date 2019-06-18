@@ -12,13 +12,9 @@ hadoop_config="${HaoopConfigDir}"
 
 echo "[ImportData][INFO] params:${params}"
 
-inputFile="`echo ${params} | grep -Po 'input[":]+\K[^"]+'`"
+inputFile="${input}"
 
-type="`echo ${params} | grep -Po 'type[":]+\K[^"]+'`"
-
-version="`echo ${params} | grep -Po 'version[":]+\K[^"]+'`"
-
-execEnv="`echo ${params} | grep -Po 'env[":]+\K[^"]+'`"
+execEnv="${env}"
 
 if [ -z "${inputFile}" ] || [ "x${inputFile}" = "x" ]; then
     echo "[ImportData][INFO] Param [input] is needed!"
