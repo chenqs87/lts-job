@@ -2,6 +2,9 @@ package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
+import com.zy.data.lts.executor.utils.LocalFileLogger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +16,7 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 
 /**
  * @author chenqingsong
@@ -21,31 +25,19 @@ import java.nio.file.Paths;
 
 @Service
 public class LogService {
-
+    private static final Logger logger = LoggerFactory.getLogger(LogService.class);
 
     @Autowired
     private ExecutorConfig executorConfig;
 
-    public void write(JobExecuteEvent event, InputStream is, String logName) throws IOException {
+    public LocalFileLogger createLogger(JobExecuteEvent event, InputStream is, InputStream error ,String logName) throws IOException {
         Path root = executorConfig.getExecDir(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         Path logFile = newFileOutput(root, logName);
-
-        if (logFile != null) {
-            Files.deleteIfExists(logFile);
-
-            try (BufferedReader bis = new BufferedReader(new InputStreamReader(is));
-                 OutputStream fos = Files.newOutputStream(logFile)) {
-                String str;
-                while ((str = bis.readLine()) != null) {
-                    fos.write(str.getBytes());
-                    fos.write('\n');
-                    fos.flush();
-                }
-            }
-            // Files.copy(is, logFile);
-
-        }
+        Files.deleteIfExists(logFile);
+        return new LocalFileLogger(logFile, Arrays.asList(is, error));
     }
+
+
 
 
     public void queryLog(Integer flowTaskId, Integer taskId, Integer shard, String logName, HttpServletResponse response) throws IOException {
@@ -55,8 +47,6 @@ public class LogService {
         File file = path.toFile();
         long length = file.length() - offset;
         response.setHeader("FileSize", String.valueOf(length));
-        response.getOutputStream().print("--------------------------------------------------\n");
-        response.getOutputStream().print(logName+" output is :\n");
         try (FileInputStream fis = new FileInputStream(file);
              FileChannel channel = fis.getChannel()) {
             WritableByteChannel output = Channels.newChannel(response.getOutputStream());
@@ -65,8 +55,8 @@ public class LogService {
     }
 
     private Path newFileOutput(Path rootPah, String fileName) {
+        Path logFile = buildOutputPath(rootPah, fileName);
         try {
-            Path logFile = buildOutputPath(rootPah, fileName);
 
             if (!Files.exists(logFile)) {
                 Files.createFile(logFile);
@@ -74,8 +64,7 @@ public class LogService {
 
             return logFile;
         } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+            throw new IllegalStateException("Fail to create output path ["+ logFile +"]");
         }
     }
 

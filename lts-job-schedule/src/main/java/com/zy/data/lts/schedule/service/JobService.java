@@ -171,7 +171,7 @@ public class JobService {
         flowRep.setCreateTime(new Date());
         flowRep.setPolicyName(repmPolicyDao.wrapUsername(flow.getCreateUser()));
         flowRep.setResource(flow.getId());
-        flowRep.setPermit(LtsPermitEnum.FlowView.code);
+        flowRep.setPermit(LtsPermitEnum.getAllFlowPermit());
         flowRep.setType(LtsPermitType.Flow.name());
         repmPolicyDao.insert(flowRep);
 

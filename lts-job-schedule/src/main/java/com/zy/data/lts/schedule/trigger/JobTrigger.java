@@ -21,6 +21,7 @@ import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
 import com.zy.data.lts.core.TaskStatus;
 import com.zy.data.lts.schedule.tools.IntegerTool;
+import com.zy.data.lts.schedule.tools.JexlUtil;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +76,9 @@ public class JobTrigger {
 
     @Autowired
     private FlowScheduleLogDao flowScheduleLogDao;
+
+    @Autowired
+    private JexlUtil jexlUtil;
 
     private static volatile JobTrigger jobTriggerProxy;
 
@@ -274,7 +278,7 @@ public class JobTrigger {
         flowTask.setFlowId(flow.getId());
         flowTask.setStatus(FlowTaskStatus.New.getCode());
         flowTask.setBeginTime(new Date());
-        flowTask.setParams(StringUtils.isBlank(params) ? flow.getParams() : params);
+        flowTask.setParams(jexlUtil.format(StringUtils.isBlank(params) ? flow.getParams() : params));
         flowTask.setTriggerMode(triggerMode.getCode());
 
         flowTaskDao.insert(flowTask);

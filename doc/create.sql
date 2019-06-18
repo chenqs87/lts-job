@@ -184,7 +184,7 @@ CREATE TABLE `flow` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL,
   `flow_config` varchar(500) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cron` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `cron` varchar(45) COLLATE utf8_unicode_ci DEFAULT NULL,
   `flow_status` smallint(1) DEFAULT NULL,
   `create_time` datetime DEFAULT NULL,
   `start_time` datetime DEFAULT NULL,

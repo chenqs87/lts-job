@@ -30,6 +30,11 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-jexl3</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>com.zy.data.lts</groupId>
             <artifactId>lts-job-ha</artifactId>
         </dependency>

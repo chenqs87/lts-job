@@ -72,12 +72,19 @@ public class PhoneAlerter implements IAlerter {
             Flow flow = flowDao.findById(error.getFlowId());
             AlertConfig config = alertConfigDao.findByFlowId(error.getFlowId());
 
-            String msg = "作业执行失败, ID:" + flow.getId() + ", Name:" + flow.getName();
+            String msg = "[LTS-JOB]作业执行失败, 任务ID:" + flow.getId() + ", 任务名称:" + flow.getName();
             logger.warn(msg);
             String phoneList = config != null && StringUtils.isNotBlank(config.getPhoneList()) ?
-                    defaultList + config.getPhoneList() : defaultList;
+                    defaultList + "," + config.getPhoneList() : defaultList;
             service.submit(() -> {
-                api.send(phoneList, msg);
+                logger.info("Begin to send msg to phone [{}]", phoneList);
+                try {
+                    PhoneSendResponse response = api.send(phoneList, msg);
+                    logger.info("FlowID: [{}], FlowTaskId: [{}], Send Response: code [{}], msg [{}]",
+                            error.getFlowId(), error.getId(), response.getCode(), response.getMsg() );
+                } catch (Exception e) {
+                    logger.error("Fail to send msg to [{}]", phoneList, e);
+                }
             });
         } catch (Exception e) {
             logger.error("Fail to send msg to phone!!", e);

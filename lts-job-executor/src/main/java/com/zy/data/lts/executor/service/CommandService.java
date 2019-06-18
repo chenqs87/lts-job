@@ -9,6 +9,7 @@ import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
 import com.zy.data.lts.executor.model.KillJobEvent;
 import com.zy.data.lts.executor.type.IJobTypeHandler;
+import com.zy.data.lts.executor.utils.LocalFileLogger;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +37,6 @@ public class CommandService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(CommandService.class);
 
     private static final String SYS_LOG_FILE = "syslog";
-    private static final String SYS_ERR_FILE = "syserr";
 
     private static final Object EMPTY_OBJECT = new Object();
     private final ConcurrentHashMap<String, Process> runningTasks = new ConcurrentHashMap<>();
@@ -69,7 +69,7 @@ public class CommandService implements ApplicationContextAware {
         }
 
         String[] command = jobTypeHandler.createCommand(event);
-        int ret = execCommand(event, command);
+        int ret = execCommand(event, command, jobTypeHandler.getEnv(event));
         callback(ret, event);
     }
 
@@ -110,22 +110,24 @@ public class CommandService implements ApplicationContextAware {
         }
     }
 
-    private int execCommand(JobExecuteEvent event, String[] command) throws IOException {
-        int exitValue = -1;
-        Process process = Runtime.getRuntime().exec(command, getEnv());
+    private int execCommand(JobExecuteEvent event, String[] command, Map<String, Object> env) throws IOException {
+
+        Process process = Runtime.getRuntime().exec(command, createEnv(env));
 
         String runningKey = buildKey(event.getFlowTaskId(), event.getTaskId(), event.getShard());
         runningTasks.put(runningKey, process);
 
+        int exitValue = -1;
         try (InputStream is = process.getInputStream();
              InputStream error = process.getErrorStream()) {
-            logService.write(event, is, SYS_LOG_FILE);
-            logService.write(event, error, SYS_ERR_FILE);
+            LocalFileLogger lfl = logService.createLogger(event,is, error, SYS_LOG_FILE);
 
-            process.waitFor();
-            exitValue = process.exitValue();
+            exitValue = process.waitFor();
+
+            lfl.awaitCompletion(5000);
 
         } catch (InterruptedException ignore) {
+
         } finally {
             runningTasks.remove(runningKey);
         }
@@ -133,12 +135,16 @@ public class CommandService implements ApplicationContextAware {
         return exitValue;
     }
 
-    private String[] getEnv() {
+    private String[] createEnv(Map<String, Object> paramEnv) {
         Map<String, String> env = Maps.newHashMap(System.getenv());
         env.putAll(executorConfig.getExecuteEnv());
         List<String> ret = new LinkedList<>();
         if(MapUtils.isNotEmpty(env)) {
             env.forEach((k,v) -> ret.add(k + "=" + v));
+        }
+
+        if (MapUtils.isNotEmpty(paramEnv)) {
+            paramEnv.forEach((k,v) -> ret.add(k + "=" + v));
         }
 
         return ret.toArray(new String[0]);
