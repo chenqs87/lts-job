@@ -52,6 +52,8 @@ public class JexlUtil {
             matcher.appendReplacement(sb, execute(aa).toString());
         }
 
+        matcher.appendTail(sb);
+
         return sb.toString();
     }
 }
