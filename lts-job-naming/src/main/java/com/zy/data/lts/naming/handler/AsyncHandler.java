@@ -1,20 +1,17 @@
-package com.zy.data.lts.schedule.handler;
+package com.zy.data.lts.naming.handler;
 
 import com.zy.data.lts.core.model.ExecuteRequest;
-import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Async;
 
+import javax.annotation.PreDestroy;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.jar.JarEntry;
 
 /**
- * TODO:::异步执行
+ * 使用线程池异步处理
  * @author chenqingsong
  * @date 2019/5/13 10:06
  */
@@ -25,16 +22,16 @@ public class AsyncHandler implements IHandler {
     private final ExecutorService executorService ;
     private final IHandler handler;
 
-    public AsyncHandler(IHandler handler) {
-        this.handler = handler;
-        this.executorService = new ThreadPoolExecutor(2,
-                2, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(), new HandlerThreadFactory(handler.name()));
+    public AsyncHandler(String handlerName) {
+        this.handler = SpringContext.getOrCreateBean(
+                handlerName + RoundRobinHandler.class.getName(), RoundRobinHandler.class, handlerName);
+        this.executorService = new ThreadPoolExecutor(5,
+                10, 1L, TimeUnit.MINUTES,
+                new LinkedBlockingQueue<>(), new HandlerThreadFactory(handlerName));
     }
 
     @Override
     public void execute(ExecuteRequest request) {
-
         executorService.execute(() -> handler.execute(request));
     }
 
@@ -43,11 +40,7 @@ public class AsyncHandler implements IHandler {
         executorService.execute(() -> handler.kill(request));
     }
 
-    @Override
-    public void beat(Executor executor) {
-         handler.beat(executor);
-    }
-
+    @PreDestroy
     @Override
     public void close() {
         try {
@@ -56,13 +49,13 @@ public class AsyncHandler implements IHandler {
         } catch (Exception ignore) { }
     }
 
-    static class HandlerThreadFactory implements ThreadFactory {
+    public static class HandlerThreadFactory implements ThreadFactory {
         private static final AtomicInteger poolNumber = new AtomicInteger(1);
         private final ThreadGroup group;
         private final AtomicInteger threadNumber = new AtomicInteger(1);
         private final String namePrefix;
 
-        HandlerThreadFactory(String handlerName) {
+        public HandlerThreadFactory(String handlerName) {
             SecurityManager s = System.getSecurityManager();
             group = (s != null) ? s.getThreadGroup() :
                     Thread.currentThread().getThreadGroup();

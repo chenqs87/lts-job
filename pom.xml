@@ -10,7 +10,7 @@
         <module>lts-job-executor</module>
         <module>lts-job-executor-import</module>
         <module>distribution</module>
-        <module>lts-job-ha</module>
+        <module>lts-job-naming</module>
     </modules>
     <parent>
         <groupId>org.springframework.boot</groupId>

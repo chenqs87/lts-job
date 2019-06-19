@@ -1,4 +1,4 @@
-package com.zy.data.lts.ha;
+package com.zy.data.lts.naming;
 
 public class Test {
     public static void main(String[] args) throws InterruptedException {

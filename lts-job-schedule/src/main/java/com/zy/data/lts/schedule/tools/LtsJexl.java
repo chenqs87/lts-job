@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 public class LtsJexl {
 
     /**
-     * lts:date('yyyy-MM-dd HH','-30d','-1h')
+     * #{lts:date('yyyy-MM-dd HH','-1d','-1h')}
      * @param format
      * @param pattern
      * @return

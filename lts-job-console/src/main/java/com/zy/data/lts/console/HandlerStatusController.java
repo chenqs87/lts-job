@@ -1,7 +1,7 @@
 package com.zy.data.lts.console;
 
 import com.zy.data.lts.core.model.BeatInfoRequest;
-import com.zy.data.lts.schedule.handler.HandlerService;
+import com.zy.data.lts.schedule.service.HandlerService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;

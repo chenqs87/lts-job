@@ -6,11 +6,12 @@ import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.config.ThreadPoolsConfig;
 import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.*;
+import com.zy.data.lts.core.model.ExecLogEvent;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.schedule.handler.HandlerService;
+import com.zy.data.lts.schedule.service.HandlerService;
 import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
@@ -413,6 +414,12 @@ public class JobTrigger {
                 }
             }
         }
+    }
+
+    @EventListener
+    @Transactional(propagation = REQUIRES_NEW)
+    public void writeExecLog(ExecLogEvent event) {
+        doWriteLog(event.getFlowTaskId(), event.getMsg());
     }
 
     public static class ShardTask {

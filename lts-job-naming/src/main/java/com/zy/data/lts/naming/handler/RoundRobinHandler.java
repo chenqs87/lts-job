@@ -1,16 +1,18 @@
-package com.zy.data.lts.schedule.handler;
+package com.zy.data.lts.naming.handler;
 
-import com.zy.data.lts.core.model.ExecuteRequest;
-import com.zy.data.lts.core.model.Executor;
-import com.zy.data.lts.core.model.KillTaskRequest;
-import com.zy.data.lts.core.model.UpdateTaskHostEvent;
+import com.zy.data.lts.core.model.*;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.schedule.trigger.JobTrigger;
+import com.zy.data.lts.naming.ExecutorUnConnectedEvent;
+import com.zy.data.lts.naming.LtsHandlerChangeEvent;
 import feign.RetryableException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,14 +27,14 @@ import java.util.function.Consumer;
  * @author chenqingsong
  * @date 2019/5/8 20:30
  */
-public class RoundRobinHandler implements IHandler {
+public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandlerChangeEvent> {
     private Logger logger = LoggerFactory.getLogger(RoundRobinHandler.class);
 
     private static final int MAX_INDEX = 20;
 
     private final AtomicBoolean isRunning = new AtomicBoolean(true);
 
-    // <ip:port, executor>
+    // <ip:port, handler>
     private final Map<String, Executor> executorMap = new ConcurrentHashMap<>();
 
     private final AtomicInteger index = new AtomicInteger(0);
@@ -40,6 +42,7 @@ public class RoundRobinHandler implements IHandler {
     private final String handlerName;
     private final AtomicReferenceArray<String> virtualExecutors;
     private final int roundIndex;
+
 
     public RoundRobinHandler(String handlerName, int roundIndex) {
         this.handlerName = handlerName;
@@ -76,7 +79,7 @@ public class RoundRobinHandler implements IHandler {
     }
 
 
-    public void beat(Executor executor) {
+    public void addNew(Executor executor) {
 
         AtomicBoolean change = new AtomicBoolean(false);
         executorMap.computeIfAbsent(executor.getHost(), f -> {
@@ -156,6 +159,11 @@ public class RoundRobinHandler implements IHandler {
         }
     }
 
+    public List<Executor> getExecutors() {
+        return new ArrayList<>(executorMap.values());
+    }
+
+
     @Override
     public void close() {
         isRunning.set(false);
@@ -168,8 +176,9 @@ public class RoundRobinHandler implements IHandler {
     public void execute(ExecuteRequest request) {
         doExec(executor -> {
             try {
-                JobTrigger.writeLog(request.getFlowTaskId(), "Send task ["+request.getTaskId()+"] to [" + executor.getHost() + "]!");
-                SpringContext.getApplicationContext().publishEvent(
+                SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
+                        "Send task ["+request.getTaskId()+"] to [" + executor.getHost() + "]!"));
+                SpringContext.publishEvent(
                         new UpdateTaskHostEvent(request.getFlowTaskId(), request.getTaskId(), executor.getHost()));
 
                 executor.execute(request);
@@ -178,15 +187,16 @@ public class RoundRobinHandler implements IHandler {
 
                 //失败重发
                 logger.warn("Fail to asyncExec Job", e);
+
                 if (e instanceof RetryableException) {
-                    remove(executor.getHost());
+                    SpringContext.publishEvent(new ExecutorUnConnectedEvent(executor));
                 }
 
-                JobTrigger.writeLog(request.getFlowTaskId(), "Fail to send task to Executor [" + executor.getHost() + "] and ready to retry again!!!");
+                SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
+                        "Fail to send task to Executor [" + executor.getHost() + "] and ready to retry again!!!"));
                 execute(request);
             }
         });
-
     }
 
     @Override
@@ -194,16 +204,35 @@ public class RoundRobinHandler implements IHandler {
         Executor executor = executorMap.get(request.getHost());
 
         if(executor == null) {
-            JobTrigger.writeLog(request.getFlowTaskId(), "Fail to kill task! Executor ["+request.getHost()+"] is not exist!");
+            SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
+                    "Fail to kill task! Executor ["+request.getHost()+"] is not exist!"));
             return;
         }
 
         try {
             executor.kill(request);
-            JobTrigger.writeLog(request.getFlowTaskId(), "Success to send kill task request to Executor [" + request.getHost() + "]");
+            SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
+                    "Success to send kill task request to Executor [" + request.getHost() + "]"));
         } catch (Exception e) {
-            JobTrigger.writeLog(request.getFlowTaskId(), "Fail to kill task! msg: " + e.getMessage());
+            SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
+                    "Fail to kill task! msg: " + e.getMessage()));
             logger.warn("Fail to kill the job [{}] ", request, e);
+        }
+    }
+
+    /**
+     * 广播形式触发，符合条件的handler触发即可
+     * @param event
+     */
+    @Override
+    public void onApplicationEvent(LtsHandlerChangeEvent event) {
+        if(!event.getHandlerName().equals(this.handlerName)) {
+            return;
+        }
+
+        switch (event.getHandlerEventType()) {
+            case NEW: addNew(event.getExecutor()); break;
+            case DELETE: remove(event.getExecutor().getHost()); break;
         }
     }
 }

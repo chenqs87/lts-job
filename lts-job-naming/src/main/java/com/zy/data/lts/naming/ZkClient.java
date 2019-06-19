@@ -1,4 +1,4 @@
-package com.zy.data.lts.ha;
+package com.zy.data.lts.naming;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;

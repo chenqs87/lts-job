@@ -1,4 +1,4 @@
-package com.zy.data.lts.ha;
+package com.zy.data.lts.naming;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
