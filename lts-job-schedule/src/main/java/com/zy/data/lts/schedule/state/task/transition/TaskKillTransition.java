@@ -3,11 +3,14 @@ package com.zy.data.lts.schedule.state.task.transition;
 import com.zy.data.lts.core.dao.TaskDao;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.KillTaskRequest;
+import com.zy.data.lts.schedule.service.HandlerService;
 import com.zy.data.lts.schedule.state.SingleArcTransition;
 import com.zy.data.lts.schedule.state.task.MemTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.core.TaskStatus;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class TaskKillTransition implements SingleArcTransition<MemTask, TaskEvent> {
+    private static final Logger logger = LoggerFactory.getLogger(TaskKillTransition.class);
 
     @Autowired
     TaskDao taskDao;
@@ -34,12 +38,9 @@ public class TaskKillTransition implements SingleArcTransition<MemTask, TaskEven
         taskDao.update(task);
 
         try {
-            jobTrigger.killTask(new KillTaskRequest(task.getHost(),
-                    task.getFlowTaskId(),
-                    task.getTaskId(),
-                    0));
+            jobTrigger.killTask(new KillTaskRequest(task, 0));
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Fail to kill task!", e);
         }
     }
 }

@@ -1,48 +1,30 @@
 package com.zy.data.lts.core.model;
 
+import com.zy.data.lts.core.entity.Task;
+
 /**
  * @author chenqingsong
  * @date 2019/5/8 11:32
  */
 public class KillTaskRequest {
 
-    private String host;
-    private int flowTaskId;
-    private int taskId;
+    private Task task;
     private int shard;
 
     public KillTaskRequest() {
     }
 
-    public KillTaskRequest(String host, int flowTaskId, int taskId, int shard) {
-        this.host = host;
-        this.flowTaskId = flowTaskId;
-        this.taskId = taskId;
+    public KillTaskRequest(Task task, int shard) {
+        this.task = task;
         this.shard = shard;
     }
 
-    public String getHost() {
-        return host;
+    public Task getTask() {
+        return task;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public int getFlowTaskId() {
-        return flowTaskId;
-    }
-
-    public void setFlowTaskId(int flowTaskId) {
-        this.flowTaskId = flowTaskId;
-    }
-
-    public int getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(int taskId) {
-        this.taskId = taskId;
+    public void setTask(Task task) {
+        this.task = task;
     }
 
     public int getShard() {
@@ -54,6 +36,7 @@ public class KillTaskRequest {
     }
 
     public String toString() {
-        return "{host: " + host + ", flowTaskId: " + flowTaskId + ", taskId: " + taskId + ", shard:" + shard + " }";
+        return "{host: " + task.getHost() + ", flowTaskId: " + task.getFlowTaskId()
+                + ", taskId: " + task.getTaskId() + ", shard:" + shard + " }";
     }
 }

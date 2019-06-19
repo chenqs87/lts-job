@@ -1,5 +1,6 @@
 package com.zy.data.lts.naming.handler;
 
+import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.*;
 import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.naming.ExecutorUnConnectedEvent;
@@ -201,20 +202,21 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
 
     @Override
     public void kill(KillTaskRequest request) {
-        Executor executor = executorMap.get(request.getHost());
+        Task task = request.getTask();
+        Executor executor = executorMap.get(task.getHost());
 
         if(executor == null) {
-            SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
-                    "Fail to kill task! Executor ["+request.getHost()+"] is not exist!"));
+            SpringContext.publishEvent(new ExecLogEvent(task.getFlowTaskId(),
+                    "Fail to kill task! Executor ["+task.getHost()+"] is not exist!"));
             return;
         }
 
         try {
             executor.kill(request);
-            SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
-                    "Success to send kill task request to Executor [" + request.getHost() + "]"));
+            SpringContext.publishEvent(new ExecLogEvent(task.getFlowTaskId(),
+                    "Success to send kill task request to Executor [" + task.getHost() + "]"));
         } catch (Exception e) {
-            SpringContext.publishEvent(new ExecLogEvent(request.getFlowTaskId(),
+            SpringContext.publishEvent(new ExecLogEvent(task.getFlowTaskId(),
                     "Fail to kill task! msg: " + e.getMessage()));
             logger.warn("Fail to kill the job [{}] ", request, e);
         }

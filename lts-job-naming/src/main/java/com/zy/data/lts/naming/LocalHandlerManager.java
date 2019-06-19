@@ -1,6 +1,5 @@
 package com.zy.data.lts.naming;
 
-import com.sun.prism.shader.Solid_TextureYV12_AlphaTest_Loader;
 import com.zy.data.lts.core.api.IExecutorApi;
 import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.Executor;

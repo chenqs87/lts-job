@@ -1,9 +1,10 @@
 package com.zy.data.lts.schedule.service;
 
 import com.zy.data.lts.core.api.IExecutorApi;
+import com.zy.data.lts.core.dao.JobDao;
+import com.zy.data.lts.core.entity.Job;
 import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
-import com.zy.data.lts.core.model.Executor;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.naming.LocalHandlerManager;
@@ -18,7 +19,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author chenqingsong
@@ -32,13 +32,8 @@ public class HandlerService implements IExecutorApi {
     @Autowired(required = false)
     private LocalHandlerManager localHandlerManager;
 
-
-    //<handlerName, HandlerAPI>
-    private final Map<String, AsyncHandler> handlerApiMap = new ConcurrentHashMap<>();
-
-    //<host:port, Executor>
-    private final Map<String, Executor> executorMap = new ConcurrentHashMap<>();
-
+    @Autowired
+    private JobDao jobDao;
 
     public void beat(BeatInfoRequest beat) {
         if (beat.getPort() > 0) {
@@ -48,16 +43,20 @@ public class HandlerService implements IExecutorApi {
 
     @Override
     public void execute(ExecuteRequest request) {
-        AsyncHandler asyncHandler = SpringContext.getBeanByName(
-                request.getHandler() + AsyncHandler.class.getName(), AsyncHandler.class);
-        asyncHandler.execute(request);
+        getHandler(request.getHandler()).execute(request);
+    }
+
+    private AsyncHandler getHandler(String handlerName) {
+        return SpringContext.getBeanByName(
+                handlerName + AsyncHandler.class.getName(), AsyncHandler.class);
     }
 
     @Override
     public void kill(KillTaskRequest request) {
-        /*AsyncHandler asyncHandler = SpringContext.getBeanByName(
-                request.getHandler() + AsyncHandler.class.getName(), AsyncHandler.class);*/
+        int jobId = request.getTask().getJobId();
+        Job job = jobDao.findById(jobId);
 
+        getHandler(job.getHandler()).kill(request);
     }
 
     public Map<String, Set<String>> getActiveExecutors() {
@@ -67,9 +66,7 @@ public class HandlerService implements IExecutorApi {
         Map<String, RoundRobinHandler> handlerMap =  SpringContext.getBeansByType(RoundRobinHandler.class);
         handlerMap.values().forEach(handler -> {
             Set<String> hosts = map.computeIfAbsent(handler.name(), f -> new HashSet<>());
-            handler.getExecutors().forEach(executor -> {
-                hosts.add(executor.getHost());
-            });
+            handler.getExecutors().forEach(executor -> hosts.add(executor.getHost()));
         });
 
         return map;
