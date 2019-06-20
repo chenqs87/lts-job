@@ -1,11 +1,10 @@
-package com.zy.data.lts.naming;
+package com.zy.data.lts.naming.zk;
 
 import org.apache.curator.RetryPolicy;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
-import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,30 +25,39 @@ public class ZkClient {
     public void setZookeeperServer(String zookeeperServer) {
         this.zookeeperServer = zookeeperServer;
     }
+
     public String getZookeeperServer() {
         return zookeeperServer;
     }
+
     public void setSessionTimeoutMs(int sessionTimeoutMs) {
         this.sessionTimeoutMs = sessionTimeoutMs;
     }
+
     public int getSessionTimeoutMs() {
         return sessionTimeoutMs;
     }
+
     public void setConnectionTimeoutMs(int connectionTimeoutMs) {
         this.connectionTimeoutMs = connectionTimeoutMs;
     }
+
     public int getConnectionTimeoutMs() {
         return connectionTimeoutMs;
     }
+
     public void setBaseSleepTimeMs(int baseSleepTimeMs) {
         this.baseSleepTimeMs = baseSleepTimeMs;
     }
+
     public int getBaseSleepTimeMs() {
         return baseSleepTimeMs;
     }
+
     public void setMaxRetries(int maxRetries) {
         this.maxRetries = maxRetries;
     }
+
     public int getMaxRetries() {
         return maxRetries;
     }
@@ -69,62 +77,44 @@ public class ZkClient {
         return client;
     }
 
-    public void registerMaster(String host) {
+    public void register(String path) {
         try {
-            String rootPath = "/lts_job/services/masters";
-            client.create()
-                    .creatingParentsIfNeeded()
+            client.create().creatingParentsIfNeeded()
                     .withMode(CreateMode.EPHEMERAL)
-                    .forPath(rootPath + "/" + host);
+                    .forPath(path);
         } catch (Exception e) {
-            logger.error("注册出错", e);
+            logger.error("Fail to register path [{}]", path, e);
         }
     }
 
-    public void registerExecutor(String host, String handler) {
-        try {
-            String rootPath = "/lts_job/services/executors/" + handler;
-            client.create()
-                    .creatingParentsIfNeeded()
-                    .withMode(CreateMode.EPHEMERAL)
-                    .forPath(rootPath + "/" + host);
-
-        } catch (Exception e) {
-            logger.error("注册出错", e);
-        }
-    }
-
-    private List<String> getChildren(String path) {
+    public List<String> getChildren(String path, final Watcher watcher) {
         List<String> childrenList = new ArrayList<>();
         try {
-            childrenList = client.getChildren().usingWatcher(new Watcher() {
-                @Override
-                public void process(WatchedEvent watchedEvent) {
-                    System.out.println("wathched....");
-                }
-            }).forPath(path);
+            childrenList = client.getChildren().usingWatcher(watcher).forPath(path);
         } catch (Exception e) {
-            logger.error("获取子节点出错", e);
+            logger.error("Fail to get children for [{}]", path, e);
         }
         return childrenList;
     }
 
-    public int getChildrenCount(String path) {
-        return getChildren(path).size();
-    }
-
-    public List<String> getMasters() {
-        return getChildren("/lts_job/services/masters");
-    }
-
-    public List<String> getHandlers() {
-        return getChildren("/lts_job/services/executors");
-    }
-
-    public List<String> getExecutors(String handler) {
-        return getChildren("/lts_job/services/executors/" + handler);
+    public byte[] getData(String path, final Watcher watcher) {
+        try {
+           return client.getData().usingWatcher(watcher).forPath(path);
+        } catch (Exception e) {
+            logger.error("Fail to get data for [{}]", path, e);
+            return null;
+        }
     }
 
 
+    public List<String> getChildren(String path) {
+        List<String> childrenList = new ArrayList<>();
+        try {
+            childrenList = client.getChildren().forPath(path);
+        } catch (Exception e) {
+            logger.error("Fail to get children for [{}]", path, e);
+        }
+        return childrenList;
+    }
 
 }

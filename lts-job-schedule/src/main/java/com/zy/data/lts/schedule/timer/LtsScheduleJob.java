@@ -1,5 +1,8 @@
 package com.zy.data.lts.schedule.timer;
 
+import com.zy.data.lts.core.TriggerFlowEvent;
+import com.zy.data.lts.core.TriggerMode;
+import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -17,6 +20,7 @@ public class LtsScheduleJob extends QuartzJobBean {
         JobKey jobKey = context.getJobDetail().getKey();
         String jobName = jobKey.getName();
         int flowId = Integer.parseInt(jobName);
-        JobTrigger.triggerCronFlow(flowId);
+        //JobTrigger.triggerCronFlow(flowId);
+        SpringContext.publishEvent(new TriggerFlowEvent(flowId, TriggerMode.Cron, null));
     }
 }

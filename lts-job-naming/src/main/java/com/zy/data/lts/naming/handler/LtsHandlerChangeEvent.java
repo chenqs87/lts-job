@@ -1,18 +1,17 @@
-package com.zy.data.lts.naming;
+package com.zy.data.lts.naming.handler;
 
-import com.zy.data.lts.core.model.Executor;
 import org.springframework.context.ApplicationEvent;
 
 public class LtsHandlerChangeEvent extends ApplicationEvent {
     private String handlerName;
     private HandlerEventType handlerEventType;
-    private Executor executor;
+    private String host;
 
-    public LtsHandlerChangeEvent(String handlerName, HandlerEventType handlerEventType, Executor executor) {
+    public LtsHandlerChangeEvent(String handlerName, HandlerEventType handlerEventType, String host) {
         super(handlerName);
         this.handlerName = handlerName;
         this.handlerEventType = handlerEventType;
-        this.executor = executor;
+        this.host = host;
     }
 
     public String getHandlerName() {
@@ -31,11 +30,11 @@ public class LtsHandlerChangeEvent extends ApplicationEvent {
         this.handlerEventType = handlerEventType;
     }
 
-    public Executor getExecutor() {
-        return executor;
+    public String getHost() {
+        return host;
     }
 
-    public void setExecutor(Executor executor) {
-        this.executor = executor;
+    public void setHost(String host) {
+        this.host = host;
     }
 }

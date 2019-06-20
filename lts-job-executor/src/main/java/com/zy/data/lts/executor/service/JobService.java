@@ -105,7 +105,8 @@ public class JobService implements ApplicationContextAware {
 
     @Async(EXECUTOR_THREAD_POOL)
     public void killTask(KillTaskRequest req) {
-        applicationContext.publishEvent(new KillJobEvent(req.getFlowTaskId(), req.getTaskId(), req.getShard()));
+        applicationContext.publishEvent(new KillJobEvent(
+                req.getTask().getFlowTaskId(), req.getTask().getTaskId(), req.getShard()));
     }
 
     private Path createOutputDir(ExecuteRequest req, Job job) throws IOException {

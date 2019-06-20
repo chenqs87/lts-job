@@ -2,12 +2,10 @@ package com.zy.data.lts.schedule.service;
 
 import com.github.pagehelper.PageHelper;
 import com.google.gson.Gson;
-import com.zy.data.lts.core.LtsPermitEnum;
-import com.zy.data.lts.core.LtsPermitType;
-import com.zy.data.lts.core.RoleEnum;
-import com.zy.data.lts.core.TriggerMode;
+import com.zy.data.lts.core.*;
 import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.*;
+import com.zy.data.lts.core.model.ExecLogEvent;
 import com.zy.data.lts.core.model.FlowQueryRequest;
 import com.zy.data.lts.core.model.JobQueryRequest;
 import com.zy.data.lts.core.model.PagerRequest;
@@ -19,6 +17,7 @@ import com.zy.data.lts.schedule.trigger.JobTrigger;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,6 +28,8 @@ import java.io.Reader;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 /**
  * @author chenqingsong
@@ -434,5 +435,21 @@ public class JobService {
 
     public List<FlowScheduleLog> getFlowScheduleLog(int flowTaskId) {
         return flowScheduleLogDao.select(flowTaskId);
+    }
+
+    @Transactional
+    @EventListener
+    public void triggerFlow(TriggerFlowEvent event) {
+        triggerFlow(event.getFlowId(), event.getTriggerMode(), event.getParams());
+    }
+
+    @EventListener
+    @Transactional(propagation = REQUIRES_NEW)
+    public void writeExecLog(ExecLogEvent event) {
+        jobTrigger.doWriteLog(event.getFlowTaskId(), event.getMsg());
+    }
+
+    public void handleFlowTask(FlowEvent flowEvent) {
+        jobTrigger.handleFlowTask(flowEvent);
     }
 }

@@ -1,9 +1,9 @@
 package com.zy.data.lts.console;
 
 import com.zy.data.lts.core.model.JobResultRequest;
+import com.zy.data.lts.schedule.service.JobService;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
-import com.zy.data.lts.schedule.trigger.JobTrigger;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +20,13 @@ import org.springframework.web.bind.annotation.*;
 public class HandlerCallbackController {
 
     @Autowired
-    JobTrigger jobTrigger;
+    JobService jobService;
 
     @ApiOperation(value = "作业执行成功", notes = "作业执行成功")
     @PostMapping("/success")
     @ResponseBody
     public ResponseEntity successTask(@RequestBody JobResultRequest request) {
-        jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Finish, request.getTaskId(), request.getShard()));
+        jobService.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Finish, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }
 
@@ -34,7 +34,7 @@ public class HandlerCallbackController {
     @PostMapping("/fail")
     @ResponseBody
     public ResponseEntity failTask(@RequestBody JobResultRequest request) {
-        jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Fail, request.getTaskId(), request.getShard()));
+        jobService.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Fail, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }
 
@@ -42,7 +42,7 @@ public class HandlerCallbackController {
     @PostMapping("/start")
     @ResponseBody
     public ResponseEntity startTask(@RequestBody JobResultRequest request) {
-        jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Execute, request.getTaskId(), request.getShard()));
+        jobService.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Execute, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }
 
@@ -50,7 +50,7 @@ public class HandlerCallbackController {
     @PostMapping("/kill")
     @ResponseBody
     public ResponseEntity killTask(@RequestBody JobResultRequest request) {
-        jobTrigger.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Kill, request.getTaskId(), request.getShard()));
+        jobService.handleFlowTask(new FlowEvent(request.getFlowTaskId(), FlowEventType.Kill, request.getTaskId(), request.getShard()));
         return ResponseEntity.ok().build();
     }
 }

@@ -1,16 +1,17 @@
 package com.zy.data.lts.naming.handler;
 
+import com.zy.data.lts.core.api.IExecutorApi;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.*;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.naming.ExecutorUnConnectedEvent;
-import com.zy.data.lts.naming.LtsHandlerChangeEvent;
+import feign.Feign;
 import feign.RetryableException;
+import feign.gson.GsonDecoder;
+import feign.gson.GsonEncoder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -80,12 +81,12 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
     }
 
 
-    public void addNew(Executor executor) {
+    public void addNew(String host, String handler) {
 
         AtomicBoolean change = new AtomicBoolean(false);
-        executorMap.computeIfAbsent(executor.getHost(), f -> {
+        executorMap.computeIfAbsent(host, f -> {
             change.set(true);
-            return executor;
+            return createExecutor(host, handler);
 
         });
 
@@ -95,6 +96,18 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
                 this.notifyAll();
             }
         }
+    }
+
+    private Executor createExecutor(String host, String handler) {
+        Executor executor = new Executor();
+        IExecutorApi api = Feign.builder()
+                .encoder(new GsonEncoder())
+                .decoder(new GsonDecoder())
+                .target(IExecutorApi.class, "http://" + host);
+        executor.setApi(api);
+        executor.setHost(host);
+        executor.setHandler(handler);
+        return executor;
     }
 
     public void remove(String host) {
@@ -129,12 +142,7 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
                 Executor executor = executorMap.get(key);
 
                 if (executor != null) {
-                    if (executor.isActive() && executor.getHandler().equals(handlerName)) {
-                        return executor;
-                    } else {
-                        // 当executor变更所属handler时，从原来的handler中删除
-                        remove(executor.getHost());
-                    }
+                    return executor;
                 }
             }
 
@@ -233,8 +241,8 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
         }
 
         switch (event.getHandlerEventType()) {
-            case NEW: addNew(event.getExecutor()); break;
-            case DELETE: remove(event.getExecutor().getHost()); break;
+            case NEW: addNew(event.getHost(), event.getHandlerName()); break;
+            case DELETE: remove(event.getHost()); break;
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.zy.data.lts.schedule.state.flow.transition;
 
+import com.zy.data.lts.core.TriggerFlowEvent;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.dao.FlowDao;
 import com.zy.data.lts.core.dao.FlowTaskDao;
@@ -7,6 +8,7 @@ import com.zy.data.lts.core.dao.TaskDao;
 import com.zy.data.lts.core.entity.Flow;
 import com.zy.data.lts.core.entity.FlowTask;
 import com.zy.data.lts.core.entity.Task;
+import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.schedule.alert.CommonAlerter;
 import com.zy.data.lts.schedule.state.MultipleArcTransition;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
@@ -115,7 +117,8 @@ public class FlowFinishTransition implements MultipleArcTransition<MemFlowTask, 
             if (StringUtils.isNotBlank(flow.getPostFlow())) {
                 String[] postFlowIds = flow.getPostFlow().split(",");
                 Stream.of(postFlowIds).map(Integer::parseInt).forEach(id -> {
-                    jobTrigger.triggerFlow(id, TriggerMode.PreTask);
+                   // jobTrigger.triggerFlow(id, TriggerMode.PreTask);
+                    SpringContext.publishEvent(new TriggerFlowEvent(id, TriggerMode.PreTask, null));
                     // TODO 完善日志
                 });
             }

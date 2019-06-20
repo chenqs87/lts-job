@@ -16,6 +16,7 @@ public class FlowTask {
     private Date endTime;
     private String params;
     private int triggerMode;
+    private String host;
 
     public int getId() {
         return id;
@@ -75,5 +76,13 @@ public class FlowTask {
 
     public void setTriggerMode(int triggerMode) {
         this.triggerMode = triggerMode;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 }

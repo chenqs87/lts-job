@@ -25,6 +25,10 @@ pagehelper:
 lts:
   server:
     role: admin
+    # local or zk
+    naming: local
+    host: localhost:8080
+    handler: test
   alerter:
     phone:
       url: http://192.168.7.175:8080

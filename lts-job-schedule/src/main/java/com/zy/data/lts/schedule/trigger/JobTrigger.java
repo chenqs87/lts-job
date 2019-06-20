@@ -11,6 +11,7 @@ import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
 import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.core.TriggerFlowEvent;
 import com.zy.data.lts.schedule.service.HandlerService;
 import com.zy.data.lts.schedule.model.Tuple;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
@@ -81,22 +82,6 @@ public class JobTrigger {
     @Autowired
     private JexlUtil jexlUtil;
 
-    private static volatile JobTrigger jobTriggerProxy;
-
-
-    public static JobTrigger getInstance() {
-        if(jobTriggerProxy == null) {
-            jobTriggerProxy = SpringContext.getBean(JobTrigger.class);
-        }
-
-        return jobTriggerProxy;
-    }
-
-    public static void triggerCronFlow(Integer flowId) {
-        JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
-        jobTrigger.triggerFlow(flowId, TriggerMode.Cron);
-    }
-
     @PostConstruct
     public void init() {
         loadUnFinishedFlowTasks();
@@ -104,12 +89,6 @@ public class JobTrigger {
 
     @PreDestroy
     public void destroy() {
-    }
-
-    public void triggerFlow(int flowId, TriggerMode triggerMode) {
-        JobTrigger jobTrigger = SpringContext.getBean(JobTrigger.class);
-        FlowTask flowTask = jobTrigger.getFlowTask(flowId, triggerMode, null);
-        jobTrigger.handleFlowTask(new FlowEvent(flowTask.getId(), FlowEventType.Submit));
     }
 
     @Transactional(propagation = REQUIRES_NEW)
@@ -121,12 +100,6 @@ public class JobTrigger {
         }
     }
 
-    public static void writeLog(int flowTaskId, String content) {
-        JobTrigger jobTrigger = getInstance();
-        if(jobTrigger != null) {
-            jobTrigger.doWriteLog(flowTaskId, content);
-        }
-    }
 
     /**
      * 该方法提交完毕，必须提交事务，否则在后续任务发送成功后，
@@ -414,12 +387,6 @@ public class JobTrigger {
                 }
             }
         }
-    }
-
-    @EventListener
-    @Transactional(propagation = REQUIRES_NEW)
-    public void writeExecLog(ExecLogEvent event) {
-        doWriteLog(event.getFlowTaskId(), event.getMsg());
     }
 
     public static class ShardTask {

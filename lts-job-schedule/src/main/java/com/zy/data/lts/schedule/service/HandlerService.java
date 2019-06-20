@@ -7,7 +7,7 @@ import com.zy.data.lts.core.model.BeatInfoRequest;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.naming.LocalHandlerManager;
+import com.zy.data.lts.naming.handler.LocalHandlerManager;
 import com.zy.data.lts.naming.handler.AsyncHandler;
 import com.zy.data.lts.naming.handler.RoundRobinHandler;
 import org.slf4j.Logger;

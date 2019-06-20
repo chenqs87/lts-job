@@ -1,12 +1,13 @@
-package com.zy.data.lts.naming;
+package com.zy.data.lts.naming.zk;
 
+import com.zy.data.lts.naming.handler.ZkHandlerManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(name = "lts.server.mode", havingValue = "zookeeper")
+@ConditionalOnProperty(name = "lts.server.naming", havingValue = "zk")
 public class ZkConfiguration {
     @Value("${zookeeper.server}")
     private String zookeeperServer;
@@ -19,6 +20,9 @@ public class ZkConfiguration {
     @Value("${zookeeper.baseSleepTimeMs}")
     private int baseSleepTimeMs;
 
+    @Value("${lts.server.role}")
+    private String role;
+
     @Bean(initMethod = "init", destroyMethod = "stop")
     public ZkClient zkClient() {
         ZkClient zkClient = new ZkClient();
@@ -29,5 +33,12 @@ public class ZkConfiguration {
         zkClient.setBaseSleepTimeMs(baseSleepTimeMs);
         return zkClient;
     }
+
+    @Bean(initMethod = "init")
+    public ZkHandlerManager zkHandlerManager() {
+        return new ZkHandlerManager();
+    }
+
+
 
 }

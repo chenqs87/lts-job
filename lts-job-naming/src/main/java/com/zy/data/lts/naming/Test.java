@@ -1,5 +1,9 @@
 package com.zy.data.lts.naming;
 
+import com.zy.data.lts.naming.zk.ZkClient;
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+
 public class Test {
     public static void main(String[] args) throws InterruptedException {
         ZkClient zkClient = new ZkClient();
@@ -10,15 +14,34 @@ public class Test {
         zkClient.setBaseSleepTimeMs(6000);
         zkClient.init();
 
-        zkClient.registerMaster("localhost:8080");
+        zkClient.register("/lts_job/services/master/localhost:8080");
         Thread.sleep(1000);
-        System.out.println(zkClient.getMasters());
-        zkClient.registerMaster("localhost:8081");
-        System.out.println(zkClient.getMasters());
 
+        listen(zkClient);
+
+
+        /*zkClient.register("/lts_job/services/master/localhost:8081");
+        Thread.sleep(1000);
+        System.out.println(zkClient.getChildren("/lts_job/services/master"));
+
+
+        zkClient.register("/lts_job/services/master/localhost:8082");
+        Thread.sleep(1000);
+        System.out.println(zkClient.getChildren("/lts_job/services/master"));*/
 
 
         Thread.sleep(10000000);
 
+    }
+
+    public static void listen(ZkClient zkClient) {
+        System.out.println(zkClient.getChildren("/lts_job/services/master", new Watcher() {
+
+            @Override
+            public void process(WatchedEvent event) {
+                System.out.println("+==========" + event);
+                listen(zkClient);
+            }
+        }));
     }
 }

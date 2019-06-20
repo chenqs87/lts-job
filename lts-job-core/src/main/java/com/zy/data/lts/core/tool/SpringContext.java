@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Component
@@ -58,10 +59,17 @@ public class SpringContext implements ApplicationContextAware {
         applicationContext.publishEvent(event);
     }
 
-    public static <T> T getOrCreateBean(String name, Class<T> clazz, Object... params)  {
+    public static <T> T getOrCreateBean(String name, Class<T> clazz ,Object... params)  {
+        return getOrCreateBean(name, clazz, null, params);
+    }
+
+    public static <T> T getOrCreateBean(String name, Class<T> clazz , Consumer<Boolean> callback, Object... params)  {
         synchronized (clazz) {
+            Boolean isCreate = false;
+            T ret ;
             try {
-                return getBeanByName(name, clazz);
+
+                ret = getBeanByName(name, clazz);
             } catch (NoSuchBeanDefinitionException e) {
                 try {
                     if(ArrayUtils.isEmpty(params)) {
@@ -71,12 +79,20 @@ public class SpringContext implements ApplicationContextAware {
                         Constructor<T> constructor = clazz.getConstructor(classes);
                         registerBean(name, constructor.newInstance(params));
                     }
-                    return getBeanByName(name, clazz);
+
+                    isCreate = true;
+                    ret = getBeanByName(name, clazz);
                 } catch (Exception e1) {
                     logger.error("Fail to register bean!", e1);
                     return null;
                 }
             }
+
+            if(callback != null) {
+                callback.accept(isCreate);
+            }
+
+            return ret;
         }
     }
 }
