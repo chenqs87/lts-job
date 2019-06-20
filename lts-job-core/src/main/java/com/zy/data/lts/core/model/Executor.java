@@ -1,6 +1,6 @@
 package com.zy.data.lts.core.model;
 
-import com.zy.data.lts.core.api.IExecutorApi;
+import com.zy.data.lts.core.api.IExecutor;
 import com.zy.data.lts.core.entity.Task;
 
 import java.util.HashMap;
@@ -10,21 +10,21 @@ import java.util.Map;
  * @author chenqingsong
  * @date 2019/4/11 11:21
  */
-public class Executor implements IExecutorApi{
+public class Executor implements IExecutor {
     private static final long TIME_OUT = 30 * 60 * 1000;
     private final Map<String, Task> runningTasks = new HashMap<>();
-    private IExecutorApi api;
+    private IExecutor api;
     private float memFree;
     private float cpuIdle;
     private String host;
     private volatile long lastUpdateTime = System.currentTimeMillis();
     private volatile String handler;
 
-    public IExecutorApi getApi() {
+    public IExecutor getApi() {
         return api;
     }
 
-    public void setApi(IExecutorApi api) {
+    public void setApi(IExecutor api) {
         this.api = api;
     }
 

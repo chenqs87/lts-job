@@ -9,6 +9,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConditionalOnProperty(name = "lts.server.naming", havingValue = "zk")
 public class ZkConfiguration {
+    public static final String ZK_LTS_ROOT = "/lts_job/services";
+    public static final String ZK_MASTER_ROOT = ZK_LTS_ROOT + "/master";
+    public static final String ZK_HANDLER_ROOT = ZK_LTS_ROOT + "/handler";
+
     @Value("${zookeeper.server}")
     private String zookeeperServer;
     @Value(("${zookeeper.sessionTimeoutMs}"))
@@ -34,10 +38,6 @@ public class ZkConfiguration {
         return zkClient;
     }
 
-    @Bean(initMethod = "init")
-    public ZkHandlerManager zkHandlerManager() {
-        return new ZkHandlerManager();
-    }
 
 
 

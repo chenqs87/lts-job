@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Component
 public class LocalHandlerManager {
 
     /**
@@ -35,7 +34,7 @@ public class LocalHandlerManager {
         });
 
         executorMap.computeIfAbsent(hostAndPort, f -> {
-            SpringContext.getOrCreateBean(beat.getHandler() + AsyncHandler.class.getName(), AsyncHandler.class, beat.getHandler());
+            SpringContext.getOrCreateBean(beat.getHandler() + AsyncHandler.class.getSimpleName(), AsyncHandler.class, beat.getHandler());
             SpringContext.publishEvent(new LtsHandlerChangeEvent(beat.getHandler(), HandlerEventType.NEW , hostAndPort));
             return beat.getHandler();
         });

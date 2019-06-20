@@ -1,6 +1,6 @@
 package com.zy.data.lts.naming.handler;
 
-import com.zy.data.lts.core.api.IExecutorApi;
+import com.zy.data.lts.core.api.IExecutor;
 import com.zy.data.lts.core.entity.Task;
 import com.zy.data.lts.core.model.*;
 import com.zy.data.lts.core.tool.SpringContext;
@@ -100,10 +100,10 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
 
     private Executor createExecutor(String host, String handler) {
         Executor executor = new Executor();
-        IExecutorApi api = Feign.builder()
+        IExecutor api = Feign.builder()
                 .encoder(new GsonEncoder())
                 .decoder(new GsonDecoder())
-                .target(IExecutorApi.class, "http://" + host);
+                .target(IExecutor.class, "http://" + host);
         executor.setApi(api);
         executor.setHost(host);
         executor.setHandler(handler);

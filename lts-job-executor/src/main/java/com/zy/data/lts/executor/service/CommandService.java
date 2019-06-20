@@ -1,7 +1,6 @@
 package com.zy.data.lts.executor.service;
 
 import com.google.common.collect.Maps;
-import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.dao.FlowScheduleLogDao;
 import com.zy.data.lts.core.entity.FlowScheduleLog;
 import com.zy.data.lts.core.model.JobResultRequest;
@@ -10,6 +9,7 @@ import com.zy.data.lts.executor.model.JobExecuteEvent;
 import com.zy.data.lts.executor.model.KillJobEvent;
 import com.zy.data.lts.executor.type.IJobTypeHandler;
 import com.zy.data.lts.executor.utils.LocalFileLogger;
+import com.zy.data.lts.naming.master.AsyncMaster;
 import org.apache.commons.collections.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class CommandService implements ApplicationContextAware {
     private final ConcurrentHashMap<String, Object> killedTasks = new ConcurrentHashMap<>();
 
     @Autowired
-    AdminApi adminService;
+    AsyncMaster adminService;
 
     @Autowired
     LogService logService;

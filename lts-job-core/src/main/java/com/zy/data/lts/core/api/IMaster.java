@@ -10,7 +10,7 @@ import feign.RequestLine;
  * @author chenqingsong
  * @date 2019/4/1 12:29
  */
-public interface IAdminApi {
+public interface IMaster {
 
     @RequestLine("POST /handler/callback/success")
     @Headers("Content-Type: application/json")

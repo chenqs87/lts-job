@@ -58,6 +58,11 @@
             <artifactId>lts-job-core</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.zy.data.lts</groupId>
+            <artifactId>lts-job-naming</artifactId>
+        </dependency>
+
         <!-- swagger -->
         <dependency>
             <groupId>io.springfox</groupId>

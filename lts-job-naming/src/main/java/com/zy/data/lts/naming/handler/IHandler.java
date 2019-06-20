@@ -1,10 +1,10 @@
 package com.zy.data.lts.naming.handler;
 
-import com.zy.data.lts.core.api.IExecutorApi;
+import com.zy.data.lts.core.api.IExecutor;
 
 import java.io.Closeable;
 
-public interface IHandler extends IExecutorApi, Closeable {
+public interface IHandler extends IExecutor, Closeable {
 
     default void close() { }
 

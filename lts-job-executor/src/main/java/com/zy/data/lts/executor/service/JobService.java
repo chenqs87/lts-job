@@ -2,7 +2,6 @@ package com.zy.data.lts.executor.service;
 
 import com.zy.data.lts.core.FlowTaskStatus;
 import com.zy.data.lts.core.TaskStatus;
-import com.zy.data.lts.core.api.AdminApi;
 import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.FlowScheduleLog;
 import com.zy.data.lts.core.entity.FlowTask;
@@ -14,6 +13,7 @@ import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.executor.config.ExecutorConfig;
 import com.zy.data.lts.executor.model.JobExecuteEvent;
 import com.zy.data.lts.executor.model.KillJobEvent;
+import com.zy.data.lts.naming.master.AsyncMaster;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -42,7 +42,7 @@ public class JobService implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
     @Autowired
-    AdminApi adminService;
+    AsyncMaster adminService;
 
     @Autowired
     FlowTaskDao flowTaskDao;

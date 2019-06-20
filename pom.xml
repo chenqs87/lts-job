@@ -63,7 +63,7 @@
 
             <dependency>
                 <groupId>com.zy.data.lts</groupId>
-                <artifactId>lts-job-ha</artifactId>
+                <artifactId>lts-job-naming</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

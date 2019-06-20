@@ -10,7 +10,7 @@ import feign.RequestLine;
  * @date 2019/4/1 12:29
  */
 
-public interface IExecutorApi {
+public interface IExecutor {
     @RequestLine("POST /executor/exec")
     @Headers("Content-Type: application/json")
     void execute(ExecuteRequest request);

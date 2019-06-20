@@ -24,9 +24,12 @@ pagehelper:
 lts:
   server:
     role: executor
+    naming: local
+    host: localhost:8081
+    handler: test
     executor:
       execute-root: /tmp/lts-executor/logs
-      adminUrl: http://localhost:8080
+      adminUrl: localhost:8080
       handler:
         name: test
         host: localhost:8081

@@ -24,7 +24,7 @@ pagehelper:
 
 lts:
   server:
-    role: admin
+    role: master
     # local or zk
     naming: local
     host: localhost:8080

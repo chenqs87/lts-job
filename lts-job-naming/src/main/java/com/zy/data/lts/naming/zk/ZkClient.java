@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class ZkClient {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -97,12 +98,11 @@ public class ZkClient {
         return childrenList;
     }
 
-    public byte[] getData(String path, final Watcher watcher) {
+    public void checkExist(String path, final Watcher watcher) {
         try {
-           return client.getData().usingWatcher(watcher).forPath(path);
+            client.checkExists().usingWatcher(watcher).forPath(path);
         } catch (Exception e) {
             logger.error("Fail to get data for [{}]", path, e);
-            return null;
         }
     }
 
