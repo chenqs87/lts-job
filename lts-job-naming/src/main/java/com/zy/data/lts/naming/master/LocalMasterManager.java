@@ -13,13 +13,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 public class LocalMasterManager implements ApplicationListener<WebServerInitializedEvent> {
     private Logger logger = LoggerFactory.getLogger(LocalMasterManager.class);
 
-    @Value("${lts.server.executor.adminUrl}")
-    private String adminUrl;
+    @Value("${lts.server.single-master}")
+    private String master;
 
-    @Value("${lts.server.executor.handler.name}")
+    @Value("${lts.server.handler}")
     private String handler;
 
-    @Value("${lts.server.executor.handler.host}")
+    @Value("${lts.server.host}")
     private String host;
 
     @Autowired
@@ -47,8 +47,7 @@ public class LocalMasterManager implements ApplicationListener<WebServerInitiali
     }
 
     private void send(MasterEventType type) {
-        SpringContext.publishEvent(
-                new LtsMasterChangeEvent(adminUrl, type));
+        SpringContext.publishEvent(new LtsMasterChangeEvent(master, type));
     }
 
     @Override

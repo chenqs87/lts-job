@@ -27,8 +27,10 @@ lts:
     role: master
     # local or zk
     naming: local
+    #当naming=zk时使用
     host: localhost:8080
-    handler: test
+    #当role=executor时使用
+    #handler: test
   alerter:
     phone:
       url: http://192.168.7.175:8080
@@ -47,9 +49,22 @@ lts:
             wait-for-tasks-to-complete-on-shutdown: true
             await-termination-seconds: 60
 
+# 当 lts.server.naming=zk 时需要配置
 zookeeper:
   server: localhost:2181
   sessionTimeoutMs: 6000
   connectionTimeoutMs: 6000
   maxRetries: 3
   baseSleepTimeMs: 1000
+
+# quartz 定时任务配置
+lts.quartz.config:
+  org.quartz.scheduler.instanceId: AUTO
+  org.quartz.scheduler.instanceName: FLOW_TASK_SCHEDULER
+  org.quartz.threadPool.threadCount: 10
+  org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+  org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+  org.quartz.jobStore.tablePrefix: QRTZ_
+  #集群模式，如果是多master模式需要设置为true
+  org.quartz.jobStore.isClustered: false
+  org.quartz.jobStore.misfireThreshold: 25000

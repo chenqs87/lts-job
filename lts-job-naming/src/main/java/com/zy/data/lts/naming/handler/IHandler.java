@@ -11,4 +11,6 @@ public interface IHandler extends IExecutor, Closeable {
     default String name() {
         return this.toString();
     }
+
+    int getExecutorSize();
 }

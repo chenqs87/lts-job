@@ -11,6 +11,7 @@ import com.zy.data.lts.executor.type.IJobTypeHandler;
 import com.zy.data.lts.executor.utils.LocalFileLogger;
 import com.zy.data.lts.naming.master.AsyncMaster;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -23,10 +24,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author chenqingsong
@@ -120,14 +120,13 @@ public class CommandService implements ApplicationContextAware {
         int exitValue = -1;
         try (InputStream is = process.getInputStream();
              InputStream error = process.getErrorStream()) {
-            LocalFileLogger lfl = logService.createLogger(event,is, error, SYS_LOG_FILE);
+            LocalFileLogger lfl = logService.createLogger(event, is, error, SYS_LOG_FILE);
 
             exitValue = process.waitFor();
 
             lfl.awaitCompletion(5000);
 
         } catch (InterruptedException ignore) {
-
         } finally {
             runningTasks.remove(runningKey);
         }
@@ -180,5 +179,30 @@ public class CommandService implements ApplicationContextAware {
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    /**
+     * @return [flowTaskId,taskId,shard]
+     */
+    public List<Map<String, String>> getRunningTasks(String flowTaskId) {
+        return runningTasks.keySet().stream()
+                .map(k -> {
+                    String[] attrs = k.split("_");
+                    if(StringUtils.isNotBlank(flowTaskId) && !flowTaskId.equals(attrs[0])) {
+                        return null;
+                    }
+
+                    Map<String, String> obj = new HashMap<>(attrs.length);
+                    obj.put("flowTaskId", attrs[0]);
+                    obj.put("taskId", attrs[1]);
+                    obj.put("shard", attrs[2]);
+                    return obj;
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    public List<Map<String, String>> getRunningTasks() {
+        return getRunningTasks(null);
     }
 }

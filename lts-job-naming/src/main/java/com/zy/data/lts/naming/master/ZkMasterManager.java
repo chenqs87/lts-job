@@ -7,12 +7,14 @@ import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
+import java.util.Set;
 
 import static com.zy.data.lts.naming.zk.ZkConfiguration.ZK_HANDLER_ROOT;
 import static com.zy.data.lts.naming.zk.ZkConfiguration.ZK_MASTER_ROOT;
 
-public class ZkMasterManager {
+public class ZkMasterManager{
 
     @Value("${lts.server.handler}")
     private String handler;
@@ -23,7 +25,9 @@ public class ZkMasterManager {
     @Autowired
     ZkClient zkClient;
 
-    private void init() {
+    private volatile int masters = 0;
+
+    public void init() {
         String path = ZK_HANDLER_ROOT + "/" + handler + "/" + host;
         zkClient.register(path);
         listenMasters();
@@ -35,9 +39,11 @@ public class ZkMasterManager {
         });
 
         if(CollectionUtils.isEmpty(hosts)) {
+            this.masters = 0;
             return;
         }
 
+        this.masters = hosts.size();
         hosts.forEach(host -> {
             SpringContext.publishEvent(new LtsMasterChangeEvent(host, MasterEventType.NEW));
             listenMaster(host);
@@ -52,4 +58,5 @@ public class ZkMasterManager {
             }
         });
     }
+
 }

@@ -5,12 +5,17 @@ import com.zy.data.lts.core.LtsPermitEnum;
 import com.zy.data.lts.core.entity.Group;
 import com.zy.data.lts.core.entity.User;
 import com.zy.data.lts.core.model.PagerRequest;
+import com.zy.data.lts.core.tool.SpringContext;
 import com.zy.data.lts.model.PermitRequest;
+import com.zy.data.lts.naming.config.HandlerConfig;
+import com.zy.data.lts.naming.master.IMasterManager;
+import com.zy.data.lts.schedule.service.JobService;
 import com.zy.data.lts.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * @author chenqingsong
  * @date 2019/5/15 16:57
@@ -34,6 +42,12 @@ public class ConsoleManagerController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JobService jobService;
+
+    @Autowired
+    private HandlerConfig handlerConfig;
 
     @ApiOperation(value = "查询所有用户", notes = "查询所有用户")
     @GetMapping("/getAllUsers")
@@ -133,4 +147,13 @@ public class ConsoleManagerController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/tasks/info")
+    @ApiOperation(value = "查询Master的数量", notes = "查询Master的数量")
+    public Map<String, Object> taskInfo() {
+        Map<String, Object> ret = new HashMap<>();
+        ret.put("masters", handlerConfig.getMasters());
+        ret.put("runningTasks", jobService.getRunningTaskSize());
+        ret.put("countTasksByDay", jobService.countTasksByDay());
+        return ret;
+    }
 }

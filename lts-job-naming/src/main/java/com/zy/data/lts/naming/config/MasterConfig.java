@@ -10,15 +10,16 @@ import org.springframework.stereotype.Component;
 @Component
 @ConditionalOnProperty(name="lts.server.role", havingValue = "executor")
 public class MasterConfig {
-    @Bean
+    @Bean("masterManager")
     @ConditionalOnProperty(name = "lts.server.naming", havingValue = "local")
     public LocalMasterManager getLocalMasterManager() {
         return new LocalMasterManager();
     }
 
-    @Bean(initMethod = "init")
+    @Bean(value = "masterManager", initMethod = "init")
     @ConditionalOnProperty(name = "lts.server.naming", havingValue = "zk")
     public ZkMasterManager getZkMasterManager() {
         return new ZkMasterManager();
     }
+
 }

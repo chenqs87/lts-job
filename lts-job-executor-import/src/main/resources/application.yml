@@ -14,6 +14,12 @@ spring:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 #pagehelper分页插件
 pagehelper:
   helperDialect: mysql
@@ -27,12 +33,9 @@ lts:
     naming: local
     host: localhost:8081
     handler: test
+    single-master: localhost:8080
     executor:
       execute-root: /tmp/lts-executor/logs
-      adminUrl: localhost:8080
-      handler:
-        name: test
-        host: localhost:8081
       execute-env:
         CheckInputContentScript: /data/www/lts-job/import-data/CheckFileContent.sh
         HaoopConfigDir: /data/www/lts-job/lts-executor/config/hadoop-config
@@ -54,3 +57,10 @@ lts:
             queueCapacity: 1000
             wait-for-tasks-to-complete-on-shutdown: true
             await-termination-seconds: 60
+
+zookeeper:
+  server: localhost:2181
+  sessionTimeoutMs: 6000
+  connectionTimeoutMs: 6000
+  maxRetries: 3
+  baseSleepTimeMs: 1000

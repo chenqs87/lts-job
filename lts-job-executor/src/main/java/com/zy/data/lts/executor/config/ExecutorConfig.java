@@ -4,9 +4,7 @@ import com.google.common.collect.Maps;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -64,8 +62,4 @@ public class ExecutorConfig {
         this.executeEnv = executeEnv;
     }
 
-    @Bean
-    public ServerEndpointExporter serverEndpointExporter() {
-        return new ServerEndpointExporter();
-    }
 }

@@ -9,6 +9,8 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
+import java.util.Date;
+
 /**
  * @author chenqingsong
  * @date 2019/3/28 11:28
@@ -20,7 +22,6 @@ public class LtsScheduleJob extends QuartzJobBean {
         JobKey jobKey = context.getJobDetail().getKey();
         String jobName = jobKey.getName();
         int flowId = Integer.parseInt(jobName);
-        //JobTrigger.triggerCronFlow(flowId);
         SpringContext.publishEvent(new TriggerFlowEvent(flowId, TriggerMode.Cron, null));
     }
 }

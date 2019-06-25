@@ -20,6 +20,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
@@ -32,8 +33,8 @@ import java.util.function.Consumer;
 public class AsyncMaster implements ApplicationListener<LtsMasterChangeEvent>, IMaster {
     private Logger logger = LoggerFactory.getLogger(AsyncMaster.class);
 
-    private ConcurrentHashMap<String, IMaster> masters = new ConcurrentHashMap<>();
-    private Object lock = new Object();
+    private final Map<String, IMaster> masters = new ConcurrentHashMap<>();
+    private final Object lock = new Object();
 
     private AtomicBoolean isRunning = new AtomicBoolean(true);
 

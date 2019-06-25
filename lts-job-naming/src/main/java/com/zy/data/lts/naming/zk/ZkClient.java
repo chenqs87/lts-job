@@ -14,7 +14,7 @@ import java.util.List;
 
 
 public class ZkClient {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(ZkClient.class);
 
     private CuratorFramework client;
     private String zookeeperServer;
@@ -74,10 +74,6 @@ public class ZkClient {
         client.close();
     }
 
-    public CuratorFramework getClient() {
-        return client;
-    }
-
     public void register(String path) {
         try {
             client.create().creatingParentsIfNeeded()
@@ -106,7 +102,6 @@ public class ZkClient {
         }
     }
 
-
     public List<String> getChildren(String path) {
         List<String> childrenList = new ArrayList<>();
         try {
@@ -116,5 +111,4 @@ public class ZkClient {
         }
         return childrenList;
     }
-
 }

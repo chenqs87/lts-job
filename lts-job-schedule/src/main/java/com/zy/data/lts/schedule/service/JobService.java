@@ -16,6 +16,7 @@ import com.zy.data.lts.schedule.trigger.JobTrigger;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -451,5 +453,25 @@ public class JobService {
 
     public void handleFlowTask(FlowEvent flowEvent) {
         jobTrigger.handleFlowTask(flowEvent);
+    }
+
+    public int getRunningTaskSize() {
+        return flowTaskDao.findRunningFlowTasks();
+    }
+
+    public List<Map<String, Object>> countTasksByDay() {
+        Calendar from = Calendar.getInstance();
+        from.add(Calendar.DATE, -7);
+        from.set(Calendar.HOUR_OF_DAY, 0);
+        from.set(Calendar.MINUTE, 0);
+        from.set(Calendar.SECOND, 0);
+
+        Calendar end = Calendar.getInstance();
+        end.add(Calendar.DATE, 1);
+        end.set(Calendar.HOUR_OF_DAY, 0);
+        end.set(Calendar.MINUTE, 0);
+        end.set(Calendar.SECOND, 0);
+
+        return flowTaskDao.countTasksByDay(from.getTime(), end.getTime());
     }
 }

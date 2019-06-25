@@ -4,7 +4,9 @@ import com.zy.data.lts.core.entity.FlowTask;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author chenqingsong
@@ -15,8 +17,8 @@ import java.util.List;
 public interface FlowTaskDao {
 
     @SelectKey(statement = "SELECT LAST_INSERT_ID()", keyProperty = "id", before = false, resultType = int.class)
-    @Insert("insert into flow_task(flow_id,status,begin_time,end_time,params,trigger_mode) " +
-            "values(#{flowId},#{status},#{beginTime},#{endTime},#{params},#{triggerMode})")
+    @Insert("insert into flow_task(flow_id,status,begin_time,end_time,params,trigger_mode,host) " +
+            "values(#{flowId},#{status},#{beginTime},#{endTime},#{params},#{triggerMode},#{host})")
     void insert(FlowTask flowTask);
 
     @Results(id = "flowTask", value = {
@@ -27,14 +29,13 @@ public interface FlowTaskDao {
             @Result(property = "status", column = "status"),
             @Result(property = "params", column = "params"),
             @Result(property = "triggerMode", column = "trigger_mode"),
-
+            @Result(property = "host", column = "host")
     })
     @Select("select * from flow_task where id=#{id}")
     FlowTask findById(@Param("id") int id);
 
-    @Update("update flow_task set status=#{status},params=#{params},end_time=#{endTime} where id=#{id}")
+    @Update("update flow_task set status=#{status},params=#{params},end_time=#{endTime},host=#{host} where id=#{id}")
     void update(FlowTask flowTask);
-
 
     @ResultMap("flowTask")
     @Select("select * from flow_task where status in (0,1,2)")
@@ -52,6 +53,15 @@ public interface FlowTaskDao {
             " 1=1" +
              " order by id desc"+
             "</script>")
-    List<FlowTask> select(@Param("flowId") int flowId,@Param("statusId") int statusId);
+    List<FlowTask> select(@Param("flowId") int flowId, @Param("statusId") int statusId);
 
+    @Select("select DATE_FORMAT(begin_time,'%Y-%m-%d') as day, " +
+            "sum(case when status = 3 then 1 else 0 end) as failed, " +
+            "sum(case when status = 4 then 1 else 0 end) as success from flow_task " +
+            "where begin_time between #{fromDate} and #{toDate} group by day order by day asc")
+    List<Map<String, Object>> countTasksByDay(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate) ;
+
+    @ResultType(Integer.class)
+    @Select("select count(1) from flow_task where status = 2")
+    int findRunningFlowTasks();
 }

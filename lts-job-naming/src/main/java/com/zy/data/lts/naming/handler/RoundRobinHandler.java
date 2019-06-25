@@ -57,6 +57,11 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
         return handlerName;
     }
 
+    @Override
+    public int getExecutorSize() {
+        return executorMap.size();
+    }
+
     public RoundRobinHandler(String handlerName) {
         this(handlerName, MAX_INDEX);
     }

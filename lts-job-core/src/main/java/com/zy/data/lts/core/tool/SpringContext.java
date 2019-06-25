@@ -14,6 +14,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Constructor;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -37,6 +38,10 @@ public class SpringContext implements ApplicationContextAware {
 
     public static <T> T getBean(Class<T> clazz) {
         return applicationContext.getBean(clazz);
+    }
+
+    public static <T> Map<String, T> getBeans(Class<T> clazz) {
+        return applicationContext.getBeansOfType(clazz);
     }
 
     public static <T> T getBeanByName(String name, Class<T> clazz) {

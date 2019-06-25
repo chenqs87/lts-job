@@ -21,13 +21,24 @@ public class AsyncHandler implements IHandler {
 
     private final ExecutorService executorService ;
     private final IHandler handler;
+    private final String handlerName;
 
     public AsyncHandler(String handlerName) {
+        this.handlerName = handlerName;
         this.handler = SpringContext.getOrCreateBean(
                 handlerName + RoundRobinHandler.class.getSimpleName(), RoundRobinHandler.class, handlerName);
         this.executorService = new ThreadPoolExecutor(5,
                 10, 1L, TimeUnit.MINUTES,
                 new LinkedBlockingQueue<>(), new HandlerThreadFactory(handlerName));
+    }
+
+    public String name() {
+        return handlerName;
+    }
+
+    @Override
+    public int getExecutorSize() {
+        return handler.getExecutorSize();
     }
 
     @Override

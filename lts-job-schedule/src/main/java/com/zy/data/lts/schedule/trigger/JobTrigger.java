@@ -1,27 +1,24 @@
 package com.zy.data.lts.schedule.trigger;
 
 import com.google.gson.Gson;
+import com.zy.data.lts.core.FlowTaskStatus;
 import com.zy.data.lts.core.JobShardType;
+import com.zy.data.lts.core.TaskStatus;
 import com.zy.data.lts.core.TriggerMode;
 import com.zy.data.lts.core.config.ThreadPoolsConfig;
 import com.zy.data.lts.core.dao.*;
 import com.zy.data.lts.core.entity.*;
-import com.zy.data.lts.core.model.ExecLogEvent;
 import com.zy.data.lts.core.model.ExecuteRequest;
 import com.zy.data.lts.core.model.KillTaskRequest;
 import com.zy.data.lts.core.model.UpdateTaskHostEvent;
-import com.zy.data.lts.core.tool.SpringContext;
-import com.zy.data.lts.core.TriggerFlowEvent;
-import com.zy.data.lts.schedule.service.HandlerService;
 import com.zy.data.lts.schedule.model.Tuple;
+import com.zy.data.lts.schedule.service.HandlerService;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
-import com.zy.data.lts.core.FlowTaskStatus;
 import com.zy.data.lts.schedule.state.flow.MemFlowTask;
 import com.zy.data.lts.schedule.state.task.MemTask;
 import com.zy.data.lts.schedule.state.task.TaskEvent;
 import com.zy.data.lts.schedule.state.task.TaskEventType;
-import com.zy.data.lts.core.TaskStatus;
 import com.zy.data.lts.schedule.tools.IntegerTool;
 import com.zy.data.lts.schedule.tools.JexlUtil;
 import org.apache.commons.collections.CollectionUtils;
@@ -30,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
@@ -82,9 +80,18 @@ public class JobTrigger {
     @Autowired
     private JexlUtil jexlUtil;
 
+
+    @Value("${lts.server.host}")
+    private String host;
+
+    @Value("${lts.server.naming}")
+    private String naming;
+
     @PostConstruct
     public void init() {
-        loadUnFinishedFlowTasks();
+        if("local".equals(naming)) {
+            loadUnFinishedFlowTasks();
+        }
     }
 
     @PreDestroy
@@ -100,14 +107,9 @@ public class JobTrigger {
         }
     }
 
-
     /**
      * 该方法提交完毕，必须提交事务，否则在后续任务发送成功后，
      * 可能由于当前事务未提交造成查不到task任务信息
-     * @param flowId
-     * @param triggerMode
-     * @param params
-     * @return
      */
     @Transactional(propagation = REQUIRES_NEW)
     public FlowTask getFlowTask(int flowId, TriggerMode triggerMode, String params) {
@@ -132,6 +134,10 @@ public class JobTrigger {
     @Transactional(propagation = REQUIRES_NEW)
     public FlowTask buildFlowTaskForFailed(int flowTaskId, String params) {
         FlowTask flowTask = flowTaskDao.findById(flowTaskId);
+
+        flowTask.setHost(host);
+        flowTaskDao.update(flowTask);
+
         Flow flow = flowDao.findById(flowTask.getFlowId());
 
         List<Task> tasks = taskDao.findByFlowTaskId(flowTaskId);
@@ -162,6 +168,7 @@ public class JobTrigger {
 
 
     public void loadUnFinishedFlowTasks() {
+
         List<FlowTask> flowTasks = flowTaskDao.findUnFinishedFlowTasks();
         if (CollectionUtils.isEmpty(flowTasks)) {
             return;
@@ -230,6 +237,9 @@ public class JobTrigger {
     private MemFlowTask getMemFlowTask(int flowTaskId) {
         return runningFlowTasks.computeIfAbsent(flowTaskId, f -> {
             FlowTask ft = flowTaskDao.findById(flowTaskId);
+            ft.setHost(host);
+            flowTaskDao.update(ft);
+
             List<Task> tasks = taskDao.findByFlowTaskId(flowTaskId);
             List<MemTask> memTasks = tasks.stream().map(MemTask::new).collect(Collectors.toList());
             return new MemFlowTask(ft, memTasks);
@@ -254,7 +264,7 @@ public class JobTrigger {
         flowTask.setBeginTime(new Date());
         flowTask.setParams(jexlUtil.format(StringUtils.isBlank(params) ? flow.getParams() : params));
         flowTask.setTriggerMode(triggerMode.getCode());
-
+        flowTask.setHost(host);
         flowTaskDao.insert(flowTask);
         return flowTask;
     }
