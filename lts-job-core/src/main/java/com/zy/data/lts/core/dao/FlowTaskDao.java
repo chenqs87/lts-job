@@ -56,7 +56,7 @@ public interface FlowTaskDao {
     List<FlowTask> select(@Param("flowId") int flowId, @Param("statusId") int statusId);
 
     @Select("select DATE_FORMAT(begin_time,'%Y-%m-%d') as day, " +
-            "sum(case when status = 3 then 1 else 0 end) as failed, " +
+            "sum(case when status in (3,5) then 1 else 0 end) as failed, " +
             "sum(case when status = 4 then 1 else 0 end) as success from flow_task " +
             "where begin_time between #{fromDate} and #{toDate} group by day order by day asc")
     List<Map<String, Object>> countTasksByDay(@Param("fromDate") Date fromDate, @Param("toDate") Date toDate) ;
