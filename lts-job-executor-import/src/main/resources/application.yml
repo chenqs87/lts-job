@@ -30,7 +30,7 @@ pagehelper:
 lts:
   server:
     role: executor
-    naming: local
+    naming: zk
     host: localhost:8081
     handler: test
     single-master: localhost:8080

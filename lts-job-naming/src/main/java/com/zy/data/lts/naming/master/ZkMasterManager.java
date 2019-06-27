@@ -1,6 +1,7 @@
 package com.zy.data.lts.naming.master;
 
 import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.naming.zk.SessionConnectionListener;
 import com.zy.data.lts.naming.zk.ZkClient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.zookeeper.Watcher;
@@ -30,6 +31,7 @@ public class ZkMasterManager{
     public void init() {
         String path = ZK_HANDLER_ROOT + "/" + handler + "/" + host;
         zkClient.register(path);
+        zkClient.addReconnectListener(new SessionConnectionListener(path, this::listenMasters));
         listenMasters();
     }
 

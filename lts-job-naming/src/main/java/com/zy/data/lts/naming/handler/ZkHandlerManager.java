@@ -1,11 +1,14 @@
 package com.zy.data.lts.naming.handler;
 
 import com.zy.data.lts.core.tool.SpringContext;
+import com.zy.data.lts.naming.zk.ReconnectCallback;
+import com.zy.data.lts.naming.zk.SessionConnectionListener;
 import com.zy.data.lts.naming.zk.ZkClient;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.zookeeper.Watcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.event.EventListener;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -24,13 +27,22 @@ public class ZkHandlerManager {
 
     @PostConstruct
     public void init() {
+        reInit();
+
+    }
+
+    public void reInit() {
         String path = ZK_MASTER_ROOT + "/" + host;
         zkClient.register(path);
+        zkClient.addReconnectListener(new SessionConnectionListener(path, this::listenHandlers));
         listenHandlers();
     }
 
     private void listenHandlers() {
         List<String> handlers = zkClient.getChildren(ZK_HANDLER_ROOT, event -> {
+            if(event.getState() == Watcher.Event.KeeperState.Expired) {
+                reInit();
+            }
             listenHandlers();
         });
 
@@ -73,4 +85,12 @@ public class ZkHandlerManager {
             }
         });
     }
+
+    @EventListener
+    public void handle(ExecutorUnConnectedEvent event) {
+        SpringContext.publishEvent(
+                new LtsHandlerChangeEvent(event.getExecutor().getHandler(), HandlerEventType.DELETE ,event.getExecutor().getHost()));
+    }
+
+
 }

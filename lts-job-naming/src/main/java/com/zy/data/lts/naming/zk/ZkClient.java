@@ -76,12 +76,15 @@ public class ZkClient {
 
     public void register(String path) {
         try {
-            client.create().creatingParentsIfNeeded()
-                    .withMode(CreateMode.EPHEMERAL)
-                    .forPath(path);
+            client.create().creatingParentsIfNeeded().withMode(CreateMode.EPHEMERAL).forPath(path);
         } catch (Exception e) {
             logger.error("Fail to register path [{}]", path, e);
+            throw new IllegalStateException(e);
         }
+    }
+
+    public void addReconnectListener(SessionConnectionListener listener) {
+        client.getConnectionStateListenable().addListener(listener);
     }
 
     public List<String> getChildren(String path, final Watcher watcher) {
@@ -90,6 +93,7 @@ public class ZkClient {
             childrenList = client.getChildren().usingWatcher(watcher).forPath(path);
         } catch (Exception e) {
             logger.error("Fail to get children for [{}]", path, e);
+            throw new IllegalStateException(e);
         }
         return childrenList;
     }
@@ -99,6 +103,7 @@ public class ZkClient {
             client.checkExists().usingWatcher(watcher).forPath(path);
         } catch (Exception e) {
             logger.error("Fail to get data for [{}]", path, e);
+            throw new IllegalStateException(e);
         }
     }
 
@@ -108,6 +113,7 @@ public class ZkClient {
             childrenList = client.getChildren().forPath(path);
         } catch (Exception e) {
             logger.error("Fail to get children for [{}]", path, e);
+            throw new IllegalStateException(e);
         }
         return childrenList;
     }

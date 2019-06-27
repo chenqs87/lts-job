@@ -11,10 +11,10 @@ spring:
     name: lts-console
     url: jdbc:mysql://localhost:3306/lts-job?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false
     username: root
-#    password: root
-    password: 123456
+    password: root
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
+
 
 spring.resources.static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:/data/www/lts-job/web,file:/data/www/lts-job/web/static,file:/data/www/lts-job/web/fonts,file:/data/www/lts-job/web/img
 
@@ -27,10 +27,19 @@ pagehelper:
 
 lts:
   server:
-    role: admin
+    role: master
+    # local or zk
+    naming: local
+    #当naming=zk时使用
+    host: localhost:8080
+    #当role=executor时使用
+  alerter:
+    phone:
+      url: http://192.168.7.175:8080
+      default-list: 18710072485
   job:
     console:
-      security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.jpg,/**/*.woff2,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**,/img/**/*,/fonts/**/*
+      security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**
     thread:
       pools:
         executors:
@@ -41,3 +50,23 @@ lts:
             queueCapacity: 1000
             wait-for-tasks-to-complete-on-shutdown: true
             await-termination-seconds: 60
+
+# 当 lts.server.naming=zk 时需要配置
+zookeeper:
+  server: localhost:2181
+  sessionTimeoutMs: 6000
+  connectionTimeoutMs: 6000
+  maxRetries: 3
+  baseSleepTimeMs: 1000
+
+# quartz 定时任务配置
+lts.quartz.config:
+  org.quartz.scheduler.instanceId: AUTO
+  org.quartz.scheduler.instanceName: FLOW_TASK_SCHEDULER
+  org.quartz.threadPool.threadCount: 10
+  org.quartz.jobStore.class: org.quartz.impl.jdbcjobstore.JobStoreTX
+  org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+  org.quartz.jobStore.tablePrefix: QRTZ_
+  #集群模式，如果是多master模式需要设置为true
+  org.quartz.jobStore.isClustered: false
+  org.quartz.jobStore.misfireThreshold: 25000

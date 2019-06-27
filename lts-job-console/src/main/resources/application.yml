@@ -26,11 +26,10 @@ lts:
   server:
     role: master
     # local or zk
-    naming: local
+    naming: zk
     #当naming=zk时使用
     host: localhost:8080
     #当role=executor时使用
-    #handler: test
   alerter:
     phone:
       url: http://192.168.7.175:8080

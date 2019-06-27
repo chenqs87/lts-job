@@ -1,5 +1,7 @@
 package com.zy.data.lts.core.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import java.util.Date;
 
 /**
@@ -46,8 +48,10 @@ public class Task {
      */
     private int postTask;
 
+    @JsonIgnore
     private Date beginTime;
 
+    @JsonIgnore
     private Date endTime;
 
     private int shardStatus;
