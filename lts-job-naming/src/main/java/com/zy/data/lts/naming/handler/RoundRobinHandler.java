@@ -11,6 +11,7 @@ import feign.gson.GsonEncoder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 
 import java.util.ArrayList;
@@ -44,6 +45,12 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
     private final String handlerName;
     private final AtomicReferenceArray<String> virtualExecutors;
     private final int roundIndex;
+
+    @Autowired
+    private GsonEncoder gsonEncoder;
+
+    @Autowired
+    private GsonDecoder gsonDecoder;
 
 
     public RoundRobinHandler(String handlerName, int roundIndex) {
@@ -106,8 +113,8 @@ public class RoundRobinHandler implements IHandler, ApplicationListener<LtsHandl
     private Executor createExecutor(String host, String handler) {
         Executor executor = new Executor();
         IExecutor api = Feign.builder()
-                .encoder(new GsonEncoder())
-                .decoder(new GsonDecoder())
+                .encoder(gsonEncoder)
+                .decoder(gsonDecoder)
                 .target(IExecutor.class, "http://" + host);
         executor.setApi(api);
         executor.setHost(host);

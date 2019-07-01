@@ -39,5 +39,11 @@
             <artifactId>lts-job-naming</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.cronutils</groupId>
+            <artifactId>cron-utils</artifactId>
+            <version>9.0.0</version>
+        </dependency>
+
     </dependencies>
 </project>

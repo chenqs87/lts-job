@@ -39,13 +39,13 @@ public class JobScheduler {
      * @param cronExpression cron 表达式
      * @throws Exception
      */
-    public boolean startJob(String jobName, String cronExpression) throws Exception {
+    public Date startJob(String jobName, String cronExpression) throws Exception {
 
         TriggerKey triggerKey = TriggerKey.triggerKey(jobName);
         JobKey jobKey = new JobKey(jobName);
 
         if (scheduler.checkExists(triggerKey)) {
-            return true;
+            return null;
         }
 
         CronTrigger cronTrigger = createCronTrigger(cronExpression, triggerKey);
@@ -53,7 +53,7 @@ public class JobScheduler {
 
         Date date = scheduler.scheduleJob(jobDetail, cronTrigger);
         logger.info("Begin to start a cron job. time: {}", date);
-        return true;
+        return date;
     }
 
     public void stopJob(String jobName) throws SchedulerException {

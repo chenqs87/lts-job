@@ -1,5 +1,11 @@
 package com.zy.data.lts.schedule.service;
 
+import com.cronutils.mapper.CronMapper;
+import com.cronutils.model.Cron;
+import com.cronutils.model.definition.CronConstraintsFactory;
+import com.cronutils.model.definition.CronDefinition;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.parser.CronParser;
 import com.github.pagehelper.PageHelper;
 import com.google.gson.Gson;
 import com.zy.data.lts.core.*;
@@ -8,15 +14,15 @@ import com.zy.data.lts.core.entity.*;
 import com.zy.data.lts.core.model.ExecLogEvent;
 import com.zy.data.lts.core.model.FlowQueryRequest;
 import com.zy.data.lts.core.model.JobQueryRequest;
-import com.zy.data.lts.core.model.PagerRequest;
 import com.zy.data.lts.schedule.state.flow.FlowEvent;
 import com.zy.data.lts.schedule.state.flow.FlowEventType;
 import com.zy.data.lts.schedule.timer.JobScheduler;
 import com.zy.data.lts.schedule.trigger.JobTrigger;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
+import org.quartz.CronExpression;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -31,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static com.cronutils.model.CronType.QUARTZ;
 import static org.springframework.transaction.annotation.Propagation.REQUIRES_NEW;
 
 /**
@@ -39,6 +46,8 @@ import static org.springframework.transaction.annotation.Propagation.REQUIRES_NE
  */
 @Service
 public class JobService {
+
+    private static final Logger logger = LoggerFactory.getLogger(JobService.class);
 
     @Autowired
     JobTrigger jobTrigger;
@@ -313,12 +322,47 @@ public class JobService {
     public Flow startCronFlow(int flowId) throws Exception {
         // quartz 调度
         Flow flow = flowDao.findById(flowId);
-        flow.setIsSchedule(1);
-        flow.setStartTime(new Date());
-        flowDao.update(flow);
 
-        jobScheduler.startJob(String.valueOf(flow.getId()), flow.getCron());
+        Date date = jobScheduler.startJob(String.valueOf(flow.getId()), parseCron(flow.getCron()));
+        if(date != null) {
+            flow.setIsSchedule(1);
+            flow.setStartTime(date);
+            flowDao.update(flow);
+        }
         return flow;
+    }
+
+    private static CronDefinition quartz() {
+        return CronDefinitionBuilder.defineCron()
+                .withSeconds().withStrictRange().and()
+                .withMinutes().withStrictRange().and()
+                .withHours().withStrictRange().and()
+                .withDayOfMonth().withValidRange(1, 32).supportsL().supportsW().supportsLW().supportsQuestionMark().withStrictRange().and()
+                .withMonth().withValidRange(1, 13).and()
+                .withDayOfWeek().withValidRange(0, 6).withMondayDoWValue(1).supportsHash().supportsL().supportsQuestionMark().and()
+                .withYear().withValidRange(1970, 2099).withStrictRange().optional().and()
+                .withCronValidation(CronConstraintsFactory.ensureEitherDayOfWeekOrDayOfMonth())
+                .instance();
+    }
+
+    /**
+     * cron 表达式转换，通过vue控件生成的cron 表达式与quartz表达式，有些细微的差别，
+     * 主要体现在 vue控件生成的cron表达式，周的表示范围是（0~7），其中0和7都表示周日
+     * 而quartz 调度的cron表达式， 周的表示范围时（1~7）, 1 表示周日， 再通过quartz
+     * 因此，quartz在进行调度的时候，需要对cron表达式进行转换。
+     * @param unixCron
+     * @return
+     */
+    private String parseCron(String unixCron) {
+
+        CronDefinition cronDefinition = quartz();
+        CronParser parser = new CronParser(cronDefinition);
+        Cron from = parser.parse(unixCron);
+
+        CronMapper cronMapper = new CronMapper(cronDefinition,
+                CronDefinitionBuilder.instanceDefinitionFor(QUARTZ), cron -> cron);
+        Cron quartzCron = cronMapper.map(from);
+        return quartzCron.asString();
     }
 
     /**
@@ -443,6 +487,19 @@ public class JobService {
     @EventListener
     public void triggerFlow(TriggerFlowEvent event) {
         triggerFlow(event.getFlowId(), event.getTriggerMode(), event.getParams());
+
+        if(event.getTriggerMode() == TriggerMode.Cron) {
+            try {
+                Flow dbFlow = flowDao.findById(event.getFlowId());
+                CronExpression cronExpression = new CronExpression(parseCron(dbFlow.getCron()));
+                Date date = cronExpression.getNextValidTimeAfter(new Date());
+                dbFlow.setStartTime(date);
+                flowDao.update(dbFlow);
+
+            } catch (Exception e) {
+                logger.warn("Fail to update the flow [{}] next trigger time!!!", event.getFlowId(), e);
+            }
+        }
     }
 
     @EventListener

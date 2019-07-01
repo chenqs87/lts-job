@@ -45,7 +45,7 @@ public class ExecutorController {
     @ApiOperation(value = "启动定时任务", notes = "启动定时任务")
     @PostMapping("/exec")
     @ResponseBody
-    public ResponseEntity executeTask(@RequestBody ExecuteRequest req) throws IOException {
+    public ResponseEntity executeTask(@RequestBody ExecuteRequest req) {
         jobService.exec(req);
         return ResponseEntity.ok().build();
     }
@@ -53,7 +53,7 @@ public class ExecutorController {
     @ApiOperation(value = "kill任务", notes = "kill任务")
     @PostMapping("/kill")
     @ResponseBody
-    public ResponseEntity killTask(@RequestBody KillTaskRequest req) throws IOException {
+    public ResponseEntity killTask(@RequestBody KillTaskRequest req) {
         jobService.killTask(req);
         return ResponseEntity.ok().build();
     }

@@ -152,10 +152,16 @@ public class AsyncMaster implements ApplicationListener<LtsMasterChangeEvent>, I
         }
     }
 
+    @Autowired
+    private GsonEncoder gsonEncoder;
+
+    @Autowired
+    private GsonDecoder gsonDecoder;
+
     private IMaster createMaster(String host) {
         return Feign.builder()
-                .encoder(new GsonEncoder())
-                .decoder(new GsonDecoder())
+                .encoder(gsonEncoder)
+                .decoder(gsonDecoder)
                 .target(IMaster.class, "http://" + host);
     }
 

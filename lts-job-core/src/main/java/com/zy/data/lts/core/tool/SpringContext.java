@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
@@ -54,9 +55,12 @@ public class SpringContext implements ApplicationContextAware {
 
     public static void registerBean(String beanName, Object object) {
         applicationContext.getBeanFactory().registerSingleton(beanName, object);
+        applicationContext.getAutowireCapableBeanFactory().autowireBean(object);
+
         if(object instanceof ApplicationListener) {
             applicationContext.addApplicationListener((ApplicationListener) object);
         }
+
     }
 
     public static void publishEvent(Object event) {
