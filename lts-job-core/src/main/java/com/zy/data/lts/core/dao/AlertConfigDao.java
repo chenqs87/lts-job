@@ -23,7 +23,7 @@ public interface AlertConfigDao {
     @Select("select * from alert where flow_id = #{flowId}")
     AlertConfig findByFlowId(@Param("flowId") Integer flowId);
 
-    @Update("update alert set phone_list=#{phoneList},email_list=#{emailList} ")
+    @Update("update alert set phone_list=#{phoneList},email_list=#{emailList} where flow_id=#{flowId}")
     void update(AlertConfig config);
 
 }

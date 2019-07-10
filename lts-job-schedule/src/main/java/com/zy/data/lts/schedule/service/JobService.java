@@ -258,11 +258,14 @@ public class JobService {
 
         flowDao.update(dbFlow);
 
-
-        if (StringUtils.isNotBlank(flow.getPhoneList())
-                || StringUtils.isNotBlank(flow.getEmailList())) {
+        flow.setFlowId(flow.getId());
+        AlertConfig alertConfig = alertConfigDao.findByFlowId(flow.getFlowId());
+        if(alertConfig == null) {
+            alertConfigDao.insert(flow);
+        } else {
             alertConfigDao.update(flow);
         }
+
         return flow;
     }
 
