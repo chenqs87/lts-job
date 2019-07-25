@@ -3,16 +3,13 @@ server:
   servlet:
     context-path: /
 spring:
-  jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
   session:
     store-type: none
   datasource:
     name: lts-executor
     url: jdbc:mysql://localhost:3306/lts-job?serverTimezone=Asia/Shanghai&useUnicode=true&characterEncoding=utf8&useSSL=false
     username: root
-#    password: root
+    #    password: root
     password: root
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -33,15 +30,14 @@ pagehelper:
 lts:
   server:
     role: executor
-    naming: zk
+    naming: local
     host: localhost:8081
     handler: test
     single-master: localhost:8080
     executor:
       execute-root: /tmp/lts-executor/logs
       execute-env:
-        CheckInputContentScript: /data/www/lts-job/import-data/CheckFileContent.sh
-        HaoopConfigDir: /data/www/lts-job/lts-executor/config/hadoop-config
+        test: test
   job:
     thread:
       pools:

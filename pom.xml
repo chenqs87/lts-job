@@ -8,7 +8,6 @@
         <module>lts-job-core</module>
         <module>lts-job-schedule</module>
         <module>lts-job-executor</module>
-        <module>lts-job-executor-import</module>
         <module>distribution</module>
         <module>lts-job-naming</module>
     </modules>

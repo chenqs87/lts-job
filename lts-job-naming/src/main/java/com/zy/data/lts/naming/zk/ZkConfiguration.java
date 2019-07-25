@@ -1,6 +1,5 @@
 package com.zy.data.lts.naming.zk;
 
-import com.zy.data.lts.naming.handler.ZkHandlerManager;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;

@@ -13,7 +13,7 @@
     <packaging>pom</packaging>
     <modules>
         <module>console</module>
-        <module>executor-import</module>
+        <module>executor</module>
     </modules>
 
 </project>

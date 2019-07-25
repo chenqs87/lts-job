@@ -27,7 +27,3 @@ spring.resources.static-locations: classpath:/META-INF/resources/,classpath:/res
 #### lts-job-web 部署
 lts-job-web 前端js项目，单独打包，由lts-console 实例加载运行。
 
-
-#### update 
-ALTER TABLE `flow_task` 
-ADD COLUMN `host` VARCHAR(45) NULL AFTER `trigger_mode`;

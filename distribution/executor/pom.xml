@@ -14,7 +14,7 @@
     <dependencies>
         <dependency>
             <groupId>com.zy.data.lts</groupId>
-            <artifactId>lts-job-executor-import</artifactId>
+            <artifactId>lts-job-executor</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -38,7 +38,7 @@
                 </executions>
             </plugin>
         </plugins>
-        <finalName>lts-executor-import</finalName>
+        <finalName>lts-executor</finalName>
     </build>
 
 </project>

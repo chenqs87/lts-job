@@ -37,7 +37,7 @@
     </fileSets>
     <files>
         <file>
-            <source>../../lts-job-executor-import/target/lts-job-executor-import.jar</source>
+            <source>../../lts-job-executor/target/lts-job-executor.jar</source>
             <outputDirectory>/target/</outputDirectory>
         </file>
     </files>
@@ -46,7 +46,7 @@
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.zy.data.lts:lts-job-executor-import</include>
+                <include>com.zy.data.lts:lts-job-executor</include>
             </includes>
         </moduleSet>
     </moduleSets>
