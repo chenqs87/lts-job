@@ -35,8 +35,8 @@ lts:
     #当role=executor时使用
   alerter:
     phone:
-      url: http://192.168.7.175:8080
-      default-list: 18710072485
+      url: http://localhost:8090
+      default-list: 1234567890
   job:
     console:
       security.ignore.urls: /,/**/*.css,/**/*.js,/**/*.html,/**/*.map,/**/*.svg,/**/*.png,/**/*.ico,/console-fe/public/**,/console/auth/login,/handler/**
